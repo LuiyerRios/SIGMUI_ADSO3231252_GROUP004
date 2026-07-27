@@ -1,0 +1,41 @@
+doctype html
+html(lang="es")
+
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Tech Parking
+
+    link(rel="stylesheet", href="css/style.css")
+
+  body
+
+    header.navbar.flex.justify-center.py-6
+      img(src="/img/TechParking.png", alt="Tech Parking", style="width: 200px; height: auto;")
+
+    main.container
+
+      section.card
+
+        h2.title Forgot your password?
+
+        p.description
+          | Enter the email address associated with your profile
+          br
+          | so we can send you the account recovery link.
+
+        form(action="/forgot-password" method="POST")
+
+          .input-group
+            input(
+              type="email"
+              name="email"
+              placeholder="ENTER YOUR EMAIL"
+              required
+            )
+
+          button.btn(type="submit")
+            | confirm email
+
+        a.back(href="/HU-001")
+          | ← go back
