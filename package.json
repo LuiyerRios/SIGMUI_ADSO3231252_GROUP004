@@ -1,0 +1,28 @@
+{
+  "name": "sigmui_adso3231252_group004",
+  "version": "1.0.0",
+  "description": "Comprehensive Smart Urban Mobility Management System (SIGMUI)",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "build:css": "tailwindcss -i ./src/styles/input.css -o ./src/public/css/style.css --watch",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "mysql2": "^3.23.2",
+    "nodemailer": "^9.0.3",
+    "pug": "^3.0.4",
+    "sequelize": "^6.37.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "nodemon": "^3.1.14",
+    "tailwindcss": "^4.3.3"
+  }
+}
