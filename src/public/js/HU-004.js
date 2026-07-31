@@ -1,236 +1,139 @@
 console.log("HU-004.js cargado");
-
-
 let reservations = [];
 
-
-
-// Calcular total
+// CALCULAR
 
 function calculate(){
-
-
-    const type = document.getElementById("type").value;
-
-    const quantity = Number(
+    const type =
+    document.getElementById("type").value;
+    const quantity =
+    Number(
         document.getElementById("quantity").value
     );
 
-
     if(quantity <= 0){
-
-        alert("Ingrese una cantidad válida");
-
+        alert("Please enter a valid quantity");
         return;
-
     }
 
-
-
-    let total = 0;
-
-
-
+    let total;
     if(type === "hour"){
-
         total = quantity * 2000;
-
-    }
-
-
-    if(type === "day"){
-
+    }else{
         total = quantity * 20000;
-
     }
 
-
-
-    document.getElementById("total").textContent =
-        total.toLocaleString("es-US");
-
+    document.getElementById("total")
+    .textContent =
+    total.toLocaleString("es-US");
 }
 
-
-
-
-// Confirmar reserva
+// CONFIRMAR
 
 function confirmReservation(){
-
-
-
     const plate =
-        document.getElementById("plate").value;
-
-
-    const zone =
-        document.getElementById("zone").value;
-
-
+    document.getElementById("plate")
+    .value
+    .trim();
+    const location =
+    document.getElementById("zone")
+    .value;
     const type =
-        document.getElementById("type").value;
-
-
+    document.getElementById("type")
+    .value;
     const quantity =
-        Number(document.getElementById("quantity").value);
-
-
+    Number(
+        document.getElementById("quantity")
+        .value
+    );
 
     const total =
-        document.getElementById("total").textContent;
-
-
-
-
-    if(!plate || !zone || !quantity){
-
-        alert("Complete todos los campos");
-
+    document.getElementById("total")
+    .textContent;
+    if(!plate || !location || quantity<=0){
+        alert("Please fill in all required fields");
         return;
-
     }
 
-
-
-
     const reservation = {
-
-
-        plate: plate.toUpperCase(),
-
-
-        location: zone,
-
-
+        plate:
+        plate.toUpperCase(),
+        location:location,
         time:
-        type === "hour"
-        ? quantity + " Hour(s)"
-        : quantity + " Day(s)",
-
-
-        total: total,
-
-
+        type==="hour"
+        ?
+        quantity+" Hour(s)"
+        :
+        quantity+" Day(s)",
+        total:total,
         status:"Confirmed"
-
-
     };
 
-
-
-
-
-    fetch("/reservas",{
-
-        method:"POST",
-
-        headers:{
-            "Content-Type":"application/json"
-        },
-
-
-        body:JSON.stringify(reservation)
-
-    })
-
-
-
-    .then(response=>response.json())
-
-
-    .then(data=>{
-
-
-        console.log(data);
-
-
-        reservations.push(reservation);
-
-
-        showReservations();
-
-
-        alert("Reserva creada correctamente");
-
-
-    })
-
-
-
-    .catch(error=>{
-
-
-        console.log(error);
-
-
-        alert("Error guardando reserva");
-
-
-    });
-
-
-
+    reservations.push(reservation);
+    alert(
+        "✅ Your reservation has been confirmed successfully"
+    );
+    cleanForm();
 }
 
-
-
-
-// Mostrar tabla
+// MOSTRAR RESERVAS
 
 function showReservations(){
+    const table =
+    document.getElementById(
+        "reservationTable"
+    );
 
+    table.style.display="block";
+    const body =
+    document.getElementById(
+        "tableBody"
+    );
 
-    const tableBody =
-    document.getElementById("tableBody");
-
-
-
-    tableBody.innerHTML="";
-
-
-
-    reservations.forEach((reservation,index)=>{
-
-
-        const row =
-        document.createElement("tr");
-
-
-
-        row.innerHTML=`
-
-        <td>${index+1}</td>
-
-        <td>${reservation.plate}</td>
-
-        <td>${reservation.location}</td>
-
-        <td>${reservation.time}</td>
-
-        <td>${reservation.status}</td>
-
+    body.innerHTML="";
+    if(reservations.length===0){
+        body.innerHTML=`
+        <tr>
+        <td colspan="5">
+        No reservations found
+        </td>
+        </tr>
         `;
+        return;
+    }
 
-
-
-        tableBody.appendChild(row);
-
-
-
+    reservations.forEach(
+        (reservation,index)=>{
+        body.innerHTML += `
+        <tr>
+        <td>${index+1}</td>
+        <td>${reservation.plate}</td>
+        <td>${reservation.location}</td>
+        <td>${reservation.time}</td>
+        <td>
+        <span class="status status-active">
+        ${reservation.status}
+        </span>
+        </td>
+        </tr>
+        `;
     });
+}
 
+// LIMPIAR
 
+function cleanForm(){
+
+document.getElementById("plate").value="";
+document.getElementById("zone").value="";
+document.getElementById("quantity").value="";
+document.getElementById("total").textContent="0";
 
 }
 
-
-
-
-// Volver atrás
+// VOLVER
 
 function goBack(){
-
-    window.history.back();
+window.history.back();
 
 }

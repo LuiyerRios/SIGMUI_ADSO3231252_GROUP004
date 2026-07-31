@@ -1,108 +1,183 @@
-head
-  meta(charset="UTF-8")
-  meta(name="viewport", content="width=device-width, initial-scale=1.0")
-  title My Reservations
+doctype html
+html
 
-  link(rel="stylesheet", href="/css/style.css")
-  link(rel="stylesheet", href="/css/HU-004.css")
+  head
+
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+
+    title My Reservations
+
+    link(rel="stylesheet", href="/css/style.css")
+
+
   body
+
 
     .main-container
 
+
       .header
 
+
         .header-left
+
           img(
-            src="/img/weekly-calendar_icon-icons.com_56749.png",
-            alt="Calendar icon"
+            src="/img/calendario.jpeg"
+            alt="Calendar"
           )
 
           h2 My Reservations
 
 
+
         .header-right(onclick="goBack()")
 
           img(
-            src="/img/flecha.png",
+            src="/img/flecha.png"
             alt="Back"
           )
+
+
 
 
       .content
 
 
+
         .form
 
+
+
           input#plate(
-            type="text",
+            type="text"
             placeholder="Plate (required)"
           )
 
 
+
           select#zone
 
+
             option(value="") Select Zone
+
             option(value="A1") A1
+
             option(value="A2") A2
+
             option(value="B1") B1
+
+
 
 
 
           select#type
 
+
             option(value="hour") Per Hour ($2.000)
+
             option(value="day") Per Day ($20.000)
 
 
 
+
+
           input#quantity(
-            type="number",
+            type="number"
             placeholder="Hours or Days"
           )
 
 
+
+
+
           p
+
             | Total: $
+
             span#total 0
 
 
-          button(onclick="calculate()")
+
+
+
+          button(
+            onclick="calculate()"
+          )
+
             | Calculate
 
 
-          button(onclick="confirmReservation()")
+
+
+
+          button(
+            onclick="confirmReservation()"
+          )
+
             | Confirm
+
+
+
+
+
 
 
 
         .top-bar
 
+
           h3 List of reservations
 
 
-          button.btn
+
+          button.btn(
+            onclick="showReservations()"
+          )
+
             | View reservation
 
 
 
-        .table-container
+
+
+
+
+        .table-container#reservationTable(
+          style="display:none"
+        )
+
+
 
           table
 
+
             thead
+
 
               tr
 
                 th Nro
-                th Plate ▼
+
+                th Plate
+
                 th Location
+
                 th Time
+
                 th Status
+
+
+
+
 
 
             tbody#tableBody
 
 
 
-    script(src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js")
-    script(src="/js/HU-004.js?v=1")
+
+
+
+
+    script(src="/js/HU-004.js")
