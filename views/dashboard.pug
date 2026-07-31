@@ -1,0 +1,220 @@
+extends layouts/main
+
+block content
+
+    .app
+
+        aside.sidebar
+
+            .logo
+
+                .logo-icon P
+
+                h1 Tech Parking
+
+
+            nav.menu
+
+                a.active(href="#")
+                    span 🏠
+                    | Dashboard
+
+                a(href="#")
+                    span 🅿
+                    | Manage Parking Zones
+
+                a(href="#")
+                    span 👥
+                    | Manage Users
+
+                a(href="#")
+                    span ▣
+                    | Payment History
+
+                a(href="#")
+                    span ⚙
+                    | Settings
+
+
+            .legend
+
+                h3 Legend
+
+                .legend-item
+
+                    span.legend-color.available
+
+                    | Available
+
+                .legend-item
+
+                    span.legend-color.occupied
+
+                    | Occupied
+
+                .legend-item
+
+                    span.legend-color.selected
+
+                    | Selected
+
+
+        main.main-content
+
+            header.topbar
+
+                .welcome
+
+                    h2 Welcome, Admin!
+
+
+                .top-buttons
+
+                    button Occupancy
+
+                    button Today's Bookings
+
+                    button Available
+
+
+            section.statistics
+
+                .stat-card
+
+                    .stat-icon.blue 🚗
+
+                    .stat-data
+
+                        strong#occupancy 0%
+
+                        span Occupancy
+
+
+                .stat-card
+
+                    .stat-icon.green P
+
+                    .stat-data
+
+                        strong#availableCount 0
+
+                        span Available Spaces
+
+
+                .stat-card
+
+                    .stat-icon.yellow 📅
+
+                    .stat-data
+
+                        strong#bookingCount 0
+
+                        span Today's Bookings
+
+
+                .stat-card
+
+                    .stat-icon.purple $
+
+                    .stat-data
+
+                        strong $1,250.00
+
+                        span Today's Revenue
+
+
+            section.dashboard-grid
+
+                .parking-area
+
+                    .parking-header
+
+                        h3 Parking Map
+
+                        .map-note Click a space to select it
+
+
+                    .parking-map#parkingMap
+
+
+                aside.details-panel
+
+                    .details-title
+
+                        h3 Selected Space
+
+                        button.close-button(type="button") ×
+
+
+                    h2#spaceName None
+
+
+                    .information-row
+
+                        span Status
+
+                        strong#spaceStatus No selection
+
+
+                    .information-row
+
+                        span Vehicle
+
+                        strong#vehicleNumber ---
+
+
+                    .information-row
+
+                        span Proprietary
+
+                        strong#ownerName ---
+
+
+                    .information-row
+
+                        span Entry Time
+
+                        strong#entryTime ---
+
+
+                    .information-row
+
+                        span Description
+
+                        strong#description ---
+
+
+                    .information-row
+
+                        span Zone
+
+                        strong#zoneName ---
+
+
+                    .change-status
+
+                        h4 Change Status
+
+
+                        .status-buttons
+
+                            button.available-button(
+                                type="button"
+                            ) Available
+
+                            button.occupied-button(
+                                type="button"
+                            ) Occupied
+
+
+                    button.confirm-button(
+                        type="button"
+                        id="confirmChanges"
+                    )
+                        | Confirm Changes
+
+
+                    p.message#message
+
+
+    script(src="/js/parking.js")

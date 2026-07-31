@@ -1,0 +1,894 @@
+*{
+    box-sizing:border-box;
+}
+
+
+html,
+body{
+    margin:0;
+    min-height:100%;
+}
+
+
+body{
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background:#edf2f7;
+
+    color:#172033;
+}
+
+
+/* =====================
+   ESTRUCTURA
+===================== */
+
+.app{
+    min-height:100vh;
+
+    display:grid;
+
+    grid-template-columns:
+        240px
+        minmax(0, 1fr);
+}
+
+
+/* =====================
+   BARRA LATERAL
+===================== */
+
+.sidebar{
+    min-height:100vh;
+
+    display:flex;
+
+    flex-direction:column;
+
+    padding:18px;
+
+    background-color: #2565ae;
+
+    color:white;
+}
+
+
+.logo{
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    margin-bottom:30px;
+}
+
+
+.logo-icon{
+    width:38px;
+
+    height:38px;
+
+    display:grid;
+
+    place-items:center;
+
+    border-radius:9px;
+
+    background:#2e62c8;
+
+    font-size:22px;
+
+    font-weight:bold;
+}
+
+
+.logo h1{
+    margin:0;
+
+    font-size:23px;
+}
+
+
+/* =====================
+   MENÚ
+===================== */
+
+.menu{
+    display:flex;
+
+    flex-direction:column;
+
+    gap:9px;
+}
+
+
+.menu a{
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+    padding:14px;
+
+    border-radius:8px;
+
+    color:#e5edf7;
+
+    text-decoration:none;
+
+    font-size:15px;
+}
+
+
+.menu a:hover,
+.menu a.active{
+    background:
+        linear-gradient(
+            90deg,
+            #365fc8,
+            #294fb3
+        );
+}
+
+
+/* =====================
+   LEYENDA
+===================== */
+
+.legend{
+    margin-top:auto;
+
+    padding:18px;
+
+    border-radius:10px;
+
+    background:
+        rgba(
+            255,
+            255,
+            255,
+            .07
+        );
+}
+
+
+.legend h3{
+    margin:
+        0
+        0
+        16px;
+}
+
+
+.legend-item{
+    display:flex;
+
+    align-items:center;
+
+    gap:11px;
+
+    margin:12px 0;
+
+    font-size:14px;
+}
+
+
+.legend-color{
+    width:14px;
+
+    height:14px;
+
+    border-radius:3px;
+}
+
+
+.legend-color.available{
+    background:#25965d;
+}
+
+
+.legend-color.occupied{
+    background:#e84343;
+}
+
+
+.legend-color.selected{
+    background:#3769d7;
+}
+
+
+/* =====================
+   CONTENIDO
+===================== */
+
+.main-content{
+    min-width:0;
+
+    padding:0 18px 25px;
+
+    overflow:hidden;
+}
+
+
+/* =====================
+   BARRA SUPERIOR
+===================== */
+
+.topbar{
+    height:70px;
+
+    margin:
+        0
+        -18px
+        18px;
+
+    padding:
+        0
+        25px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    background:white;
+
+    border-bottom:
+        1px solid
+        #dbe3ec;
+}
+
+
+.welcome{
+    display:flex;
+
+    align-items:center;
+
+    gap:24px;
+}
+
+
+.welcome h2{
+    margin:0;
+
+    font-size:17px;
+
+    font-weight:500;
+}
+
+
+.menu-icon{
+    font-size:22px;
+}
+
+
+.top-buttons{
+    display:flex;
+
+    gap:10px;
+}
+
+
+.top-buttons button{
+    padding:
+        11px
+        17px;
+
+    border:0;
+
+    border-radius:6px;
+
+    background:#122b47;
+
+    color:white;
+
+    cursor:pointer;
+}
+
+
+/* =====================
+   ESTADÍSTICAS
+===================== */
+
+.statistics{
+    display:grid;
+
+    grid-template-columns:
+        repeat(
+            4,
+            1fr
+        );
+
+    gap:16px;
+
+    margin-bottom:18px;
+}
+
+
+.stat-card{
+    min-height:82px;
+
+    padding:18px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:16px;
+
+    background:white;
+
+    border:
+        1px solid
+        #dce4ed;
+
+    border-radius:11px;
+
+    box-shadow:
+        0 3px 9px
+        rgba(
+            0,
+            0,
+            0,
+            .06
+        );
+}
+
+
+.stat-icon{
+    width:44px;
+
+    height:44px;
+
+    display:grid;
+
+    place-items:center;
+
+    border-radius:8px;
+
+    color:white;
+
+    font-size:19px;
+}
+
+
+.stat-icon.blue{
+    background:#315fbd;
+}
+
+
+.stat-icon.green{
+    background:#24955c;
+}
+
+
+.stat-icon.yellow{
+    background:#e9a900;
+}
+
+
+.stat-icon.purple{
+    background:#6d43b7;
+}
+
+
+.stat-data{
+    display:flex;
+
+    flex-direction:column;
+
+    gap:6px;
+}
+
+
+.stat-data strong{
+    font-size:20px;
+}
+
+
+.stat-data span{
+    color:#657185;
+
+    font-size:13px;
+}
+
+
+/* =====================
+   MAPA Y PANEL
+===================== */
+
+.dashboard-grid{
+    display:grid;
+
+    grid-template-columns:
+        minmax(
+            850px,
+            1fr
+        )
+        330px;
+
+    gap:18px;
+
+    align-items:start;
+}
+
+
+.parking-area{
+    min-width:0;
+
+    padding:20px;
+
+    border-radius:12px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #3e454c,
+            #252c32
+        );
+
+    box-shadow:
+        0 5px 15px
+        rgba(
+            0,
+            0,
+            0,
+            .15
+        );
+}
+
+
+.parking-header{
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:18px;
+
+    color:white;
+}
+
+
+.parking-header h3{
+    margin:0;
+
+    font-size:19px;
+}
+
+
+.map-note{
+    font-size:13px;
+
+    color:#d4dbe3;
+}
+
+
+/* =====================
+   MAPA
+===================== */
+
+.parking-map{
+    width:100%;
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(
+            8,
+            minmax(
+                72px,
+                1fr
+            )
+        );
+
+    gap:16px;
+
+    padding:25px;
+
+    border-radius:10px;
+
+    background:
+        rgba(
+            0,
+            0,
+            0,
+            .24
+        );
+}
+
+
+.parking-space{
+    min-height:76px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    border:
+        2px solid
+        rgba(
+            255,
+            255,
+            255,
+            .65
+        );
+
+    border-radius:4px;
+
+    color:white;
+
+    font-size:17px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+    user-select:none;
+
+    transition:
+        transform .15s,
+        box-shadow .15s,
+        background .2s;
+}
+
+
+.parking-space:hover{
+    transform:
+        translateY(-3px);
+
+    box-shadow:
+        0 7px 15px
+        rgba(
+            0,
+            0,
+            0,
+            .35
+        );
+}
+
+
+.parking-space.available{
+    background:#2b8d55;
+}
+
+
+.parking-space.occupied{
+    background:#df4141;
+}
+
+
+.parking-space.selected{
+    outline:
+        5px solid
+        #3970e1;
+
+    outline-offset:3px;
+}
+
+
+/* =====================
+   PANEL DERECHO
+===================== */
+
+.details-panel{
+    min-height:650px;
+
+    padding:22px;
+
+    background:white;
+
+    border:
+        1px solid
+        #dce4ed;
+
+    border-radius:12px;
+
+    box-shadow:
+        0 4px 13px
+        rgba(
+            0,
+            0,
+            0,
+            .08
+        );
+}
+
+
+.details-title{
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    padding-bottom:14px;
+
+    border-bottom:
+        1px solid
+        #e4e9ef;
+}
+
+
+.details-title h3{
+    margin:0;
+
+    font-size:18px;
+}
+
+
+.close-button{
+    border:0;
+
+    background:none;
+
+    font-size:23px;
+
+    cursor:pointer;
+}
+
+
+#spaceName{
+    margin:
+        17px
+        0;
+
+    font-size:24px;
+}
+
+
+.information-row{
+    display:grid;
+
+    grid-template-columns:
+        1fr
+        auto;
+
+    gap:15px;
+
+    padding:11px 0;
+
+    border-bottom:
+        1px solid
+        #edf0f4;
+
+    font-size:14px;
+}
+
+
+.information-row span{
+    color:#566277;
+}
+
+
+.information-row strong{
+    text-align:right;
+}
+
+
+.change-status{
+    margin-top:18px;
+}
+
+
+.change-status h4{
+    margin:
+        0
+        0
+        12px;
+}
+
+
+.status-buttons{
+    display:grid;
+
+    grid-template-columns:
+        1fr
+        1fr;
+
+    gap:10px;
+}
+
+
+.status-buttons button{
+    padding:12px;
+
+    border:0;
+
+    border-radius:6px;
+
+    color:white;
+
+    font-weight:bold;
+
+    cursor:pointer;
+}
+
+
+.available-button{
+    background:#24955c;
+}
+
+
+.occupied-button{
+    background:#df4141;
+}
+
+
+.status-buttons button.active{
+    outline:
+        3px solid
+        #172f52;
+}
+
+
+.confirm-button{
+    width:100%;
+
+    margin-top:25px;
+
+    padding:14px;
+
+    border:0;
+
+    border-radius:7px;
+
+    background:#2f5fc2;
+
+    color:white;
+
+    font-size:15px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+}
+
+
+.confirm-button:hover{
+    background:#254da0;
+}
+
+
+.message{
+    min-height:22px;
+
+    margin:
+        13px
+        0
+        0;
+
+    text-align:center;
+
+    color:#16824a;
+
+    font-weight:bold;
+}
+
+
+/* =====================
+   RESPONSIVE
+===================== */
+
+@media(
+    max-width:1450px
+){
+
+    .dashboard-grid{
+
+        grid-template-columns:
+            minmax(
+                0,
+                1fr
+            )
+            330px;
+
+    }
+
+
+    .parking-map{
+
+        grid-template-columns:
+            repeat(
+                6,
+                1fr
+            );
+
+    }
+
+}
+
+
+@media(
+    max-width:1150px
+){
+
+    .dashboard-grid{
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+
+    .details-panel{
+
+        min-height:auto;
+
+    }
+
+
+    .statistics{
+
+        grid-template-columns:
+            repeat(
+                2,
+                1fr
+            );
+
+    }
+
+}
+
+
+@media(
+    max-width:750px
+){
+
+    .app{
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+
+    .sidebar{
+
+        min-height:auto;
+
+    }
+
+
+    .legend{
+
+        display:none;
+
+    }
+
+
+    .statistics{
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+
+    .parking-map{
+
+        grid-template-columns:
+            repeat(
+                3,
+                1fr
+            );
+
+    }
+
+
+    .top-buttons{
+
+        display:none;
+
+    }
+
+}
