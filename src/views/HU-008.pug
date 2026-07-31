@@ -1,0 +1,56 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title Municipal Administrative Dashboard
+
+    link(rel="stylesheet" href="/css/style.css")
+
+  body
+
+    .app
+
+      .header
+
+        a.back(href="/")
+          img.back-arrow(src="/img/Flecha.png" alt="Back")
+
+        img.logo(src="/img/Header.png" alt="SIGMUI")
+
+      main.container
+
+        .toolbar
+
+          .filter
+
+            label(for="date") Filter by date:
+
+            input(
+              type="date"
+              id="date"
+              name="date"
+              value=fecha
+            )
+
+          .actions
+
+            button#pdfBtn(type="button") Export PDF
+
+            button#excelBtn(type="button") Export Excel
+
+        .chart-section
+
+          .chart-container
+
+            canvas#occupancyChart(
+              width="300"
+              height="300"
+            )
+
+        if mensaje
+          .alert
+
+            span.icon ⚠
+
+            span.message= mensaje
