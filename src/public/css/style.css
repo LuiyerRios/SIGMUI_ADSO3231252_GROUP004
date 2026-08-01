@@ -1,0 +1,593 @@
+/*==================================================
+    VARIABLES
+==================================================*/
+
+:root{
+
+    --primary:#3b2cc9;
+    --primary-hover:#2e22b8;
+
+    --success:#2ecc71;
+    --warning:#f1c40f;
+
+    --white:#ffffff;
+    --black:#000000;
+
+    --background:#f5f5f5;
+    --border:#d9d9d9;
+    --text:#333333;
+
+    --radius:8px;
+    --shadow:0 4px 12px rgba(0,0,0,.12);
+
+    --transition:.3s;
+
+    --font:Arial, Helvetica, sans-serif;
+
+}
+
+/*==================================================
+    RESET
+==================================================*/
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    font-family:var(--font);
+    background:var(--background);
+    color:var(--text);
+    overflow-x:hidden;
+}
+
+img{
+    display:block;
+    max-width:100%;
+}
+
+button{
+    font:inherit;
+    border:none;
+    cursor:pointer;
+}
+
+input{
+    font:inherit;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+/*==================================================
+    GENERAL
+==================================================*/
+
+.container{
+
+    width:100%;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+
+}
+
+/*==================================================
+    HEADER
+==================================================*/
+
+.header{
+
+    width:100%;
+    height:80px;
+
+    background:var(--primary);
+    color:var(--white);
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    padding:0 25px;
+
+}
+
+.left{
+
+    display:flex;
+    align-items:center;
+    gap:15px;
+
+}
+
+.left h2{
+
+    font-size:28px;
+    font-weight:600;
+
+}
+
+.icon{
+
+    width:38px;
+
+}
+
+.back{
+
+    width:28px;
+    cursor:pointer;
+    transition:var(--transition);
+
+}
+
+.back:hover{
+
+    transform:scale(1.08);
+
+}
+
+/*==================================================
+    TABLE
+==================================================*/
+
+.table-container{
+
+    width:100%;
+    padding:20px;
+    overflow-x:auto;
+
+}
+
+table{
+
+    background:var(--white);
+    border-radius:10px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+
+}
+
+thead{
+
+    background:#efefef;
+
+}
+
+th{
+
+    padding:16px;
+    text-align:left;
+    font-size:15px;
+    font-weight:bold;
+    border-bottom:2px solid var(--border);
+
+}
+
+td{
+
+    padding:16px;
+    border-bottom:1px solid var(--border);
+
+}
+
+tbody tr{
+
+    transition:var(--transition);
+
+}
+
+tbody tr:hover{
+
+    background:#fafafa;
+
+}
+
+.bold{
+
+    font-weight:bold;
+
+}
+
+/*==================================================
+    STATUS
+==================================================*/
+
+.status{
+
+    display:inline-block;
+
+    padding:6px 18px;
+
+    border-radius:20px;
+
+    font-size:13px;
+    font-weight:bold;
+
+}
+
+.active{
+
+    background:var(--success);
+
+}
+
+.pending{
+
+    background:var(--warning);
+
+}
+
+/*==================================================
+    BUTTON PLUS
+==================================================*/
+
+.plus{
+
+    width:36px;
+    height:36px;
+
+    border-radius:50%;
+
+    background:var(--primary);
+    color:var(--white);
+
+    font-size:22px;
+
+    transition:var(--transition);
+
+}
+
+.plus:hover{
+
+    background:var(--primary-hover);
+
+}
+
+/*==================================================
+    CARD
+==================================================*/
+
+.card{
+
+    background:var(--white);
+
+    margin:20px;
+
+    padding:30px;
+
+    border-radius:10px;
+
+    box-shadow:var(--shadow);
+
+}
+
+.card-top{
+
+    display:flex;
+    justify-content:space-between;
+    gap:40px;
+
+}
+
+.left-form{
+
+    flex:2;
+
+}
+
+.right-form{
+
+    flex:1;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+
+}
+
+.right-form span{
+
+    font-size:18px;
+
+}
+
+.right-form h2{
+
+    margin-top:10px;
+    font-size:40px;
+    color:var(--primary);
+
+}
+/*==================================================
+    INPUTS
+==================================================*/
+
+.left-form input{
+
+    width:100%;
+
+    padding:12px 15px;
+
+    margin-bottom:15px;
+
+    border:1px solid var(--border);
+
+    border-radius:var(--radius);
+
+    background:#fafafa;
+
+    color:var(--text);
+
+    outline:none;
+
+    transition:var(--transition);
+
+}
+
+.left-form input:focus{
+
+    border-color:var(--primary);
+
+}
+
+.left-form input:disabled{
+
+    background:#f2f2f2;
+    color:#555;
+
+}
+
+/*==================================================
+    TIME BOX
+==================================================*/
+
+.time-box{
+
+    margin-top:15px;
+
+}
+
+.time-box span{
+
+    font-size:16px;
+    font-weight:bold;
+
+}
+
+.time-control{
+
+    margin-top:10px;
+
+    display:flex;
+    align-items:center;
+    gap:15px;
+
+}
+
+.time-control button{
+
+    width:35px;
+    height:35px;
+
+    border-radius:50%;
+
+    background:var(--primary);
+
+    color:var(--white);
+
+    font-size:18px;
+
+    transition:var(--transition);
+
+}
+
+.time-control button:hover{
+
+    background:var(--primary-hover);
+
+}
+
+#hours{
+
+    min-width:80px;
+
+    text-align:center;
+
+    font-size:16px;
+
+    font-weight:bold;
+
+}
+
+/*==================================================
+    SUBMIT BUTTON
+==================================================*/
+
+.submit-container{
+
+    display:flex;
+
+    justify-content:center;
+
+    margin-top:30px;
+
+}
+
+.submit{
+
+    background:var(--primary);
+
+    color:var(--white);
+
+    padding:14px 70px;
+
+    border-radius:var(--radius);
+
+    font-size:16px;
+
+    font-weight:bold;
+
+    transition:var(--transition);
+
+}
+
+.submit:hover{
+
+    background:var(--primary-hover);
+
+}
+
+/*==================================================
+    UTILITIES
+==================================================*/
+
+.text-center{
+
+    text-align:center;
+
+}
+
+.flex{
+
+    display:flex;
+
+}
+
+.justify-center{
+
+    justify-content:center;
+
+}
+
+.align-center{
+
+    align-items:center;
+
+}
+
+.hidden{
+
+    display:none;
+
+}
+
+.w-100{
+
+    width:100%;
+
+}
+
+.mt-10{
+
+    margin-top:10px;
+
+}
+
+.mt-20{
+
+    margin-top:20px;
+
+}
+
+.mb-20{
+
+    margin-bottom:20px;
+
+}
+
+/*==================================================
+    RESPONSIVE
+==================================================*/
+
+@media screen and (max-width:900px){
+
+    .card-top{
+
+        flex-direction:column;
+
+    }
+
+    .right-form{
+
+        align-items:flex-start;
+
+    }
+
+    .right-form h2{
+
+        font-size:34px;
+
+    }
+
+}
+
+@media screen and (max-width:600px){
+
+    .header{
+
+        padding:15px;
+
+    }
+
+    .left h2{
+
+        font-size:20px;
+
+    }
+
+    .icon{
+
+        width:32px;
+
+    }
+
+    .back{
+
+        width:24px;
+
+    }
+
+    .table-container{
+
+        padding:10px;
+
+    }
+
+    th,
+    td{
+
+        padding:10px;
+        font-size:14px;
+
+    }
+
+    .card{
+
+        margin:10px;
+        padding:20px;
+
+    }
+
+    .submit{
+
+        width:100%;
+
+    }
+
+    .time-control{
+
+        justify-content:center;
+
+    }
+
+}

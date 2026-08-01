@@ -1,0 +1,113 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Request More Time
+    link(rel="stylesheet", href="/css/style.css")
+
+  body
+    .container
+
+      //================ HEADER ================
+
+      .header
+        .left
+          img.icon(src="/img/atras-en-el-tiempo.png")
+          h2 Request More Time
+
+        img.back(
+          src="/img/flecha.png"
+          alt="Back"
+          onclick="goBack()"
+        )
+
+      //================ TABLE ================
+
+      .table-container
+        table
+          thead
+            tr
+              th #N
+              th Location
+              th Vehicle
+              th Plate
+              th Status
+              th
+
+          tbody
+            tr
+              td 001567
+              td.bold A2
+              td.bold 001567
+              td.bold AJS456
+              td
+                span.status.active Active
+              td
+                button.plus(
+                  onclick="selectRow('A2','001567','AJS456','Active', this)"
+                ) +
+
+            tr
+              td 002215
+              td.bold B1
+              td.bold 002215
+              td.bold BJF356
+              td
+                span.status.pending To finish
+              td
+                button.plus(
+                  onclick="selectRow('B1','002215','BJF356','To finish', this)"
+                ) +
+
+      //================ CARD ================
+
+      .card
+        .card-top
+          .left-form
+            input(
+              id="location"
+              type="text"
+              placeholder="Location"
+              disabled
+            )
+
+            input(
+              id="vehicle"
+              type="text"
+              placeholder="Vehicle"
+              disabled
+            )
+
+            input(
+              id="plate"
+              type="text"
+              placeholder="Plate"
+              disabled
+            )
+
+            .time-box
+              span Add time
+
+              .time-control
+                button(
+                  onclick="changeTime(-1)"
+                ) -
+
+                span#hours 0 hours
+
+                button(
+                  onclick="changeTime(1)"
+                ) +
+
+          .right-form
+            span Total
+            h2#price $0
+
+        .submit-container
+          button.submit(
+            onclick="confirmExtension()"
+            style="display:none;"
+          ) Extend Time
+
+    script(src="/js/HU-005.js")
