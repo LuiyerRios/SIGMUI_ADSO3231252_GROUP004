@@ -133,7 +133,6 @@ document.getElementById("total").textContent="0";
 
 // VOLVER
 
-function goBack(){
-window.history.back();
-
+function goBack() {
+    window.location.href = "/HU-003";
 }

@@ -23,7 +23,7 @@ html
         .header-left
 
           img(
-            src="/img/calendario.jpeg"
+            src="/img/calendario.png"
             alt="Calendar"
           )
 
@@ -38,26 +38,16 @@ html
             alt="Back"
           )
 
-
-
-
       .content
 
-
-
         .form
-
-
 
           input#plate(
             type="text"
             placeholder="Plate (required)"
           )
 
-
-
           select#zone
-
 
             option(value="") Select Zone
 
@@ -67,29 +57,16 @@ html
 
             option(value="B1") B1
 
-
-
-
-
           select#type
-
 
             option(value="hour") Per Hour ($2.000)
 
             option(value="day") Per Day ($20.000)
 
-
-
-
-
           input#quantity(
             type="number"
             placeholder="Hours or Days"
           )
-
-
-
-
 
           p
 
@@ -97,19 +74,11 @@ html
 
             span#total 0
 
-
-
-
-
           button(
             onclick="calculate()"
           )
 
             | Calculate
-
-
-
-
 
           button(
             onclick="confirmReservation()"
@@ -117,19 +86,9 @@ html
 
             | Confirm
 
-
-
-
-
-
-
-
         .top-bar
 
-
           h3 List of reservations
-
-
 
           button.btn(
             onclick="showReservations()"
@@ -137,23 +96,13 @@ html
 
             | View reservation
 
-
-
-
-
-
-
         .table-container#reservationTable(
           style="display:none"
         )
 
-
-
           table
 
-
             thead
-
 
               tr
 
@@ -167,17 +116,6 @@ html
 
                 th Status
 
-
-
-
-
-
             tbody#tableBody
-
-
-
-
-
-
 
     script(src="/js/HU-004.js")
