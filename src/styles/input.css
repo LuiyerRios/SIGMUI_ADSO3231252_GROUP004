@@ -1,4 +1,5 @@
 @import "tailwindcss";
+<<<<<<< HEAD
 
 @theme {
   --color-brand-primary: #2565AE;
@@ -56,3 +57,5 @@ body {
 .btn-primary:hover {
   opacity: 0.85;
 }
+=======
+>>>>>>> 1aa5b1d (feat(views): implement available areas map view and layout redesign)
