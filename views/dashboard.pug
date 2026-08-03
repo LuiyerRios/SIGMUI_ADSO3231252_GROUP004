@@ -16,24 +16,26 @@ block content
             nav.menu
 
                 a.active(href="#")
-                    span 🏠
+                     
+                    | Parking Zones
+                    
+                a.logout-button(href="/HU-008")
+                     
                     | Dashboard
-
+                        
                 a(href="#")
-                    span 🅿
-                    | Manage Parking Zones
-
-                a(href="#")
-                    span 👥
+                    
                     | Manage Users
 
                 a(href="#")
-                    span ▣
+                     
                     | Payment History
 
                 a(href="#")
-                    span ⚙
                     | Settings
+                
+                a.logout-button(href="/login")
+                    | Exit
 
 
             .legend
@@ -76,6 +78,7 @@ block content
 
                     button Available
 
+                    button#themeToggle 🌙 Modo oscuro
 
             section.statistics
 

@@ -1085,7 +1085,71 @@ if (
     );
 
 }
+/* ==========================================
+   MODO OSCURO / CLARO
+========================================== */
 
+const themeButton = document.getElementById("themeToggle");
+const appContainer = document.querySelector(".app");
+
+
+if (themeButton && appContainer) {
+
+
+    const currentTheme = localStorage.getItem("theme");
+
+
+    if (currentTheme === "dark") {
+
+        appContainer.classList.add("dark-mode");
+
+        themeButton.textContent =
+            "☀️ Modo claro";
+
+    }
+
+
+
+    themeButton.addEventListener(
+        "click",
+        function(){
+
+            appContainer.classList.toggle(
+                "dark-mode"
+            );
+
+
+            if(
+                appContainer.classList.contains(
+                    "dark-mode"
+                )
+            ){
+
+                localStorage.setItem(
+                    "theme",
+                    "dark"
+                );
+
+                themeButton.textContent =
+                    "☀️ Modo claro";
+
+            }
+            else{
+
+                localStorage.setItem(
+                    "theme",
+                    "light"
+                );
+
+                themeButton.textContent =
+                    "🌙 Modo oscuro";
+
+            }
+
+        }
+    );
+
+}
 
 
 

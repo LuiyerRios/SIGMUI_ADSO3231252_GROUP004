@@ -892,3 +892,51 @@ body{
     }
 
 }
+/* Fondo */
+.dark-mode{
+    background:#121212;
+    color:white;
+}
+
+/* Sidebar */
+.dark-mode .sidebar{
+    background:#1f1f1f;
+}
+
+/* Contenido */
+.dark-mode .main-content{
+    background:#181818;
+}
+
+/* Tarjetas */
+.dark-mode .stat-card,
+.dark-mode .parking-area,
+.dark-mode .details-panel{
+    background:#242424;
+    color:white;
+}
+
+/* Barra superior */
+.dark-mode .topbar{
+    background:#1f1f1f;
+}
+
+/* Botones */
+.dark-mode button{
+    background:#333;
+    color:white;
+    border:1px solid #555;
+}
+
+.dark-mode button:hover{
+    background:#444;
+}
+
+/* Enlaces del menú */
+.dark-mode .menu a{
+    color:white;
+}
+
+.dark-mode .menu a.active{
+    background:#007bff;
+}
