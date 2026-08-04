@@ -1,4 +1,4 @@
-/*CONFIGURATION*/
+/*CONFIGURACIÓN*/
 const PRICE_PER_HOUR = 2000;
 
 /*VARIABLES*/
@@ -7,16 +7,16 @@ let expirationTime = new Date();
 let selectedReservation = null;
 let selectedRow = null;
 
-/*NAVIGATION*/
+/*NAVEGACIÓN*/
 function goBack() {
-    window.history.back();
+    window.location.href = "/HU-003";
 }
 
-/*RESERVATIONS*/
+/*RESERVAS*/
 function selectRow(location, vehicle, plate, status, button) {
 
     if (status !== "Active") {
-        alert("Only active reservations can be extended.");
+        alert("Solo las reservas activas pueden extenderse.");
         return;
     }
 
@@ -29,18 +29,19 @@ function selectRow(location, vehicle, plate, status, button) {
         status
     };
 
-    document.getElementById("location").value = "Location: " + location;
-    document.getElementById("vehicle").value = "Vehicle: " + vehicle;
-    document.getElementById("plate").value = "Plate: " + plate;
+    document.getElementById("location").value = "Ubicación: " + location;
+    document.getElementById("vehicle").value = "Vehículo: " + vehicle;
+    document.getElementById("plate").value = "Placa: " + plate;
 
     document.querySelector(".submit").style.display = "block";
 
     hours = 0;
+
     updateHours();
     updatePrice();
 }
 
-/*TIME*/
+/*TIEMPO*/
 function changeTime(value) {
 
     hours += value;
@@ -53,18 +54,26 @@ function changeTime(value) {
     updatePrice();
 }
 
+
 function updateHours() {
 
     if (hours === 0) {
-        document.getElementById("hours").textContent = "0 hours";
+
+        document.getElementById("hours").textContent = "0 horas";
+
     } else if (hours === 1) {
-        document.getElementById("hours").textContent = "1 hour";
+
+        document.getElementById("hours").textContent = "1 hora";
+
     } else {
-        document.getElementById("hours").textContent = hours + " hours";
+
+        document.getElementById("hours").textContent =
+            hours + " horas";
     }
 }
 
-/*PRICE*/
+
+/*PRECIO*/
 function updatePrice() {
 
     const total = hours * PRICE_PER_HOUR;
@@ -73,74 +82,169 @@ function updatePrice() {
         "$" + total.toLocaleString();
 }
 
-/*PAYMENT*/
+
+/*PAGO*/
 function confirmExtension() {
 
     if (selectedReservation === null) {
-        alert("Select a reservation first.");
+
+        alert("Seleccione una reserva primero.");
         return;
     }
 
+
+    if (hours === 0) {
+
+        alert("Seleccione mínimo una hora.");
+        return;
+    }
+
+
     const confirmation = confirm(
-        "Do you want to extend the reservation?"
+        "¿Desea extender la reserva?"
     );
+
 
     if (!confirmation) {
         return;
     }
 
+
     updateExpirationTime();
+
 
     if (selectedRow) {
 
         const status = selectedRow.querySelector(".status");
+        const plus = selectedRow.querySelector(".plus");
 
-        status.textContent = "To finish";
-        status.classList.remove("active");
-        status.classList.add("pending");
 
-        selectedRow.querySelector(".plus").style.display = "none";
+        // La reserva sigue activa mientras tenga tiempo disponible
+        status.textContent = "Active";
+
+        status.classList.remove("pending");
+
+        status.classList.add("active");
+
+
+        plus.style.display = "inline-block";
+
+
+        // Guarda la fila antes de reiniciar los datos
+        const currentRow = selectedRow;
+
+
+        // Conversión de horas a milisegundos
+        const milliseconds = hours * 60 * 60 * 1000;
+
+
+
+        setTimeout(() => {
+
+
+            const status = currentRow.querySelector(".status");
+            const plus = currentRow.querySelector(".plus");
+
+
+            status.textContent = "Finish";
+
+            status.classList.remove("active");
+
+            status.classList.add("pending");
+
+
+            // Oculta el botón cuando termina el tiempo
+            plus.style.display = "none";
+
+
+        }, milliseconds);
+
     }
 
-    alert("Payment successful.");
+
+    alert("Pago realizado correctamente.");
+
 
     resetForm();
 }
 
-/*EXPIRATION*/
+
+
+/*FINALIZACIÓN DE TIEMPO*/
 function updateExpirationTime() {
 
     expirationTime.setHours(
         expirationTime.getHours() + hours
     );
 
+
     alert(
-        "New expiration time:\n\n" +
+        "Nueva hora de finalización:\n\n" +
         expirationTime.toLocaleTimeString()
     );
 }
 
-/*RESET*/
+
+
+/*RESTABLECER FORMULARIO*/
 function resetForm() {
 
     selectedReservation = null;
+
     selectedRow = null;
+
 
     hours = 0;
 
+
     document.getElementById("location").value = "";
+
     document.getElementById("vehicle").value = "";
+
     document.getElementById("plate").value = "";
 
+
     updateHours();
+
     updatePrice();
+
 
     document.querySelector(".submit").style.display = "none";
 }
 
-/*INITIALIZATION*/
+
+
+/*INICIALIZACIÓN*/
 window.onload = function () {
 
     updateHours();
+
     updatePrice();
+
+
+    // Oculta el botón + cuando la reserva no está activa
+    document.querySelectorAll("tbody tr").forEach(row => {
+
+
+        const status = row.querySelector(".status");
+
+        const plus = row.querySelector(".plus");
+
+
+        if (!status || !plus) return;
+
+
+
+        if (status.textContent.trim() !== "Active") {
+
+            plus.style.display = "none";
+
+        } else {
+
+            plus.style.display = "inline-block";
+
+        }
+
+    });
+
 }
