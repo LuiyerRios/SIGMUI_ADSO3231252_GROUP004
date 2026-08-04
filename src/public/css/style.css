@@ -1,0 +1,157 @@
+@import "tailwindcss";
+
+/* --- 1. RESET Y BASE --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    background: #E6F2F8;
+    min-height: 100vh;
+}
+
+/* --- 2. HEADER --- */
+.header {
+    background-color: #2565AE;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    color: white;
+}
+
+.header__title { font-size: 1.5rem; }
+.header__title span { color: #7bd3c7; }
+
+.header__back {
+    position: absolute;
+    left: 15px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+/* --- 3. CONTENEDOR --- */
+.container {
+    width: 95%;
+    max-width: 500px;
+    margin: 20px auto;
+    text-align: center;
+}
+
+.inspection-agent__icon {
+    width: 60px;
+    margin-bottom: 10px;
+}
+
+/* --- 4. FORMULARIO --- */
+.inspection-form label {
+    display: block;
+    text-align: left;
+    margin-bottom: 8px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.plate-input {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.plate-input__flag {
+    width: 30px;
+    height: 20px;
+    object-fit: contain;
+    flex-shrink: 0;
+    margin-right: 10px;
+}
+
+.plate-input__field {
+    border: none;
+    outline: none;
+    flex: 1;
+    font-size: 16px;
+}
+
+.btn-check {
+    width: 100%;
+    padding: 12px;
+    background: #2340FE;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+/* --- 5. TARJETAS Y ESTADOS --- */
+.card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 10px;
+    margin-top: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card__icon {
+    width: 40px;
+    height: 40px;
+    background-color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    font-size: 1.2rem;
+}
+
+/* Colores de fondo de estado */
+.card--success { background-color: #d4edda; }
+.card--error { background-color: #f8d7da; }
+.card--neutral { background-color: #e0e0e0; }
+
+/* Iconos de estado (Colores) */
+.card--success .card__icon { color: #28a745; }
+.card--error .card__icon { color: #dc3545; }
+.card--neutral .card__icon { color: #6c757d; }
+
+.card__info { text-align: left; flex: 1; }
+.card__info h3 { font-size: 0.9rem; margin-bottom: 2px; }
+.card__info p { font-size: 0.8rem; }
+
+/* --- 6. BADGES (Insignias) --- */
+.badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: white;
+}
+.badge--valid { background-color: #28a745; }
+.badge--expired { background-color: #dc3545; }
+
+/* Título de NOT REGISTERED */
+.not-registered-title {
+    margin-top: 20px;
+    text-align: left;
+    font-size: 1rem;
+}
+
+/* --- 7. RESPONSIVE --- */
+@media (max-width: 380px) {
+    .card { flex-direction: column; text-align: center; }
+    .badge { margin-top: 5px; }
+}
