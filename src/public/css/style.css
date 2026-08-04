@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+/* --- 1. RESET Y BASE --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+}
+
+body {
+    background-color: #E6F2F8;
+    color: #333;
+    padding-bottom: 20px;
+}
+
+/* --- 2. HEADER --- */
+.header {
+    background-color: #2565AE;
+    padding: 15px; 
+    text-align: center;
+    color: #fff;
+}
+
+.header h1 {
+    font-size: 1.8rem;
+    text-transform: lowercase;
+}
+
+.header span {
+    color: #8fd3c7;
+}
+
+/* --- 3. CONTENEDOR PRINCIPAL --- */
+.container {
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+/* --- 4. FORMULARIO (Diseño compacto y alineado) --- */
+.form {
+    background: #ffffff;
+    padding: 20px; 
+    border-radius: 8px;
+    width: 100%;
+    max-width: 450px;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.form label {
+    display: block;
+    margin-top: 10px; 
+    font-weight: 600;
+    font-size: 0.85rem; 
+}
+
+.form input {
+    width: 100%; 
+    padding: 6px;
+    margin-top: 4px;
+    border-radius: 4px;
+    border: 1px solid #999;
+    font-size: 0.9rem;
+}
+
+/* --- 5. GRID (Alineación Teléfono y Placa) --- */
+.row {
+    display: flex;
+    gap: 15px; 
+    margin-top: 5px;
+}
+
+.row div {
+    flex: 1; 
+}
+
+/* --- 6. CHECKBOXES Y OTROS --- */
+.checks {
+    margin-top: 15px;
+}
+
+.checks label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 5px;
+    font-size: 0.8rem;
+    font-weight: normal;
+}
+
+.checks input {
+    width: auto; 
+}
+
+.checks span {
+    color: #2565AE;
+    font-weight: bold;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* --- 7. BOTÓN --- */
+.btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 10px;
+    background: #2565AE;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background: #1a2ed6;
+}
+
+/* --- 8. RESPONSIVE --- */
+@media (max-width: 450px) {
+    .row {
+        flex-direction: column; 
+        gap: 0;
+    }
+}
