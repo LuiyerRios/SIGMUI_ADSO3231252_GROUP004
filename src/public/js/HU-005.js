@@ -6,6 +6,7 @@ let hours = 0;
 let expirationTime = new Date();
 let selectedReservation = null;
 let selectedRow = null;
+let countdownInterval = null;
 
 /*NAVEGACIÓN*/
 function goBack() {
@@ -54,7 +55,7 @@ function changeTime(value) {
     updatePrice();
 }
 
-
+/*ACTUALIZAR HORAS*/
 function updateHours() {
 
     if (hours === 0) {
@@ -67,11 +68,9 @@ function updateHours() {
 
     } else {
 
-        document.getElementById("hours").textContent =
-            hours + " horas";
+        document.getElementById("hours").textContent = hours + " horas";
     }
 }
-
 
 /*PRECIO*/
 function updatePrice() {
@@ -82,93 +81,81 @@ function updatePrice() {
         "$" + total.toLocaleString();
 }
 
+/*CRONÓMETRO*/
+function updateTimer(timer, seconds) {
+
+    const horas = Math.floor(seconds / 3600);
+    const minutos = Math.floor((seconds % 3600) / 60);
+    const segundos = seconds % 60;
+
+    timer.textContent =
+        `${String(horas).padStart(2, "0")}:${String(minutos).padStart(2, "0")}:${String(segundos).padStart(2, "0")}`;
+}
 
 /*PAGO*/
 function confirmExtension() {
 
     if (selectedReservation === null) {
-
         alert("Seleccione una reserva primero.");
         return;
     }
 
-
     if (hours === 0) {
-
         alert("Seleccione mínimo una hora.");
         return;
     }
 
-
-    const confirmation = confirm(
-        "¿Desea extender la reserva?"
-    );
-
+    const confirmation = confirm("¿Desea extender la reserva?");
 
     if (!confirmation) {
         return;
     }
 
-
     updateExpirationTime();
 
+    const status = selectedRow.querySelector(".status");
+    const plus = selectedRow.querySelector(".plus");
+    const countdown = selectedRow.querySelector(".countdown");
+    const timer = selectedRow.querySelector(".timer");
 
-    if (selectedRow) {
+    status.textContent = "Active";
+    status.classList.remove("pending");
+    status.classList.add("active");
 
-        const status = selectedRow.querySelector(".status");
-        const plus = selectedRow.querySelector(".plus");
+    plus.style.display = "inline-block";
+    countdown.style.display = "flex";
 
+    let remainingSeconds = hours * 3600;
 
-        // La reserva sigue activa mientras tenga tiempo disponible
-        status.textContent = "Active";
+    updateTimer(timer, remainingSeconds);
 
-        status.classList.remove("pending");
+    clearInterval(countdownInterval);
 
-        status.classList.add("active");
+    countdownInterval = setInterval(() => {
 
+        remainingSeconds--;
 
-        plus.style.display = "inline-block";
+        updateTimer(timer, remainingSeconds);
 
+        if (remainingSeconds <= 0) {
 
-        // Guarda la fila antes de reiniciar los datos
-        const currentRow = selectedRow;
-
-
-        // Conversión de horas a milisegundos
-        const milliseconds = hours * 60 * 60 * 1000;
-
-
-
-        setTimeout(() => {
-
-
-            const status = currentRow.querySelector(".status");
-            const plus = currentRow.querySelector(".plus");
-
+            clearInterval(countdownInterval);
 
             status.textContent = "Finish";
 
             status.classList.remove("active");
-
             status.classList.add("pending");
 
-
-            // Oculta el botón cuando termina el tiempo
             plus.style.display = "none";
+            countdown.style.display = "none";
+        }
 
-
-        }, milliseconds);
-
-    }
-
+    }, 1000);
 
     alert("Pago realizado correctamente.");
 
-
     resetForm();
 }
-
-
 
 /*FINALIZACIÓN DE TIEMPO*/
 function updateExpirationTime() {
@@ -177,74 +164,57 @@ function updateExpirationTime() {
         expirationTime.getHours() + hours
     );
 
-
     alert(
         "Nueva hora de finalización:\n\n" +
         expirationTime.toLocaleTimeString()
     );
 }
 
-
-
 /*RESTABLECER FORMULARIO*/
 function resetForm() {
 
     selectedReservation = null;
-
     selectedRow = null;
-
 
     hours = 0;
 
-
     document.getElementById("location").value = "";
-
     document.getElementById("vehicle").value = "";
-
     document.getElementById("plate").value = "";
 
-
     updateHours();
-
     updatePrice();
-
 
     document.querySelector(".submit").style.display = "none";
 }
-
-
 
 /*INICIALIZACIÓN*/
 window.onload = function () {
 
     updateHours();
-
     updatePrice();
 
-
-    // Oculta el botón + cuando la reserva no está activa
     document.querySelectorAll("tbody tr").forEach(row => {
 
-
         const status = row.querySelector(".status");
-
         const plus = row.querySelector(".plus");
-
+        const countdown = row.querySelector(".countdown");
 
         if (!status || !plus) return;
-
-
 
         if (status.textContent.trim() !== "Active") {
 
             plus.style.display = "none";
 
+            if (countdown) {
+                countdown.style.display = "none";
+            }
+
         } else {
 
             plus.style.display = "inline-block";
-
         }
 
     });
 
-}
+};

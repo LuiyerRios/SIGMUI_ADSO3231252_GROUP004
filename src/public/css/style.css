@@ -3,7 +3,7 @@
 :root{
 
     --primary:#2565AE;
-    --primary-hover:#2565AE;
+    --primary-hover:#1d4f8a;
 
     --success:#2ecc71;
     --warning:#f1c40f;
@@ -24,7 +24,7 @@
 
 }
 
-/* RESET*/
+/*RESETEO GENERAL*/
 
 *{
     margin:0;
@@ -63,7 +63,7 @@ table{
     border-collapse:collapse;
 }
 
-/*GENERAL*/
+/*CONTENEDOR GENERAL*/
 
 .container{
 
@@ -74,7 +74,7 @@ table{
 
 }
 
-/*HEADER*/
+/*ENCABEZADO*/
 
 .header{
 
@@ -127,7 +127,7 @@ table{
 
 }
 
-/*TABLE*/
+/*TABLA*/
 
 .table-container{
 
@@ -187,7 +187,7 @@ tbody tr:hover{
 
 }
 
-/*STATUS*/
+/*ESTADOS*/
 
 .status{
 
@@ -205,16 +205,18 @@ tbody tr:hover{
 .active{
 
     background:var(--success);
+    color:var(--white);
 
 }
 
 .pending{
 
     background:var(--warning);
+    color:#2c3e50;
 
 }
 
-/*BUTTON PLUS*/
+/*BOTÓN DE AGREGAR*/
 
 .plus{
 
@@ -238,7 +240,7 @@ tbody tr:hover{
 
 }
 
-/*CARD*/
+/*TARJETA*/
 
 .card{
 
@@ -292,7 +294,8 @@ tbody tr:hover{
     color:var(--primary);
 
 }
-/*INPUTS*/
+
+/*CAMPOS DE ENTRADA*/
 
 .left-form input{
 
@@ -329,7 +332,7 @@ tbody tr:hover{
 
 }
 
-/*TIME BOX*/
+/*CAJA DE TIEMPO*/
 
 .time-box{
 
@@ -389,7 +392,7 @@ tbody tr:hover{
 
 }
 
-/*SUBMIT BUTTON*/
+/*BOTÓN DE ENVIAR*/
 
 .submit-container{
 
@@ -425,7 +428,7 @@ tbody tr:hover{
 
 }
 
-/*UTILITIES*/
+/*CLASES DE UTILIDAD*/
 
 .text-center{
 
@@ -481,7 +484,42 @@ tbody tr:hover{
 
 }
 
-/*RESPONSIVE*/
+/*CRONÓMETRO Y TEMPORIZADOR*/
+
+.status-cell{
+
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+}
+
+.countdown{
+
+    display:none;
+    align-items:center;
+    gap:6px;
+
+    margin-left:8px;
+
+}
+
+.clock{
+
+    width:16px;
+    height:16px;
+
+}
+
+.timer{
+
+    font-size:13px;
+    font-weight:bold;
+    color:var(--text);
+
+}
+
+/*DISEÑO ADAPTABLE*/
 
 @media screen and (max-width:900px){
 

@@ -9,7 +9,7 @@ html(lang="en")
   body
     .container
 
-      // HEADER 
+      // HEADER
 
       .header
         .left
@@ -22,7 +22,7 @@ html(lang="en")
           onclick="goBack()"
         )
 
-      //TABLE
+      // TABLE
 
       .table-container
         table
@@ -33,6 +33,7 @@ html(lang="en")
               th Vehicle
               th Plate
               th Status
+              th Time remaining
               th
 
           tbody
@@ -44,6 +45,10 @@ html(lang="en")
               td
                 span.status.active Active
               td
+                .countdown
+                  span.timer-icon ⏱
+                  span.timer 00:00:00
+              td
                 button.plus(
                   onclick="selectRow('A2','001567','AJS456','Active', this)"
                 ) +
@@ -54,17 +59,24 @@ html(lang="en")
               td.bold 002215
               td.bold BJF356
               td
-                span.status.pending To finish
+                span.status.pending Finish
+              td
+                .countdown(style="display:none")
+                  span.timer-icon ⏱
+                  span.timer 00:00:00
               td
                 button.plus(
-                  onclick="selectRow('B1','002215','BJF356','To finish', this)"
+                  onclick="selectRow('B1','002215','BJF356','Finish', this)"
+                  style="display:none"
                 ) +
 
-      //CARD 
+      // CARD
 
       .card
         .card-top
+
           .left-form
+
             input(
               id="location"
               type="text"
