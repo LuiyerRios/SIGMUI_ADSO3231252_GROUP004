@@ -1,0 +1,14 @@
+# Dependencias de Node
+node_modules/
+
+# Archivo de entorno (credenciales de BD y claves)
+.env
+
+# Logs y caches
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+
+# Archivos compilados temporales
+src/public/css/style.css

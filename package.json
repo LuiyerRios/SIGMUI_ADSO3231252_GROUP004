@@ -1,0 +1,25 @@
+{
+  "name": "sigmui_adso3231252_group004",
+  "version": "1.0.0",
+  "description": "Sistema Integral de Gestión de Movilidad Urbana Inteligente - HU-011 Menu de Ayuda",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+  "dev": "nodemon --watch . src/index.js",
+  "build:css": "npx @tailwindcss/cli -i ./src/styles/input.css -o ./src/public/css/style.css --watch",
+  "start": "node src/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-validator": "^7.2.1",
+    "mysql2": "^3.23.2",
+    "pug": "^3.0.4",
+    "sequelize": "^6.37.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "nodemon": "^3.1.14",
+    "tailwindcss": "^4.3.3"
+  }
+}
