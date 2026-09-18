@@ -1,36 +1,25 @@
 {
   "name": "sigmui_adso3231252_group004",
   "version": "1.0.0",
-  "description": "Hello, welcome to the educational project: Comprehensive Smart Urban Mobility Management System (known by its Spanish acronym, “SIGMUI”).",
-  "main": "index.js",
+  "description": "Sistema Integral de Gestión de Movilidad Urbana Inteligente - HU-011 Menu de Ayuda",
+  "main": "src/index.js",
+  "type": "module",
   "scripts": {
-    "dev": "nodemon index.js",
-    "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "dev": "nodemon --watch . src/index.js",
+  "build:css": "npx @tailwindcss/cli -i ./src/styles/input.css -o ./src/public/css/style.css --watch",
+  "start": "node src/index.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/LuiyerRios/SIGMUI_ADSO3231252_GROUP004.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/LuiyerRios/SIGMUI_ADSO3231252_GROUP004/issues"
-  },
-  "homepage": "https://github.com/LuiyerRios/SIGMUI_ADSO3231252_GROUP004#readme",
   "dependencies": {
-    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-validator": "^7.2.1",
     "mysql2": "^3.23.2",
-    "nodemailer": "^9.0.3",
     "pug": "^3.0.4",
-    "sequelize": "^6.37.8",
-    "tailwindcss": "^4.1.12"
+    "sequelize": "^6.37.8"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "@tailwindcss/cli": "^4.3.3",
+    "nodemon": "^3.1.14",
+    "tailwindcss": "^4.3.3"
   }
 }
