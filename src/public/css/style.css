@@ -1,3 +1,4 @@
+* {
 @import "tailwindcss";
 
 * {
@@ -7,188 +8,294 @@
 }
 
 body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #E6F2F8;
+}
+
+.app {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    flex-direction: column;
     min-height: 100vh;
-    font-family: Arial, Helvetica, sans-serif;
-    background-color: #eef6ff;
-    color: #1f1f1f;
+    width: 100%;
 }
 
 
+/* HEADER */
 
-
-.navbar {
-    width: 100%;
-    height: 70px;
-
-    background-color: #2d69b2;
-
+.header {
+    position: relative;
+    background: #2565AE;
+    color: white;
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 10px;
 }
 
+.back-arrow {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: auto;
+    cursor: pointer;
+}
 
 .logo {
-    height: 45px;
-    width: auto;
-    object-fit: contain;
+    max-width: 150px;
+    height: auto;
 }
 
 
+/* CONTENIDO */
+
+.content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+}
 
 
-.container {
+/* SECCIONES */
 
-    min-height: calc(100vh - 70px);
+.section {
+    background: white;
+    padding: 16px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+
+/* ESTADO DE LA MULTA */
+
+.status {
+    background: white;
+    color: black;
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid black;
+    font-weight: bold;
+}
+
+.status small {
+    display: block;
+    margin-top: 5px;
+    color: red;
+    font-weight: normal;
+}
+
+
+/* PLACA */
+
+.plate {
     display: flex;
     justify-content: center;
     align-items: center;
-
-    padding: 20px;
-}
-
-
-
-
-.card {
-
-    width: 390px;
-    background: white;
-    padding: 40px 35px;
-    border-radius: 25px;
     text-align: center;
-    box-shadow:
-    0px 8px 25px rgba(0,0,0,0.08);
 }
 
 
+/* INFORMACIÓN */
 
-.title {
+.info {
+    display: flex;
+    justify-content: space-between;
+    margin: 8px 0;
+    font-size: 15px;
+}
 
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 25px;
-    color: #111;
+.label {
+    color: #333;
+}
+
+.value {
+    font-weight: bold;
 }
 
 
+/* INPUTS */
 
-.description {
-
-    font-size: 16px;
-    line-height: 1.6;
-    color: #888;
-    margin-bottom: 30px;
-}
-
-
-
-
-.input-group {
+input,
+textarea {
 
     width: 100%;
-
-}
-
-
-.input-group input {
-
-    width: 100%;
-
-    height: 50px;
-
-    padding: 0 18px;
+    padding: 12px;
+    margin-top: 8px;
 
     border-radius: 8px;
-
-    border: 1px solid #ddd;
-
-    outline: none;
+    border: 1px solid #ccc;
 
     font-size: 14px;
-
-    color: #555;
-
-    transition: .3s;
+    font-family: Arial, sans-serif;
 }
 
 
-.input-group input::placeholder {
+textarea {
 
-    color: #aaa;
-
-    font-size: 13px;
+    height: 80px;
+    resize: none;
 
 }
 
 
-.input-group input:focus {
+/* VALOR DE LA MULTA */
 
-    border-color: #3347ff;
+.fine {
 
-    box-shadow: 0 0 5px rgba(51,71,255,.25);
-
-}
-
-
-
-
-.btn {
-
-    width: 100%;
-
-    height: 50px;
-
-    margin-top: 25px;
-
-    border: none;
-
-    border-radius: 8px;
-
-    background-color: #3347ff;
-
+    background: #ff5451;
     color: white;
 
-    font-size: 15px;
+    text-align: center;
+
+    padding: 16px;
+
+    border-radius: 10px;
+
+    font-size: 20px;
+    font-weight: bold;
+
+}
+
+
+.fine p {
+
+    color: red;
+    margin-bottom: 0;
+
+}
+
+
+/* NUMERO DEL TICKET */
+
+.ticked-id {
+
+    margin: 15px 0;
 
     font-weight: bold;
 
-    text-transform: lowercase;
-
-    cursor: pointer;
-
-    transition: .3s;
 }
 
 
-.btn:hover {
+/* BOTÓN */
 
-    background-color: #2638d9;
+.button {
 
-}
+    width: 100%;
 
+    padding: 14px;
 
+    background: white;
 
+    color: black;
 
-.back {
+    border-radius: 10px;
 
-    display: inline-block;
-
-    margin-top: 25px;
-
-    color: #111;
-
-    text-decoration: none;
+    border: 1px solid #ccc;
 
     font-size: 16px;
 
-    transition: .3s;
+    font-weight: bold;
+
+    cursor: pointer;
 
 }
 
 
-.back:hover {
+.button:hover {
 
-    color: #3347ff;
+    background: #f2f2f2;
+
+}
+
+
+.button:focus {
+
+    outline: 2px solid #000;
+
+}
+
+
+/* NOTA */
+
+.note {
+
+    text-align: center;
+
+    font-size: 12px;
+
+    color: black;
+
+    margin-top: 8px;
+
+}
+
+
+
+/* RESPONSIVE TABLET */
+
+@media (min-width: 768px) {
+
+    body {
+        font-size: 18px;
+    }
+
+
+    .section {
+
+        padding: 20px;
+
+    }
+
+
+    .fine {
+
+        font-size: 22px;
+
+    }
+
+}
+
+
+
+/* RESPONSIVE CELULAR */
+
+@media (max-width: 480px) {
+
+
+    .content {
+
+        padding: 12px;
+
+    }
+
+
+    .section {
+
+        padding: 12px;
+
+    }
+
+
+    .fine {
+
+        font-size: 18px;
+
+    }
+
+
+    .button {
+
+        font-size: 14px;
+
+        padding: 12px;
+
+    }
 
 }

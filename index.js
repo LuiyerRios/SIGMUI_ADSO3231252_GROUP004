@@ -1,31 +1,42 @@
 const express = require("express");
 const path = require("path");
-const cors = require("cors");
-require("dotenv").config();
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+const PORT = process.env.PORT || 3000;
 
-
-
+// Configuración de Pug
 app.set("view engine", "pug");
 app.set("views", path.join(__dirname, "src", "views"));
 
+// Middlewares
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
-
+// Archivos estáticos
 app.use(express.static(path.join(__dirname, "src", "public")));
 
-
+// Ruta principal
 app.get("/", (req, res) => {
-    res.render("HU-009");
+    res.render("HU-007", {
+        multa: {
+            estado: "",
+            descripcionEstado: "",
+            fecha: "",
+            ubicacion: "",
+            tiempoExcedido: "",
+            ubicacionActual: "",
+            comentarios: "",
+            valor: "",
+            numeroMulta: "",
+            vehiculo: {
+                placa: ""
+            }
+        }
+    });
 });
 
-
-const PORT = process.env.PORT || 3306;
-
+// Iniciar servidor
 app.listen(PORT, () => {
-    console.log(`Servidor funcionando en http://localhost:${PORT}`);
+    console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
 });
