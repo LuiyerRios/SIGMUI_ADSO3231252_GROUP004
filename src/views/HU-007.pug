@@ -1,0 +1,76 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title Fine details
+    link(rel="stylesheet" href="/css/style.css")
+
+  body
+    .app
+
+      .header
+        a.back(href="/HU-006")
+          img.back-arrow(src="/img/Flecha.png" alt="back-arrow")
+
+        img.logo(src="/img/Header.png" alt="Logo")
+
+      main.content
+
+        .section
+          .status
+            | ⚠️ ESTATUS: #{multa.estado}
+            small= multa.descripcionEstado
+
+        .section
+
+          .plate
+            h4= multa.vehiculo.placa
+
+          .info
+            span.label Date:
+            span.value= multa.fecha
+
+          .info
+            span.label Location:
+            span.value= multa.ubicacion
+
+          .info
+            span.label Expired:
+            span.value(style="color:red;")= multa.tiempoExcedido
+
+        .section
+
+          label(for="location") Current location
+
+          input(
+            type="text"
+            id="location"
+            name="ubicacionActual"
+            value=multa.ubicacionActual
+          )
+
+        .section
+
+          label(for="comments") Comments (optional)
+
+          textarea(
+            id="comments"
+            name="comentarios"
+            placeholder="Ex: The ticket is not visible"
+          )= multa.comentarios
+
+        .fine
+          | Amount of the fine
+
+          p= multa.valor
+
+        .ticked-id
+          | Ticket #:
+          span#ticketNumber= multa.numeroMulta
+
+        button.button(type="button")
+          | Generate Ticket #Auto
+
+        .note
+          | ✅ If the registered user is not logged in
