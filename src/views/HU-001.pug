@@ -1,0 +1,60 @@
+doctype html
+html(lang="en")
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        title Tech Parking - Registration
+        link(rel="stylesheet", href="css/HU-001.css")
+
+    body
+        header.header
+            h1
+                span tech
+                |  parking
+
+        .container
+            form#registro-form.form
+                label(for="full_name") Full Name
+                input#full_name(type="text", name="full_name", required)
+
+                label(for="identity_document") Identity Document
+                input#identity_document(type="text", name="identity_document", required)
+
+                label(for="email_address") Email Address
+                input#email_address(type="email", name="email_address", required)
+                p#error-email.error-msg
+
+                .row
+                    div
+                        label(for="phone_number") Phone Number
+                        input#phone_number(type="tel", name="phone_number")
+
+                    div
+                        label(for="vehicle_plate") Vehicle License Plate
+                        input#vehicle_plate(type="text", name="vehicle_plate", required)
+
+                .row
+                    div
+                        label(for="password") Password
+                        input#password(type="password", name="password", required)
+
+                    div
+                        label(for="confirm_password") Confirm Password
+                        input#confirm_password(type="password", name="confirm_password", required)
+
+                .checks
+                    label
+                        input#terms(type="checkbox", required)
+                        |  I accept the
+                        span  Terms and Conditions
+
+                    label
+                        input#privacy(type="checkbox", required)
+                        |  I accept the
+                        span  Privacy Policy
+
+                button.btn(type="submit") Register
+
+            #mensaje-feedback.feedback
+
+        script(src="js/HU-001.js")

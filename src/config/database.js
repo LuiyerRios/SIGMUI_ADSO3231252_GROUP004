@@ -3,10 +3,10 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const db = new Sequelize(
+const sequelize = new Sequelize(
   process.env.DB_NAME || 'sigmui_db',
   process.env.DB_USER || 'root',
-  process.env.DB_PASS || '',
+  process.env.DB_PASSWORD || '',
   {
     host: process.env.DB_HOST || 'localhost',
     dialect: 'mysql',
@@ -14,4 +14,4 @@ const db = new Sequelize(
   }
 );
 
-export default db;
+export default sequelize;
