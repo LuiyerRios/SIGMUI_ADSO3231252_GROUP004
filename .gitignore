@@ -1,8 +1,9 @@
 # Dependencias de Node
 node_modules/
 
-# Archivo de entorno (credenciales de BD y claves)
+# Archivos de entorno (credenciales de BD y claves)
 .env
+.env.local
 
 # Logs y caches
 npm-debug.log*
@@ -10,5 +11,6 @@ yarn-debug.log*
 yarn-error.log*
 .DS_Store
 
-# Archivos compilados temporales
+# Archivos compilados de Tailwind CSS
 src/public/css/style.css
+src/public/css/output.css
