@@ -3,12 +3,13 @@
   "version": "1.0.0",
   "description": "Comprehensive Smart Urban Mobility Management System (SIGMUI)",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "dev": "nodemon index.js",
     "build:css": "tailwindcss -i ./src/styles/input.css -o ./src/public/css/style.css --watch",
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "type": "commonjs",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
@@ -26,3 +27,47 @@
     "tailwindcss": "^4.3.3"
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

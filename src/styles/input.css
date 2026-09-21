@@ -1,12 +1,9 @@
-<<<<<<< HEAD
-@import "tailwindcss";
-=======
 @import "tailwindcss";
 
 @theme {
-  --color-brand-primary: #2565AE;      /* Azul header y botones */
-  --color-brand-tech: #06ACFF;         /* Azul claro para 'tech' */
-  --color-card-bg: rgba(150, 150, 150, 0.7); /* #969696 con 70% opacidad */
+  --color-brand-primary: #2565AE;
+  --color-brand-tech: #06ACFF;
+  --color-card-bg: rgba(150, 150, 150, 0.7);
 }
 
 body {
@@ -59,4 +56,3 @@ body {
 .btn-primary:hover {
   opacity: 0.85;
 }
->>>>>>> origin/feature/HU-002-user-signin
