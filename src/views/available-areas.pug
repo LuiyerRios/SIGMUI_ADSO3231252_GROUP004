@@ -1,0 +1,85 @@
+//- src/views/available-areas.pug
+extends layouts/main.pug
+
+block content
+  div(class="bg-white rounded-lg p-6 shadow-md max-w-6xl mx-auto")
+    
+    //- Encabezado
+    div(class="flex justify-between items-center mb-4")
+      h1(class="text-2xl font-black text-gray-800 tracking-wide") CENTRAL PARKING - LEVEL 1
+      span(class="text-gray-600 font-semibold text-sm") May 14th, 15:45
+
+    //- Leyenda y Selector de Nivel
+    div(class="flex justify-between items-center bg-gray-50 p-2 rounded border mb-6 text-xs font-semibold")
+      div(class="flex space-x-4 items-center")
+        span(class="flex items-center space-x-1")
+          span(class="w-3 h-3 bg-green-500 inline-block rounded-sm")
+          span Available
+        span(class="flex items-center space-x-1")
+          span(class="w-3 h-3 bg-red-500 inline-block rounded-sm")
+          span Occupied
+        span(class="flex items-center space-x-1")
+          span(class="w-3 h-3 bg-blue-500 inline-block rounded-sm")
+          span Selected
+        span(class="flex items-center space-x-1")
+          span(class="w-3 h-3 bg-gray-400 inline-block rounded-sm")
+          span Reserved
+
+      div(class="flex space-x-1")
+        button(class="px-3 py-1 bg-gray-700 text-white rounded text-xs") LEVEL 1
+        button(class="px-3 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300") LEVEL 2
+        button(class="px-3 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300") LEVEL 3
+
+    //- Cuadrícula de Bahías de Parqueo
+    div(class="grid grid-cols-4 gap-6")
+      
+      div(class="col-span-3 border-2 border-gray-300 p-4 rounded-lg bg-gray-50 relative")
+        
+        //- Zona A
+        h3(class="text-center font-bold text-gray-700 mb-2") Zona A
+        div(class="grid grid-cols-10 gap-1 mb-6 text-xs text-center font-bold text-white")
+          - const spotsA = ['A01','A02','A03','A04','A05','A06','A07','A08','A09','A10']
+          each spot in spotsA
+            div(class="bg-green-500 py-2 rounded cursor-pointer hover:opacity-80" onclick=`selectSpot('${spot}')`)= spot
+        
+        //- Zona B
+        h3(class="text-center font-bold text-gray-700 mb-2") Zona B
+        div(class="grid grid-cols-10 gap-1 mb-6 text-xs text-center font-bold text-white")
+          - const spotsB = ['B1','B2','B3','B4','B5','B17','B18','B19','B20','B21']
+          each spot in spotsB
+            div(class="bg-green-500 py-2 rounded cursor-pointer hover:opacity-80" onclick=`selectSpot('${spot}')`)= spot
+
+        //- Zona C
+        h3(class="text-center font-bold text-gray-700 mb-2") Zona C
+        div(class="grid grid-cols-10 gap-1 text-xs text-center font-bold text-white")
+          - const spotsC = ['C1','C2','C3','C4','C5','C7','C9','C11','C13','C15']
+          each spot in spotsC
+            div(class="bg-green-500 py-2 rounded cursor-pointer hover:opacity-80" onclick=`selectSpot('${spot}')`)= spot
+
+      //- Panel Lateral de Estatus
+      div(class="col-span-1 bg-gray-100 p-4 rounded-lg flex flex-col justify-between border")
+        div
+          h2(class="font-bold text-gray-800 text-sm mb-3 border-b pb-1") Status
+          p(class="text-xs text-gray-600 mb-1") Selected Space: 
+            span(id="selected-space" class="font-bold text-gray-800") -
+          p(class="text-xs text-gray-600 mb-1") Status: 
+            span(id="selected-status" class="font-bold text-green-600") -
+          p(class="text-xs text-gray-600 mb-4") Rate/Hour: 
+            span(id="selected-rate" class="font-bold text-gray-800") -
+          p(class="text-xs text-gray-500") Standard Duration: 
+            strong 1 Hour
+
+        button(class="w-full bg-emerald-500 text-white font-bold py-2 rounded text-xs mt-4 hover:bg-emerald-600 uppercase shadow")
+          | Confirm Reservation Button
+
+    //- Botón Inferior Centrado CONFIRM PAYMENT
+    div(class="mt-8 flex justify-center")
+      button(class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-base py-3 px-16 rounded-full shadow-lg transition duration-200 uppercase tracking-wide")
+        | CONFIRM PAYMENT
+
+  script.
+    function selectSpot(spotId) {
+      document.getElementById('selected-space').textContent = spotId;
+      document.getElementById('selected-status').textContent = 'AVAILABLE';
+      document.getElementById('selected-rate').textContent = '$2,000/hr';
+    }
