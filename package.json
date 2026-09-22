@@ -1,4 +1,25 @@
 {
+ feature/HU-004-start-parking-time
+  "name": "parking",
+  "version": "1.0.0",
+  "description": "Sistema Tech Parking con Express, Pug y MySQL",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+  "dev": "nodemon src/index.js",
+  "start": "node src/index.js",
+  "build:css": "tailwindcss -i ./src/input.css -o ./src/public/css/style.css --watch",
+  "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "parking",
+    "express",
+    "pug",
+    "mysql",
+    "sequelize"
+  ],
+  "author": "",
+  "license": "ISC",
   "name": "hu-010",
   "version": "1.0.0",
   "description": "",
@@ -12,16 +33,23 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+ develop
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+ feature/HU-004-start-parking-time
+    "mysql2": "^3.23.1",
     "mysql2": "^3.23.2",
+ develop
     "nodemailer": "^9.0.3",
     "pug": "^3.0.4",
     "sequelize": "^6.37.8"
   },
   "devDependencies": {
+ feature/HU-004-start-parking-time
+    "@tailwindcss/cli": "^4.3.3",
+ develop
     "nodemon": "^3.1.14",
     "tailwindcss": "^4.3.3"
   }
