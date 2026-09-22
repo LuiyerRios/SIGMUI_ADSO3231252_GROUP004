@@ -1,62 +1,113 @@
- feature/HU-004-start-parking-time
-const mysql = require("mysql2");
-const connection = mysql.createPool({
+/*DATABASE*/
 
-    host: "localhost",
+const database = {
 
-    user: "root",
+    reservations:[
 
-    password: "",
+        {
+            id:"001567",
+            location:"A2",
+            vehicle:"001567",
+            plate:"AJS456",
+            status:"Active",
+            hours:2,
+            pricePerHour:2000,
+            expiration:"18:00"
+        },
+        {
+            id:"002215",
+            location:"B1",
+            vehicle:"002215",
+            plate:"BJF356",
+            status:"To finish",
+            hours:1,
+            pricePerHour:2000,
+            expiration:"16:30"
+        }
+    ]
+};
 
-    database: "my_reservations",
+/*GET ALL RESERVATIONS*/
 
-    port: 3306,
+function getReservations(){
+    return database.reservations;
+}
 
-    waitForConnections: true,
+/*GET RESERVATION BY PLATE*/
 
-    connectionLimit: 10,
+function getReservationByPlate(plate){
+    return database.reservations.find(
+        reservation => reservation.plate === plate
+    );
+}
 
-    queueLimit: 0
+/*GET RESERVATION BY ID*/
 
-});
+function getReservationById(id){
+    return database.reservations.find(
+        reservation => reservation.id === id
+    );
+}
 
-connection.getConnection((error, db)=>{
+/*UPDATE HOURS*/
 
-
-    if(error){
-
-        console.error("❌ Error conectando a MySQL:");
-        console.error(error.message);
-
-        return;
-
+function updateReservationHours(plate, extraHours){
+    const reservation = getReservationByPlate(plate);
+    if(!reservation){
+        return false;
     }
+    reservation.hours += extraHours;
+    return true;
+}
 
-    console.log("✅ Conexión exitosa a MySQL");
+/*CHANGE STATUS*/
 
+function updateReservationStatus(id,status){
+    const reservation = getReservationById(id);
+    if(!reservation){
+        return false;
+    }
+    reservation.status = status;
+    return true;
+}
 
-    db.release();
+/*DELETE RESERVATION*/
 
+function deleteReservation(id){
+    const index = database.reservations.findIndex(
+        reservation => reservation.id === id
+    );
+    if(index === -1){
+        return false;
+    }
+    database.reservations.splice(index,1);
+    return true;
+}
 
-});
+/*ADD NEW RESERVATION*/
 
-module.exports = connection;
-=======
-import { Sequelize } from 'sequelize';
-import dotenv from 'dotenv';
+function addReservation(reservation){
+    database.reservations.push(reservation);
+}
 
-dotenv.config();
+/*TOTAL RESERVATIONS*/
 
-const db = new Sequelize(
-  process.env.DB_NAME || 'sigmui_db',
-  process.env.DB_USER || 'root',
-  process.env.DB_PASS || '',
-  {
-    host: process.env.DB_HOST || 'localhost',
-    dialect: 'mysql',
-    logging: false
-  }
-);
+function getTotalReservations(){
+    return database.reservations.length;
+}
 
-export default db;
- develop
+/*ACTIVE RESERVATIONS*/
+
+function getActiveReservations(){
+    return database.reservations.filter(
+        reservation => reservation.status === "Active"
+    );
+}
+
+/*FINISHED RESERVATIONS*/
+
+function getFinishedReservations(){
+    return database.reservations.filter(
+        reservation => reservation.status !== "Active"
+    );
+}
