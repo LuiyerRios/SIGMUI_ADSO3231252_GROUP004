@@ -1,0 +1,72 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Login | SIGMUI
+    link(rel="stylesheet", href="/css/style.css")
+  body(class="min-h-screen flex flex-col justify-between items-center relative")
+
+    //- Contenedor principal centrado
+    main(class="flex-grow flex items-center justify-center w-full px-4")
+      
+      //- Tarjeta con fondo #969696 al 70%
+      div(class="w-full max-w-[420px] bg-[var(--color-card-bg)] rounded-xl overflow-hidden shadow-2xl")
+        
+        //- Header azul #2565AE
+        header(class="bg-[var(--color-brand-primary)] text-center py-5")
+          h1(class="text-3xl font-bold tracking-tight text-white")
+            span(class="text-[var(--color-brand-tech)]") tech 
+            | parking
+
+        //- Formulario (debe ir indentado dentro de la div de la tarjeta)
+        form(action="/login", method="POST", class="p-8 flex flex-col gap-5", id="loginForm")
+          
+          //- Mensaje de error dinámico
+          if error
+            div(class="bg-red-600/90 text-white p-3 rounded-lg text-sm text-center font-semibold shadow-md animate-fade-in")
+              p= error
+
+          //- Email Input
+          div(class="flex flex-col gap-1")
+            label(for="email", class="text-sm font-semibold text-gray-900") Email Address
+            input(
+              type="email", 
+              id="email", 
+              name="email", 
+              placeholder="correo@ejemplo.com", 
+              required, 
+              class="w-full px-4 py-3 bg-[#D9D9D9] text-gray-800 placeholder-gray-500 rounded-lg outline-none border-none text-base focus:ring-2 focus:ring-[#2565AE]"
+            )
+
+          //- Password Input
+          div(class="flex flex-col gap-1")
+            label(for="password", class="text-sm font-semibold text-gray-900") Password
+            input(
+              type="password", 
+              id="password", 
+              name="password", 
+              placeholder="********", 
+              required, 
+              class="w-full px-4 py-3 bg-[#D9D9D9] text-gray-800 placeholder-gray-500 rounded-lg outline-none border-none text-base focus:ring-2 focus:ring-[#2565AE]"
+            )
+
+          //- Botones
+          div(class="flex flex-col gap-3 mt-2")
+            button(
+              type="submit", 
+              class="w-full bg-[var(--color-brand-primary)] hover:opacity-90 text-white font-medium py-3 rounded-full text-lg transition duration-200 cursor-pointer"
+            ) Sign in
+
+            a(
+              href="/register", 
+              class="w-full bg-[var(--color-brand-primary)] hover:opacity-90 text-white font-medium py-3 rounded-full text-lg transition duration-200 text-center block"
+            ) Sign up
+
+          //- Link Olvidé contraseña
+          div(class="text-center mt-1")
+            a(href="/forgot-password", class="text-sm text-gray-900 hover:underline font-medium") Forgot your password?
+
+    //- Footer (a la misma altura que main)
+    footer(class="pb-6 text-center text-white font-medium text-lg drop-shadow-md")
+      p CopyRight©Team_004
