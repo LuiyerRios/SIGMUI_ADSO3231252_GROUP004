@@ -1,31 +1,89 @@
-import express from 'express';
-import db from './config/db.js';
-import helpRoutes from './routes/helpRoutes.js';
+const express = require("express");
+const path = require("path");
+const db = require("./config/db");
 
 const app = express();
 
-// Conectar y sincronizar la Base de Datos
-try {
-  await db.authenticate();
-  await db.sync(); // Esto crea las tablas vacías automáticamente
-  console.log('Conexión a la base de datos establecida correctamente.');
-} catch (error) {
-  console.error('Error al conectar con la base de datos:', error);
-}
-
-// Middlewares
-app.use(express.urlencoded({ extended: true }));
+// Permitir recibir datos JSON
 app.use(express.json());
-app.use(express.static('src/public'));
 
-// Motor de plantilla Pug
-app.set('view engine', 'pug');
-app.set('views', './src/views');
+// Configurar Pug
+app.set("view engine", "pug");
+app.set("views", path.join(__dirname, "views"));
 
-// Rutas
-app.use('/', helpRoutes);
+// Archivos públicos
+app.use(express.static(path.join(__dirname, "public")));
 
-const PORT = process.env.PORT || 3000;
+// Vista principal
+app.get("/", (req, res) => {
+    res.render("HU-005");
+});
+
+// Guardar reserva
+app.post("/reservas", (req, res) => {
+
+    const {
+        plate,
+        location,
+        time,
+        status,
+        total
+    } = req.body;
+
+    const sql = `
+        INSERT INTO reservations
+        (plate, location, time, status, total)
+        VALUES (?, ?, ?, ?, ?)
+    `;
+
+    db.query(
+        sql,
+        [
+            plate,
+            location,
+            time,
+            status,
+            total
+        ],
+        (error, result) => {
+
+            if (error) {
+                console.log(error);
+
+                return res.status(500).json({
+                    message: "Error guardando reserva"
+                });
+            }
+
+            res.json({
+                message: "Reserva guardada"
+            });
+
+        }
+    );
+
+});
+
+// Obtener reservas
+app.get("/reservas", (req, res) => {
+
+    const sql = "SELECT * FROM reservations";
+
+    db.query(sql, (error, result) => {
+
+        if (error) {
+            console.log(error);
+            return res.status(500).json(error);
+        }
+
+        res.json(result);
+
+    });
+
+});
+
+const PORT = 3000;
+
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`Servidor funcionando en http://localhost:${PORT}`);
 });
