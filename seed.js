@@ -1,4 +1,4 @@
-import sequelize from './src/config/database.js';
+import sequelize from './src/config/db.js'; // <- Actualizado a db.js
 import User from './src/models/User.js';
 import bcrypt from 'bcryptjs';
 

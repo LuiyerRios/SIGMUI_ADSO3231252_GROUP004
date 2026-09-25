@@ -5,10 +5,10 @@
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
-  "dev": "nodemon src/index.js",
-  "start": "node src/index.js",
-  "build:css": "tailwindcss -i ./src/input.css -o ./src/public/css/style.css --watch",
-  "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "build:css": "tailwindcss -i ./public/css/tailwind.css -o ./public/css/output.css --watch",
+    "test": "cross-env NODE_ENV=test jest --detectOpenHandles"
   },
   "keywords": [
     "parking",
@@ -30,7 +30,11 @@
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",
+    "autoprefixer": "^10.6.1",
+    "cross-env": "^10.1.0",
+    "jest": "^30.5.2",
     "nodemon": "^3.1.14",
+    "postcss": "^8.5.28",
     "tailwindcss": "^4.3.3"
   }
 }
