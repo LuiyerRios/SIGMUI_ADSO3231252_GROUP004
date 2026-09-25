@@ -57,7 +57,7 @@ export const login = async (req, res) => {
     if (userRole === 'admin') {
       return res.redirect('/admin');
     } else {
-      return res.redirect('/zones/available-areas');
+      return res.redirect('/available-areas');
     }
 
   } catch (error) {
