@@ -1,9 +1,9 @@
-// src/routes/zone-routes.js
-const express = require('express');
-const router = express.Router();
-const { renderAvailableAreas } = require('../controllers/zone-controller');
+import express from 'express';
+import { renderAvailableAreas } from '../controllers/zone-controller.js';
 
-// Ruta principal a la que accede el usuario tras iniciar sesión
+const router = express.Router();
+
+// Ruta principal a la que accede el usuario tras iniciar sesión (/zones/available-areas)
 router.get('/available-areas', renderAvailableAreas);
 
-module.exports = router;
+export default router;

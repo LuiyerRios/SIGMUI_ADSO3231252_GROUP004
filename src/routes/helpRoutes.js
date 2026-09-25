@@ -4,10 +4,12 @@ import { renderHelpPage, createHelpReport } from '../controllers/helpController.
 
 const router = express.Router();
 
-router.get('/help', renderHelpPage);
+// Responde en GET http://localhost:3000/help
+router.get('/', renderHelpPage);
 
+// Responde en POST http://localhost:3000/help
 router.post(
-  '/help',
+  '/',
   [
     body('firstName').trim().notEmpty().withMessage('First Name is required.'),
     body('lastName').trim().notEmpty().withMessage('Last Name is required.'),

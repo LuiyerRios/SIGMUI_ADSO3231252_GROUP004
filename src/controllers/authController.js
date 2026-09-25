@@ -43,11 +43,22 @@ export const login = async (req, res) => {
     user.lockout_until = null;
     await user.save();
 
-    // Guardar usuario en sesión
-    req.session.user = { id: user.id, email: user.email };
+    // Determinar el rol del usuario (propiedad user.role o por el correo)
+    const userRole = user.role || (email.toLowerCase().includes('admin') ? 'admin' : 'user');
 
-    // Redirigir al dashboard / celdas de parqueo
-    return res.redirect('/parking-spots');
+    // Guardar usuario en sesión
+    req.session.user = { 
+      id: user.id, 
+      email: user.email,
+      role: userRole 
+    };
+
+    // 5. Redirección condicional según el rol
+    if (userRole === 'admin') {
+      return res.redirect('/admin');
+    } else {
+      return res.redirect('/zones/available-areas');
+    }
 
   } catch (error) {
     console.error('Login error:', error);
