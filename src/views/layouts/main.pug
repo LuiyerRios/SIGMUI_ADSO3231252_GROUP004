@@ -4,9 +4,15 @@ html(lang="es")
   head
     meta(charset="UTF-8")
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
-    title= title || "SIGMUI - Control de Parqueadero"
+    title= title || "Tech Parking - SIGMUI"
+    
+    //- CDN de Tailwind y FontAwesome
     script(src="https://cdn.tailwindcss.com")
     link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css")
+    
+    //- Hoja de estilos locales
+    link(rel="stylesheet" href="/css/style.css")
+
   body(class="bg-gray-100 flex h-screen overflow-hidden font-sans")
 
     //- Sidebar Azul Lateral
@@ -14,7 +20,8 @@ html(lang="es")
       div
         div(class="flex items-center space-x-3 mb-8")
           i(class="fas font-bold text-2xl fa-bars cursor-pointer")
-        
+          span(class="font-bold text-xl") Tech Parking
+
         nav(class="space-y-4 font-medium")
           a(href="#" class="flex items-center space-x-3 text-white font-semibold hover:bg-blue-800 p-2 rounded")
             span Available reservations
@@ -26,7 +33,7 @@ html(lang="es")
             span Payments
           a(href="#" class="flex items-center space-x-3 text-blue-200 hover:text-white hover:bg-blue-800 p-2 rounded")
             span Settings
-          a(href="#" class="flex items-center space-x-3 text-blue-200 hover:text-white hover:bg-blue-800 p-2 rounded")
+          a(href="/help" class="flex items-center space-x-3 text-blue-200 hover:text-white hover:bg-blue-800 p-2 rounded")
             span Help
 
       //- Botón de Logout abajo
@@ -41,6 +48,6 @@ html(lang="es")
         i(class="far fa-envelope text-xl cursor-pointer")
         i(class="far fa-user-circle text-2xl cursor-pointer")
 
-      //- Contenido de la vista
+      //- Contenido inyectado por cada vista secundaria
       div(class="p-6 flex-1")
         block content
