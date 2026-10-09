@@ -4,7 +4,7 @@ import HelpReport from '../models/HelpReport.js';
 // GET: Renderiza la vista del formulario
 export const renderHelpPage = (req, res) => {
   try {
-    res.render('help', { 
+    res.render('HU-011', { 
       title: 'Help & Support - SIGMUI',
       errors: [],
       formData: {} 
@@ -20,7 +20,7 @@ export const createHelpReport = async (req, res) => {
   const formData = req.body;
 
   if (!errors.isEmpty()) {
-    return res.status(400).render('help', {
+    return res.status(400).render('HU-011', {
       title: 'Help & Support - SIGMUI',
       errors: errors.array(),
       formData
@@ -29,6 +29,7 @@ export const createHelpReport = async (req, res) => {
 
   try {
     await HelpReport.create({
+      userId: req.session.user?.id,
       firstName: formData.firstName,
       lastName: formData.lastName,
       email: formData.email,
@@ -36,7 +37,7 @@ export const createHelpReport = async (req, res) => {
       description: formData.description
     });
 
-    res.render('help', {
+    res.render('HU-011', {
       title: 'Help & Support - SIGMUI',
       successMessage: 'Your report was sent successfully!',
       errors: [],
@@ -44,7 +45,7 @@ export const createHelpReport = async (req, res) => {
     });
   } catch (error) {
     console.error('Error al guardar reporte:', error);
-    res.status(500).render('help', {
+    res.status(500).render('HU-011', {
       title: 'Help & Support - SIGMUI',
       errorMessage: 'Failed to submit report due to a server error. Please try again later.',
       errors: [],

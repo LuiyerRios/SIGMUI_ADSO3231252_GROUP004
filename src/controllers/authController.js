@@ -1,64 +1,60 @@
-import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
+import User from '../models/User.js';
+import { HOME_BY_ROLE } from '../middlewares/auth.js';
+
+const MAX_ATTEMPTS = 5;
+const LOCK_MINUTES = 15;
+const GENERIC_ERROR = 'Invalid credentials or user does not exist.';
+
+export const renderLogin = (req, res) => {
+  res.render('HU-001', {
+    title: 'Sign in | SIGMUI',
+    error: req.query.expired ? 'Your session has expired. Please log in again.' : null
+  });
+};
 
 export const login = async (req, res) => {
+  const email = String(req.body?.email || '').trim().toLowerCase();
+  const password = String(req.body?.password || '');
+  const fail = (error, status = 401) => res.status(status).render('HU-001', { title: 'Sign in | SIGMUI', error });
+
+  if (!email || !password) return fail(GENERIC_ERROR, 400);
+
   try {
-    const { email, password } = req.body;
+    const user = await User.findOne({ where: { email } });
+    if (!user) return fail(GENERIC_ERROR);
 
-    console.log('\n========= 🔍 DIAGNÓSTICO DE LOGIN =========');
-    console.log('1. Datos recibidos del formulario (req.body):', req.body);
-
-    if (!email || !password) {
-      console.log('❌ ERROR: El formulario no envió email o password.');
-      return res.render('HU-001', { title: 'Login | SIGMUI', error: 'Invalid credentials or user does not exist.' });
+    if (user.lockoutUntil && user.lockoutUntil > new Date()) {
+      return fail(`Your account is locked for ${LOCK_MINUTES} minutes due to too many failed attempts.`, 423);
     }
 
-    // 1. Buscar usuario en MySQL
-    const user = await User.findOne({ where: { email: email.trim() } });
-    
-    if (!user) {
-      console.log(`❌ ERROR: El correo "${email}" NO existe en la base de datos.`);
-      return res.render('HU-001', { title: 'Login | SIGMUI', error: 'Invalid credentials or user does not exist.' });
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
+      const attempts = user.failedAttempts + 1;
+      if (attempts >= MAX_ATTEMPTS) {
+        await user.update({ failedAttempts: 0, lockoutUntil: new Date(Date.now() + LOCK_MINUTES * 60 * 1000) });
+        return fail(`Your account is locked for ${LOCK_MINUTES} minutes due to too many failed attempts.`, 423);
+      }
+      await user.update({ failedAttempts: attempts });
+      return fail(GENERIC_ERROR);
     }
 
-    console.log('2. Usuario encontrado en MySQL:', {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      passwordHash: user.password
+    await user.update({ failedAttempts: 0, lockoutUntil: null });
+
+    req.session.regenerate((err) => {
+      if (err) return fail('Error connecting to the security server. Please try again later.', 503);
+      req.session.user = { id: user.id, name: user.fullName, email: user.email, role: user.role };
+      req.session.save(() => res.redirect(HOME_BY_ROLE[user.role] || '/login'));
     });
-
-    // 2. Comparar contraseña (Soporta Hash Bcrypt O Texto Plano por emergencia)
-    let isPasswordValid = await bcrypt.compare(password, user.password);
-
-    // Si no coincide con bcrypt, verificar si se guardó como texto plano en MySQL
-    if (!isPasswordValid && password === user.password) {
-      console.log('⚠️ ADVERTENCIA: La contraseña coincide en texto plano (sin encriptar).');
-      isPasswordValid = true;
-    }
-
-    console.log('3. Resultado de validación de contraseña:', isPasswordValid ? '✅ CORRECTA' : '❌ INCORRECTA');
-
-    if (!isPasswordValid) {
-      return res.render('HU-001', { title: 'Login | SIGMUI', error: 'Invalid credentials or user does not exist.' });
-    }
-
-    // 3. Determinar el rol
-    const userRole = user.role || (email.includes('admin') ? 'admin' : 'user');
-
-    if (req.session) {
-      req.session.user = { id: user.id, email: user.email, role: userRole };
-    }
-
-    console.log(`🚀 ÉXITO: Redirigiendo a ${userRole === 'admin' ? '/admin' : '/available-areas'}\n`);
-
-    if (userRole === 'admin') {
-      return res.redirect('/admin');
-    }
-    return res.redirect('/available-areas');
-
   } catch (error) {
-    console.error('💥 EXCEPCIÓN / ERROR GRAVE:', error.message);
-    return res.render('HU-001', { title: 'Login | SIGMUI', error: 'Error interno en el servidor.' });
+    console.error('Login error:', error.message);
+    return fail('Error connecting to the security server. Please try again later.', 503);
   }
+};
+
+export const logout = (req, res) => {
+  req.session.destroy(() => {
+    res.clearCookie('connect.sid');
+    res.redirect('/login');
+  });
 };

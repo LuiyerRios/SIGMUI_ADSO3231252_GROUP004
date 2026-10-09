@@ -1,4 +1,3 @@
-  feature/HU-004-start-parking-time
 # Dependencias de Node
 node_modules/
 
@@ -10,8 +9,6 @@ logs/
 *.log
 npm-debug.log*
 
-# Archivos generados por Tailwind
-src/public/css/output.css
 
 # Archivos temporales del sistema
 .DS_Store

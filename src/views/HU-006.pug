@@ -6,7 +6,7 @@ html(lang="es")
         title Vehicle Inspection - SIGMUI
 
         link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css")
-        link(rel="stylesheet", href="public/css/style.css")
+        link(rel="stylesheet", href="/css/HU-006.css")
 
     body
 
@@ -21,7 +21,7 @@ html(lang="es")
         main.container
 
             section.inspection-agent
-                img.inspection-agent__icon(src="public/img/transito.png", alt="Agente de Transito")
+                img.inspection-agent__icon(src="/img/transito.png", alt="Agente de Transito")
                 h2.inspection-agent__title Vehicle Inspection
 
             form.inspection-form(data-n8n-form="vehicle-check")
@@ -29,7 +29,7 @@ html(lang="es")
                 label.inspection-form__label(for="plate-input") Plate to be checked
 
                 .plate-input
-                    img.plate-input__flag(src="public/img/colombia.png", alt="Bandera")
+                    img.plate-input__flag(src="/img/colombia.png", alt="Bandera")
 
                     input#plate-input.plate-input__field(
                         type="text"
@@ -37,7 +37,7 @@ html(lang="es")
                         required
                     )
 
-                button.btn-check(type="button", onclick="checkPlate()") CHECK
+                button.btn-check(type="button") CHECK
 
             section#result.results-area
 
@@ -77,4 +77,4 @@ html(lang="es")
                     .card__info
                         p The license plate has no active payments
 
-        script(src="HU-006.js")
+        script(src="/js/HU-006.js")
