@@ -1,56 +1,68 @@
 doctype html
-html(lang="en")
+html(lang="en" class="h-full")
   head
     meta(charset="UTF-8")
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
-    title Municipal Administrative Dashboard
+    title HU-008 - Municipal Administrative Dashboard
+    script(src="https://cdn.tailwindcss.com")
+    // Chart.js
+    script(src="https://cdn.jsdelivr.net/npm/chart.js")
+    // Librerías de exportación
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js")
 
-    link(rel="stylesheet" href="/css/style.css")
+  body(class="bg-[#eaf4fc] min-h-screen font-sans flex flex-col items-center overflow-x-hidden")
 
-  body
+    //- HEADER AZUL
+    header(class="w-full bg-[#2565ae] py-3 px-6 flex items-center justify-between shadow-sm mb-6 shrink-0")
+      a(href="/admin" class="text-white hover:opacity-80 transition flex items-center")
+        svg(xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor")
+          path(stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18")
+      
+      div(class="text-center font-bold text-2xl tracking-wide flex items-center justify-center gap-1.5 mx-auto")
+        span(class="text-[#64b5f6] font-semibold") tech 
+        span(class="text-white font-extrabold") parking
+      
+      div(class="w-7")
 
-    .app
+    //- TARJETA CENTRAL DE REPORTES
+    main#reportArea(class="w-full max-w-xl bg-white border border-gray-400 rounded-lg p-5 shadow-sm mx-4 mb-6 flex flex-col justify-between")
+      
+      //- Filtro y Exportación
+      header(class="flex flex-wrap items-center justify-between gap-3 mb-4")
+        div(class="flex items-center gap-2 border border-gray-400 rounded px-2.5 py-1 bg-white shadow-sm")
+          span(class="text-base") 📅
+          label(for="filterDate" class="font-bold text-black text-xs sm:text-sm") Filter by date:
+          input#filterDate(
+            type="date" 
+            class="outline-none text-gray-800 font-semibold cursor-pointer text-xs sm:text-sm"
+          )
 
-      .header
+        div(class="flex items-center gap-2")
+          button#btnExportPDF(
+            type="button" 
+            class="border border-gray-400 px-3 py-1 rounded bg-white hover:bg-gray-50 font-bold text-black text-xs sm:text-sm shadow-sm transition cursor-pointer"
+          ) Export PDF
 
-        a.back(href="/")
-          img.back-arrow(src="/img/Flecha.png" alt="Back")
+          button#btnExportExcel(
+            type="button" 
+            class="border border-gray-400 px-3 py-1 rounded bg-white hover:bg-gray-50 font-bold text-black text-xs sm:text-sm shadow-sm transition cursor-pointer"
+          ) Export Excel
 
-        img.logo(src="/img/Header.png" alt="SIGMUI")
+      //- Gráfico de Ocupación con Dimensiones Controladas
+      section(class="flex flex-col items-center justify-center my-2")
+        div(class="w-full max-w-[320px] border border-gray-300 p-4 rounded flex flex-col items-center justify-center bg-white shadow-inner")
+          h3(class="text-sm font-bold text-gray-800 mb-3 text-center") Ocupación por Zona
+          
+          // Contenedor estricto para evitar desbordamiento del Canvas
+          div(class="relative w-52 h-52 flex items-center justify-center")
+            canvas#occupancyChart
 
-      main.container
+      //- Alerta de Datos
+      footer(class="mt-4 flex justify-start")
+        div#alertBox(class="hidden items-center gap-2 border border-gray-400 bg-white text-red-600 font-bold px-3 py-1 rounded text-xs sm:text-sm w-fit shadow-sm")
+          span(class="text-red-600 text-sm") ⚠️
+          span#alertText No data available
 
-        .toolbar
-
-          .filter
-
-            label(for="date") Filter by date:
-
-            input(
-              type="date"
-              id="date"
-              name="date"
-              value=fecha
-            )
-
-          .actions
-
-            button#pdfBtn(type="button") Export PDF
-
-            button#excelBtn(type="button") Export Excel
-
-        .chart-section
-
-          .chart-container
-
-            canvas#occupancyChart(
-              width="300"
-              height="300"
-            )
-
-        if mensaje
-          .alert
-
-            span.icon ⚠
-
-            span.message= mensaje
+    //- Lógica JavaScript modular en archivo externo
+    script(src="/js/HU-008.js")

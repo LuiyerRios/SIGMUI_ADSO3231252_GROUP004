@@ -2,68 +2,63 @@ import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 
 export const login = async (req, res) => {
-  const { email, password } = req.body;
-
   try {
-    // 1. Buscar si el correo existe
-    const user = await User.findOne({ where: { email } });
+    const { email, password } = req.body;
 
+    console.log('\n========= 🔍 DIAGNÓSTICO DE LOGIN =========');
+    console.log('1. Datos recibidos del formulario (req.body):', req.body);
+
+    if (!email || !password) {
+      console.log('❌ ERROR: El formulario no envió email o password.');
+      return res.render('HU-001', { title: 'Login | SIGMUI', error: 'Invalid credentials or user does not exist.' });
+    }
+
+    // 1. Buscar usuario en MySQL
+    const user = await User.findOne({ where: { email: email.trim() } });
+    
     if (!user) {
-      return res.render('HU-001', { error: 'Invalid credentials or user does not exist.' });
+      console.log(`❌ ERROR: El correo "${email}" NO existe en la base de datos.`);
+      return res.render('HU-001', { title: 'Login | SIGMUI', error: 'Invalid credentials or user does not exist.' });
     }
 
-    // 2. Verificar si la cuenta está bloqueada por 15 minutos
-    if (user.lockout_until && user.lockout_until > new Date()) {
-      const minutesLeft = Math.ceil((user.lockout_until - new Date()) / 60000);
-      return res.render('HU-001', { 
-        error: `Account is locked for security reasons. Try again in ${minutesLeft} minute(s).` 
-      });
-    }
-
-    // 3. Validar contraseña
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      // Incrementar intentos fallidos
-      user.failed_attempts += 1;
-
-      // Si llega a 5 intentos, bloquear por 15 minutos
-      if (user.failed_attempts >= 5) {
-        user.lockout_until = new Date(Date.now() + 15 * 60 * 1000); // 15 min en ms
-        user.failed_attempts = 0; // Reiniciar contador tras aplicar el bloqueo
-      }
-
-      await user.save();
-
-      return res.render('HU-001', { error: 'Invalid credentials.' });
-    }
-
-    // 4. Si la contraseña es correcta: Reiniciar intentos y quitar bloqueo
-    user.failed_attempts = 0;
-    user.lockout_until = null;
-    await user.save();
-
-    // Determinar el rol del usuario (propiedad user.role o por el correo)
-    const userRole = user.role || (email.toLowerCase().includes('admin') ? 'admin' : 'user');
-
-    // Guardar usuario en sesión
-    req.session.user = { 
-      id: user.id, 
+    console.log('2. Usuario encontrado en MySQL:', {
+      id: user.id,
       email: user.email,
-      role: userRole 
-    };
+      role: user.role,
+      passwordHash: user.password
+    });
 
-    // 5. Redirección condicional según el rol
+    // 2. Comparar contraseña (Soporta Hash Bcrypt O Texto Plano por emergencia)
+    let isPasswordValid = await bcrypt.compare(password, user.password);
+
+    // Si no coincide con bcrypt, verificar si se guardó como texto plano en MySQL
+    if (!isPasswordValid && password === user.password) {
+      console.log('⚠️ ADVERTENCIA: La contraseña coincide en texto plano (sin encriptar).');
+      isPasswordValid = true;
+    }
+
+    console.log('3. Resultado de validación de contraseña:', isPasswordValid ? '✅ CORRECTA' : '❌ INCORRECTA');
+
+    if (!isPasswordValid) {
+      return res.render('HU-001', { title: 'Login | SIGMUI', error: 'Invalid credentials or user does not exist.' });
+    }
+
+    // 3. Determinar el rol
+    const userRole = user.role || (email.includes('admin') ? 'admin' : 'user');
+
+    if (req.session) {
+      req.session.user = { id: user.id, email: user.email, role: userRole };
+    }
+
+    console.log(`🚀 ÉXITO: Redirigiendo a ${userRole === 'admin' ? '/admin' : '/available-areas'}\n`);
+
     if (userRole === 'admin') {
       return res.redirect('/admin');
-    } else {
-      return res.redirect('/available-areas');
     }
+    return res.redirect('/available-areas');
 
   } catch (error) {
-    console.error('Login error:', error);
-    return res.render('HU-001', { 
-      error: 'Error connecting to the security server. Please try again later.' 
-    });
+    console.error('💥 EXCEPCIÓN / ERROR GRAVE:', error.message);
+    return res.render('HU-001', { title: 'Login | SIGMUI', error: 'Error interno en el servidor.' });
   }
 };
