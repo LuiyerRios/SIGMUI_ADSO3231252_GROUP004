@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
-    "build:css": "tailwindcss -i ./public/css/tailwind.css -o ./public/css/output.css --watch",
+    "build:css": "tailwindcss -i ./src/styles/input.css -o ./public/css/HU-001.css --watch",
     "test": "cross-env NODE_ENV=test jest --detectOpenHandles"
   },
   "keywords": [
@@ -20,9 +20,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-session": "^1.19.0",
     "express-validator": "^7.3.2",
     "mysql2": "^3.23.1",
     "nodemailer": "^9.0.3",

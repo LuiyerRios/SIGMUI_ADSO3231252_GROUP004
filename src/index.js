@@ -1,133 +1,61 @@
+import dotenv from 'dotenv';
 import express from 'express';
 import path from 'path';
+import session from 'express-session';
 import { fileURLToPath } from 'url';
 
-// Conexión a BD y Rutas Modulares (es obligatorio incluir la extensión .js)
 import db from './config/db.js';
+import { exposeUser, requireRole } from './middlewares/auth.js';
+import authRoutes from './routes/authRoutes.js';
+import driverRoutes from './routes/driverRoutes.js';
+import agentRoutes from './routes/agentRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import helpRoutes from './routes/helpRoutes.js';
-import zoneRoutes from './routes/zoneRoutes.js';
+import apiRoutes from './routes/apiRoutes.js';
+
+dotenv.config({ quiet: true });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Configuración para simular __dirname en Módulos ES
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// 1. Configuración del motor de plantillas (Pug)
+// Vistas
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
-// 2. Archivos estáticos (public en la raíz y en src)
+// Archivos estáticos: SOLO la carpeta public/ de la raíz
 app.use(express.static(path.join(__dirname, '../public')));
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/styles', express.static(path.join(__dirname, 'styles')));
 
-// 3. Middlewares para procesar solicitudes JSON y formularios
+// Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  rolling: true, // HU-001: la sesión se mantiene mientras haya uso continuo
+  cookie: { httpOnly: true, maxAge: 30 * 60 * 1000 } // expira tras 30 min sin actividad
+}));
+app.use(exposeUser);
 
-// =========================================================================
-// 4. INICIO DE SESIÓN (HU-001 / HU-002) - RUTA PRINCIPAL
-// =========================================================================
+// Rutas
+app.use('/', authRoutes);                              // HU-001, HU-002, HU-009
+app.use('/api', apiRoutes);                            // APIs (protegidas adentro)
+app.use('/help', requireRole(), helpRoutes);           // HU-011
+app.use('/agent', requireRole('agent'), agentRoutes);  // HU-006, HU-007
+app.use('/admin', requireRole('admin'), adminRoutes);  // HU-010, HU-008
+app.use('/', driverRoutes);                            // HU-003, HU-004, HU-005
 
-// Entrada principal (localhost:3000/)
-app.get('/', (req, res) => {
-  res.render('HU-001', { 
-    title: 'Iniciar Sesión - SIGMUI',
-    error: null 
-  });
+// 404
+app.use((req, res) => {
+  res.status(404).render('errors/error', { title: 'Not found', code: 404, message: 'The page you are looking for does not exist.' });
 });
 
-app.get('/login', (req, res) => {
-  res.render('HU-001', { 
-    title: 'Iniciar Sesión - SIGMUI',
-    error: null 
-  });
-});
-
-app.post('/login', (req, res) => {
-  const { email, password } = req.body;
-  // TODO: Validar credenciales con la base de datos (models/User)
-  res.redirect('/zones');
-});
-
-app.get('/signup', (req, res) => {
-  res.render('HU-002', { 
-    title: 'Registro - SIGMUI',
-    error: null 
-  });
-});
-
-// =========================================================================
-// 5. RUTAS DE MÓDULOS Y DEMÁS HISTORIAS DE USUARIO
-// =========================================================================
-
-app.use('/admin', adminRoutes);
-app.use('/help', helpRoutes);
-app.use('/zones', zoneRoutes);
-
-// HU-005: Guardar reserva
-app.post('/reservas', (req, res) => {
-  const { plate, location, time, status, total } = req.body;
-  const sql = `
-    INSERT INTO reservations (plate, location, time, status, total)
-    VALUES (?, ?, ?, ?, ?)
-  `;
-
-  db.query(sql, [plate, location, time, status, total], (error, result) => {
-    if (error) {
-      console.error(error);
-      return res.status(500).json({ message: 'Error guardando reserva' });
-    }
-    res.json({ message: 'Reserva guardada con éxito' });
-  });
-});
-
-// HU-005: Obtener reservas
-app.get('/reservas', (req, res) => {
-  const sql = 'SELECT * FROM reservations';
-  db.query(sql, (error, result) => {
-    if (error) {
-      console.error(error);
-      return res.status(500).json(error);
-    }
-    res.json(result);
-  });
-});
-
-// HU-007: Multas
-app.get('/hu-007', (req, res) => {
-  res.render('HU-007', {
-    title: 'Multas - SIGMUI',
-    multa: {
-      estado: '',
-      descripcionEstado: '',
-      fecha: '',
-      ubicacion: '',
-      tiempoExcedido: '',
-      ubicacionActual: '',
-      comentarios: '',
-      valor: '',
-      numeroMulta: '',
-      vehiculo: { placa: '' }
-    }
-  });
-});
-
-// HU-008: Historial
-app.get('/hu-008', (req, res) => {
-  res.render('HU-008', {
-    title: 'Historial - SIGMUI',
-    fecha: '',
-    mensaje: ''
-  });
-});
-
-// =========================================================================
-// 6. ARRANQUE DEL SERVIDOR
-// =========================================================================
-app.listen(PORT, () => {
-  console.log(`Servidor funcionando correctamente en http://localhost:${PORT}`);
-});
+// Arranque: primero verifica MySQL
+try {
+  await db.authenticate();
+  app.listen(PORT, () => console.log(`SIGMUI running at http://localhost:${PORT}`));
+} catch (error) {
+  console.error('Cannot connect to MySQL. Check your .env file:', error.message);
+  process.exit(1);
+}

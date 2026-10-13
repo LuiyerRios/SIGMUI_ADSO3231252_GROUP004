@@ -1,69 +1,60 @@
-import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
+import User from '../models/User.js';
+import { HOME_BY_ROLE } from '../middlewares/auth.js';
+
+const MAX_ATTEMPTS = 5;
+const LOCK_MINUTES = 15;
+const GENERIC_ERROR = 'Invalid credentials or user does not exist.';
+
+export const renderLogin = (req, res) => {
+  res.render('HU-001', {
+    title: 'Sign in | SIGMUI',
+    error: req.query.expired ? 'Your session has expired. Please log in again.' : null
+  });
+};
 
 export const login = async (req, res) => {
-  const { email, password } = req.body;
+  const email = String(req.body?.email || '').trim().toLowerCase();
+  const password = String(req.body?.password || '');
+  const fail = (error, status = 401) => res.status(status).render('HU-001', { title: 'Sign in | SIGMUI', error });
+
+  if (!email || !password) return fail(GENERIC_ERROR, 400);
 
   try {
-    // 1. Buscar si el correo existe
     const user = await User.findOne({ where: { email } });
+    if (!user) return fail(GENERIC_ERROR);
 
-    if (!user) {
-      return res.render('HU-001', { error: 'Invalid credentials or user does not exist.' });
+    if (user.lockoutUntil && user.lockoutUntil > new Date()) {
+      return fail(`Your account is locked for ${LOCK_MINUTES} minutes due to too many failed attempts.`, 423);
     }
 
-    // 2. Verificar si la cuenta está bloqueada por 15 minutos
-    if (user.lockout_until && user.lockout_until > new Date()) {
-      const minutesLeft = Math.ceil((user.lockout_until - new Date()) / 60000);
-      return res.render('HU-001', { 
-        error: `Account is locked for security reasons. Try again in ${minutesLeft} minute(s).` 
-      });
-    }
-
-    // 3. Validar contraseña
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      // Incrementar intentos fallidos
-      user.failed_attempts += 1;
-
-      // Si llega a 5 intentos, bloquear por 15 minutos
-      if (user.failed_attempts >= 5) {
-        user.lockout_until = new Date(Date.now() + 15 * 60 * 1000); // 15 min en ms
-        user.failed_attempts = 0; // Reiniciar contador tras aplicar el bloqueo
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
+      const attempts = user.failedAttempts + 1;
+      if (attempts >= MAX_ATTEMPTS) {
+        await user.update({ failedAttempts: 0, lockoutUntil: new Date(Date.now() + LOCK_MINUTES * 60 * 1000) });
+        return fail(`Your account is locked for ${LOCK_MINUTES} minutes due to too many failed attempts.`, 423);
       }
-
-      await user.save();
-
-      return res.render('HU-001', { error: 'Invalid credentials.' });
+      await user.update({ failedAttempts: attempts });
+      return fail(GENERIC_ERROR);
     }
 
-    // 4. Si la contraseña es correcta: Reiniciar intentos y quitar bloqueo
-    user.failed_attempts = 0;
-    user.lockout_until = null;
-    await user.save();
+    await user.update({ failedAttempts: 0, lockoutUntil: null });
 
-    // Determinar el rol del usuario (propiedad user.role o por el correo)
-    const userRole = user.role || (email.toLowerCase().includes('admin') ? 'admin' : 'user');
-
-    // Guardar usuario en sesión
-    req.session.user = { 
-      id: user.id, 
-      email: user.email,
-      role: userRole 
-    };
-
-    // 5. Redirección condicional según el rol
-    if (userRole === 'admin') {
-      return res.redirect('/admin');
-    } else {
-      return res.redirect('/available-areas');
-    }
-
-  } catch (error) {
-    console.error('Login error:', error);
-    return res.render('HU-001', { 
-      error: 'Error connecting to the security server. Please try again later.' 
+    req.session.regenerate((err) => {
+      if (err) return fail('Error connecting to the security server. Please try again later.', 503);
+      req.session.user = { id: user.id, name: user.fullName, email: user.email, role: user.role };
+      req.session.save(() => res.redirect(HOME_BY_ROLE[user.role] || '/login'));
     });
+  } catch (error) {
+    console.error('Login error:', error.message);
+    return fail('Error connecting to the security server. Please try again later.', 503);
   }
+};
+
+export const logout = (req, res) => {
+  req.session.destroy(() => {
+    res.clearCookie('connect.sid');
+    res.redirect('/login');
+  });
 };

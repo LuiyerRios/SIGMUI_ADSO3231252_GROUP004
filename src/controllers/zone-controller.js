@@ -5,7 +5,7 @@
  */
 export const renderAvailableAreas = async (req, res) => {
     try {
-        res.render('available-areas', {
+        res.render('HU-003', {
             title: 'SIGMUI - Áreas Disponibles'
         });
     } catch (error) {

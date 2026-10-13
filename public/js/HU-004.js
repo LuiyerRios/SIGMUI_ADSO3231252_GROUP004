@@ -134,5 +134,5 @@ document.getElementById("total").textContent="0";
 // VOLVER
 
 function goBack() {
-    window.location.href = "/HU-003";
+    window.location.href = '/zones';
 }
