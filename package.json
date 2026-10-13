@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
-    "build:css": "tailwindcss -i ./public/css/tailwind.css -o ./public/css/output.css --watch",
+    "build:css": "tailwindcss -i ./src/styles/input.css -o ./public/css/HU-001.css --watch",
     "test": "cross-env NODE_ENV=test jest --detectOpenHandles"
   },
   "keywords": [

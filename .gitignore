@@ -23,6 +23,3 @@ Thumbs.db
 # Archivos de pruebas
 coverage/
 
-node_modules/
-.env
- develop
