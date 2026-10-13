@@ -16,7 +16,8 @@ export const renderLogin = (req, res) => {
 export const login = async (req, res) => {
   const email = String(req.body?.email || '').trim().toLowerCase();
   const password = String(req.body?.password || '');
-  const fail = (error, status = 401) => res.status(status).render('HU-001', { title: 'Sign in | SIGMUI', error });
+  const fail = (error, status = 401, extraParams = {}) => 
+    res.status(status).render('HU-001', { title: 'Sign in | SIGMUI', error, email, ...extraParams });
 
   if (!email || !password) return fail(GENERIC_ERROR, 400);
 
@@ -37,6 +38,14 @@ export const login = async (req, res) => {
       }
       await user.update({ failedAttempts: attempts });
       return fail(GENERIC_ERROR);
+    }
+
+    // Verificación de email obligatorio antes de crear la sesión (HU-012)
+    if (!user.emailVerifiedAt) {
+      return fail('Please verify your email before signing in.', 403, {
+        showResend: true,
+        unverifiedEmail: user.email
+      });
     }
 
     await user.update({ failedAttempts: 0, lockoutUntil: null });
