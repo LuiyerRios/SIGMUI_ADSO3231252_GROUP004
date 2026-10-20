@@ -14,7 +14,12 @@ try {
     const password = await bcrypt.hash(u.password, 10);
     const [user, created] = await User.findOrCreate({
       where: { email: u.email },
-      defaults: { fullName: u.fullName, role: u.role, password }
+      defaults: {
+        fullName: u.fullName,
+        role: u.role,
+        password,
+        emailVerifiedAt: new Date()
+      }
     });
     if (u.plate) {
       await db.query('INSERT IGNORE INTO vehicles (user_id, plate) VALUES (?, ?)', { replacements: [user.id, u.plate] });
