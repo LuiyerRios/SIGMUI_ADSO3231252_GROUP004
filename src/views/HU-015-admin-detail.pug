@@ -17,6 +17,10 @@ block content
       .admin-alert-info
         p= infoMessage
 
+    if errorMessage
+      .admin-alert-error
+        p= errorMessage
+
     if errors && errors.length > 0
       .admin-alert-error
         ul
@@ -52,12 +56,15 @@ block content
       .admin-card
         h2 Admin Response
 
+        - const currentStatus = (formData && formData.status) ? formData.status : report.status
+        - const currentResponse = (formData && formData.response !== undefined) ? formData.response : (report.response || '')
+
         form(action=`/admin/help-reports/${report.id}/reply`, method="POST", class="reply-form")
           .form-group
             label(for="status") Update Status:
             select#status.form-control(name="status", required)
-              option(value="In_Review", selected=report.status === 'In_Review') In Review
-              option(value="Resolved", selected=report.status === 'Resolved' || report.status === 'Pending') Resolved
+              option(value="In_Review", selected=currentStatus === 'In_Review') In Review
+              option(value="Resolved", selected=currentStatus === 'Resolved' || currentStatus === 'Pending') Resolved
 
           .form-group
             label(for="response") Official Response Message:
@@ -66,7 +73,7 @@ block content
               rows="6", 
               placeholder="Write your response to the user here...", 
               required
-            )= report.response || ''
+            )= currentResponse
 
           .form-actions
             button.btn-primary(type="submit") Send Response & Notify User

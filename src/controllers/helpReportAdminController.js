@@ -82,11 +82,25 @@ export const renderHelpReport = async (req, res) => {
       })
     };
 
+    let successMessage = null;
+    let infoMessage = null;
+    let errorMessage = null;
+
+    if (req.query.sent === '1') {
+      successMessage = 'Reply sent successfully.';
+    } else if (req.query.nouser === '1') {
+      infoMessage = 'Reply saved, but this report has no linked user to notify.';
+    } else if (req.query.notifyfail === '1') {
+      errorMessage = 'Reply saved, but the user could not be notified.';
+    }
+
     res.render('HU-015-admin-detail', {
       title: `Report ${formattedReport.code} | SIGMUI`,
       report: formattedReport,
-      successMessage: req.query.success || null,
-      infoMessage: req.query.info || null,
+      formData: null,
+      successMessage,
+      infoMessage,
+      errorMessage,
       errors: []
     });
   } catch (error) {
@@ -123,11 +137,22 @@ export const replyHelpReport = async (req, res) => {
         report: {
           ...item,
           code: `#HR-${paddedId}`,
-          formattedDate: new Date(item.createdAt).toLocaleString('en-US')
+          formattedDate: new Date(item.createdAt).toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        },
+        formData: {
+          response: req.body.response,
+          status: req.body.status
         },
         errors: errors.array(),
         successMessage: null,
-        infoMessage: null
+        infoMessage: null,
+        errorMessage: null
       });
     }
 
@@ -139,13 +164,17 @@ export const replyHelpReport = async (req, res) => {
       respondedAt: new Date()
     });
 
-    const notificationCreated = await notifySupportReply(report);
-
-    if (!notificationCreated) {
-      return res.redirect(`/admin/help-reports/${id}?info=Reply saved, but this report has no linked user to notify.`);
+    try {
+      const notificationCreated = await notifySupportReply(report);
+      if (!notificationCreated) {
+        return res.redirect(`/admin/help-reports/${id}?nouser=1`);
+      }
+      return res.redirect(`/admin/help-reports/${id}?sent=1`);
+    } catch (notifErr) {
+      console.error('Error notifying user of support reply:', notifErr);
+      return res.redirect(`/admin/help-reports/${id}?notifyfail=1`);
     }
 
-    return res.redirect(`/admin/help-reports/${id}?success=Reply sent successfully.`);
   } catch (error) {
     console.error('Error replying to help report:', error);
     res.status(500).render('errors/error', {
