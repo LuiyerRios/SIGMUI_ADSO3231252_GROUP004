@@ -6,11 +6,13 @@ import { fileURLToPath } from 'url';
 
 import db from './config/db.js';
 import { exposeUser, requireRole } from './middlewares/auth.js';
+import { exposeUnreadCount } from './middlewares/notifications.js';
 import authRoutes from './routes/authRoutes.js';
 import driverRoutes from './routes/driverRoutes.js';
 import agentRoutes from './routes/agentRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import helpRoutes from './routes/helpRoutes.js';
+import inboxRoutes from './routes/inboxRoutes.js';
 import apiRoutes from './routes/apiRoutes.js';
 
 dotenv.config({ quiet: true });
@@ -33,15 +35,17 @@ app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  rolling: true, // HU-001: la sesión se mantiene mientras haya uso continuo
-  cookie: { httpOnly: true, maxAge: 30 * 60 * 1000 } // expira tras 30 min sin actividad
+  rolling: true,
+  cookie: { httpOnly: true, maxAge: 30 * 60 * 1000 }
 }));
 app.use(exposeUser);
+app.use(exposeUnreadCount);
 
 // Rutas
 app.use('/', authRoutes);                              // HU-001, HU-002, HU-009
 app.use('/api', apiRoutes);                            // APIs (protegidas adentro)
 app.use('/help', requireRole(), helpRoutes);           // HU-011
+app.use('/inbox', requireRole(), inboxRoutes);         // HU-015
 app.use('/agent', requireRole('agent'), agentRoutes);  // HU-006, HU-007
 app.use('/admin', requireRole('admin'), adminRoutes);  // HU-010, HU-008
 app.use('/', driverRoutes);                            // HU-003, HU-004, HU-005
