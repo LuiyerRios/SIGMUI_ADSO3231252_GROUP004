@@ -1,10 +1,14 @@
-import { listForUser, getForUser, markRead, markAllRead } from '../services/notificationService.js';
+import { listForUser, getForUser, markRead, markAllRead, countUnread } from '../services/notificationService.js';
 import { formatInboxDate, formatInboxDetailDateTime } from '../utils/inboxFormat.js';
 import HelpReport from '../models/HelpReport.js';
+import db from '../config/db.js';
+
+const VALID_FILTERS = ['all', 'unread', 'alerts', 'support'];
 
 export const renderInbox = async (req, res) => {
   const userId = req.session.user.id;
-  const activeFilter = req.query.filter || 'all';
+  const rawFilter = req.query.filter;
+  const activeFilter = VALID_FILTERS.includes(rawFilter) ? rawFilter : 'all';
   const requestedId = req.query.id;
 
   try {
@@ -41,22 +45,31 @@ export const renderInbox = async (req, res) => {
           message: 'The page you are looking for does not exist.'
         });
       }
-    } else if (notifications.length > 0) {
-      selectedNotification = await getForUser(notifications[0].id, userId);
-    }
 
-    if (selectedNotification) {
+      // Solo se marca como leído cuando se solicita explícitamente con ?id=
       if (!selectedNotification.readAt) {
         await markRead(selectedNotification.id, userId);
         selectedNotification.readAt = new Date();
 
         const listed = notifications.find(n => n.id === selectedNotification.id);
         if (listed) listed.readAt = new Date();
-      }
 
+        // Recalcular contador para reflejar en badge y cabecera
+        res.locals.unreadCount = await countUnread(userId);
+      }
+    } else if (notifications.length > 0) {
+      // Si no hay id explícito, selecciona el más reciente para mostrar pero NO lo marca como leído
+      selectedNotification = await getForUser(notifications[0].id, userId);
+    }
+
+    if (selectedNotification) {
       const item = selectedNotification.toJSON ? selectedNotification.toJSON() : selectedNotification;
+      
+      const senderName = item.type === 'support_reply' ? 'SIGMUI Support' : 'Tech Parking';
+
       selectedNotification = {
         ...item,
+        senderName,
         formattedDetailDateTime: formatInboxDetailDateTime(item.createdAt)
       };
 
@@ -72,6 +85,32 @@ export const renderInbox = async (req, res) => {
           }
         } catch (repErr) {
           console.error('Error fetching original help report for inbox detail:', repErr);
+        }
+      }
+
+      if (selectedNotification.type === 'parking_alert' && selectedNotification.referenceId) {
+        try {
+          const [sessions] = await db.query(
+            'SELECT space_id, plate, end_time FROM parking_sessions WHERE id = ? LIMIT 1',
+            { replacements: [selectedNotification.referenceId] }
+          );
+
+          if (sessions && sessions.length > 0) {
+            const session = sessions[0];
+            const formattedEndTime = new Date(session.end_time).toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+            });
+
+            selectedNotification.sessionInfo = {
+              spaceId: session.space_id || 'unassigned space',
+              plate: session.plate,
+              endTime: formattedEndTime
+            };
+          }
+        } catch (sessionErr) {
+          console.error('Error fetching parking session info for inbox detail:', sessionErr);
         }
       }
     }
@@ -98,11 +137,14 @@ export const renderInbox = async (req, res) => {
 
 export const markAllAsRead = async (req, res) => {
   const userId = req.session.user.id;
+  const rawFilter = req.query.filter;
+  const activeFilter = VALID_FILTERS.includes(rawFilter) ? rawFilter : 'all';
+
   try {
     await markAllRead(userId);
   } catch (error) {
     console.error('Error marking all as read:', error);
   }
-  const filter = req.query.filter || 'all';
-  res.redirect(`/inbox?filter=${filter}`);
+
+  res.redirect(`/inbox?filter=${activeFilter}`);
 };

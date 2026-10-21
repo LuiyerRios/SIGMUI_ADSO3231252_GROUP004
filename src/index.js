@@ -35,8 +35,8 @@ app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  rolling: true,
-  cookie: { httpOnly: true, maxAge: 30 * 60 * 1000 }
+  rolling: true, // HU-001: la sesión se mantiene mientras haya uso continuo
+  cookie: { httpOnly: true, maxAge: 30 * 60 * 1000 } // expira tras 30 min sin actividad
 }));
 app.use(exposeUser);
 app.use(exposeUnreadCount);
