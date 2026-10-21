@@ -1,0 +1,51 @@
+extends layouts/main2
+
+block content
+  link(rel="stylesheet", href="/css/HU-015-admin.css")
+
+  .admin-page-container
+    a.btn-back(href="/admin") ← Back to Admin Dashboard
+
+    header.admin-header
+      .header-title
+        h1 Support & Help Reports
+        p Manage and respond to user inquiry tickets
+
+    if errorMessage
+      .admin-alert-error
+        p= errorMessage
+
+    .admin-card
+      .card-filters
+        a.chip(href="/admin/help-reports?status=all", class=statusFilter === 'all' ? 'active' : '') All
+        a.chip(href="/admin/help-reports?status=Pending", class=statusFilter === 'Pending' ? 'active' : '') Pending
+        a.chip(href="/admin/help-reports?status=In_Review", class=statusFilter === 'In_Review' ? 'active' : '') In Review
+        a.chip(href="/admin/help-reports?status=Resolved", class=statusFilter === 'Resolved' ? 'active' : '') Resolved
+
+      if reports.length === 0
+        .empty-state
+          p No help reports found for this filter.
+      else
+        .table-responsive
+          table.admin-table
+            thead
+              tr
+                th Ticket
+                th User Name
+                th Email
+                th Description
+                th Status
+                th Date
+                th Action
+            tbody
+              each report in reports
+                tr
+                  td.font-bold= report.code
+                  td= report.firstName + ' ' + report.lastName
+                  td= report.email
+                  td.desc-cell= report.shortDescription
+                  td
+                    span.pill-status(class=report.status.toLowerCase())= report.status.replace('_', ' ')
+                  td= report.formattedDate
+                  td
+                    a.btn-action(href=`/admin/help-reports/${report.id}`) View & Reply

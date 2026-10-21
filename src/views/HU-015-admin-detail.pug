@@ -1,0 +1,72 @@
+extends layouts/main2
+
+block content
+  link(rel="stylesheet", href="/css/HU-015-admin.css")
+
+  .admin-page-container
+    .nav-breadcrumbs
+      a.btn-back(href="/admin/help-reports") ← Back to Reports List
+      span.nav-separator |
+      a.btn-back(href="/admin") Admin Home
+
+    if successMessage
+      .admin-alert-success
+        p= successMessage
+
+    if infoMessage
+      .admin-alert-info
+        p= infoMessage
+
+    if errors && errors.length > 0
+      .admin-alert-error
+        ul
+          each err in errors
+            li= err.msg
+
+    .admin-grid-detail
+      .admin-card
+        .card-header-flex
+          h2 Ticket #{report.code}
+          span.pill-status(class=report.status.toLowerCase())= report.status.replace('_', ' ')
+
+        .report-meta-grid
+          .meta-item
+            span.meta-label Submitted By:
+            strong= report.firstName + ' ' + report.lastName
+          .meta-item
+            span.meta-label Email:
+            strong= report.email
+          .meta-item
+            span.meta-label Phone:
+            strong= report.phone || 'N/A'
+          .meta-item
+            span.meta-label Date:
+            strong= report.formattedDate
+
+        hr.divider
+
+        .description-box
+          h3 Original User Message:
+          p= report.description
+
+      .admin-card
+        h2 Admin Response
+
+        form(action=`/admin/help-reports/${report.id}/reply`, method="POST", class="reply-form")
+          .form-group
+            label(for="status") Update Status:
+            select#status.form-control(name="status", required)
+              option(value="In_Review", selected=report.status === 'In_Review') In Review
+              option(value="Resolved", selected=report.status === 'Resolved' || report.status === 'Pending') Resolved
+
+          .form-group
+            label(for="response") Official Response Message:
+            textarea#response.form-control(
+              name="response", 
+              rows="6", 
+              placeholder="Write your response to the user here...", 
+              required
+            )= report.response || ''
+
+          .form-actions
+            button.btn-primary(type="submit") Send Response & Notify User
