@@ -1,3 +1,9 @@
+export function formatReportTitle(reportId) {
+  if (!reportId) return 'Reply to your report';
+  const paddedId = String(reportId).padStart(4, '0');
+  return `Reply to your report #HR-${paddedId}`;
+}
+
 export function formatInboxDate(dateInput) {
   if (!dateInput) return '';
   const date = new Date(dateInput);

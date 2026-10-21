@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import db from './config/db.js';
 import { exposeUser, requireRole } from './middlewares/auth.js';
 import { exposeUnreadCount } from './middlewares/notifications.js';
+import { createParkingAlerts } from './services/notificationService.js';
 import authRoutes from './routes/authRoutes.js';
 import driverRoutes from './routes/driverRoutes.js';
 import agentRoutes from './routes/agentRoutes.js';
@@ -58,7 +59,20 @@ app.use((req, res) => {
 // Arranque: primero verifica MySQL
 try {
   await db.authenticate();
-  app.listen(PORT, () => console.log(`SIGMUI running at http://localhost:${PORT}`));
+  app.listen(PORT, () => {
+    console.log(`SIGMUI running at http://localhost:${PORT}`);
+
+    // Bucle en segundo plano para alertas de 10 min
+    if (process.env.NODE_ENV !== 'test') {
+      setInterval(async () => {
+        try {
+          await createParkingAlerts();
+        } catch (err) {
+          console.error('Background alert runner error:', err.message);
+        }
+      }, 60000);
+    }
+  });
 } catch (error) {
   console.error('Cannot connect to MySQL. Check your .env file:', error.message);
   process.exit(1);
