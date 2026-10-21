@@ -1,0 +1,441 @@
+@import "tailwindcss";
+
+/* RESET */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Poppins',sans-serif;
+    background:#E6F2F8;
+    min-height:100vh;
+}
+
+/* HEADER */
+
+.header{
+
+    background:#2565AE;
+
+    color:#fff;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    position:relative;
+
+    padding:18px;
+
+    box-shadow:0 4px 15px rgba(0,0,0,.15);
+
+}
+
+.header__title{
+
+    font-size:28px;
+
+    font-weight:700;
+
+    letter-spacing:1px;
+
+}
+
+.header__title span{
+
+    color:#7BD3C7;
+
+}
+
+.header__back{
+
+    position:absolute;
+
+    left:20px;
+
+    border:none;
+
+    background:none;
+
+    color:white;
+
+    cursor:pointer;
+
+    font-size:22px;
+
+    transition:.3s;
+
+}
+
+.header__back:hover{
+
+    transform:translateX(-4px);
+
+}
+
+/* CONTENEDOR */
+
+.container{
+
+    width:95%;
+
+    max-width:470px;
+
+    margin:35px auto;
+
+}
+
+/* AGENTE */
+
+.inspection-agent{
+
+    text-align:center;
+
+    margin-bottom:25px;
+
+}
+
+.inspection-agent__icon{
+
+    width:85px;
+
+    margin-bottom:10px;
+
+}
+
+.inspection-agent__title{
+
+    color:#2340FE;
+
+    font-size:28px;
+
+    font-weight:700;
+
+}
+
+/* FORMULARIO */
+
+.inspection-form{
+
+    background:white;
+
+    padding:25px;
+
+    border-radius:18px;
+
+    box-shadow:0 10px 25px rgba(0,0,0,.12);
+
+}
+
+.inspection-form__label{
+
+    display:block;
+
+    margin-bottom:8px;
+
+    font-weight:600;
+
+    color:#444;
+
+}
+
+.plate-input{
+
+    display:flex;
+
+    align-items:center;
+
+    border:2px solid #d9d9d9;
+
+    border-radius:12px;
+
+    padding:12px;
+
+    transition:.3s;
+
+}
+
+.plate-input:focus-within{
+
+    border-color:#2340FE;
+
+    box-shadow:0 0 0 4px rgba(35,64,254,.15);
+
+}
+
+.plate-input__flag{
+
+    width:34px;
+
+    margin-right:10px;
+
+}
+
+.plate-input__field{
+
+    flex:1;
+
+    border:none;
+
+    outline:none;
+
+    font-size:18px;
+
+    text-transform:uppercase;
+
+    background:transparent;
+
+}
+
+/* BOTÓN */
+
+.btn-check{
+
+    width:100%;
+
+    margin-top:22px;
+
+    padding:14px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:#2340FE;
+
+    color:white;
+
+    font-size:17px;
+
+    font-weight:700;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+}
+
+.btn-check:hover{
+
+    background:#1028d7;
+
+    transform:translateY(-2px);
+
+}
+
+.btn-check:active{
+
+    transform:scale(.97);
+
+}
+
+/* TARJETAS */
+
+.card{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:15px;
+
+    margin-top:18px;
+
+    padding:18px;
+
+    border-radius:16px;
+
+    animation:fade .35s ease;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+
+}
+
+.card__icon{
+
+    width:55px;
+
+    height:55px;
+
+    border-radius:50%;
+
+    background:white;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-size:24px;
+
+    flex-shrink:0;
+
+}
+
+.card__info{
+
+    flex:1;
+
+}
+
+.card__info h3{
+
+    font-size:17px;
+
+    margin-bottom:5px;
+
+}
+
+.card__info p{
+
+    color:#555;
+
+    font-size:14px;
+
+    margin-top:2px;
+
+}
+
+/* ESTADOS */
+
+.card--success{
+
+    background:#EAF9EF;
+
+}
+
+.card--success .card__icon{
+
+    color:#1F9D55;
+
+}
+
+.card--error{
+
+    background:#FCECEC;
+
+}
+
+.card--error .card__icon{
+
+    color:#DC3545;
+
+}
+
+.card--neutral{
+
+    background:#F2F4F7;
+
+}
+
+.card--neutral .card__icon{
+
+    color:#6B7280;
+
+}
+
+/* BADGES */
+
+.badge{
+
+    padding:6px 12px;
+
+    border-radius:8px;
+
+    color:white;
+
+    font-size:13px;
+
+    font-weight:700;
+
+}
+
+.badge--success{
+
+    background:#1F9D55;
+
+}
+
+.badge--error{
+
+    background:#DC3545;
+
+}
+
+/* MENSAJES */
+
+.results-area__subtitle{
+
+    margin-top:25px;
+
+    margin-bottom:10px;
+
+    color:#555;
+
+}
+
+.error-message{
+
+    margin-top:20px;
+
+    padding:15px;
+
+    background:#FDECEC;
+
+    color:#C62828;
+
+    border-radius:10px;
+
+    text-align:center;
+
+    font-weight:600;
+
+}
+
+/* ANIMACIONES */
+
+@keyframes fade{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(20px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}
+
+/* RESPONSIVE */
+
+@media(max-width:500px){
+
+    .card{
+
+        flex-direction:column;
+
+        text-align:center;
+
+    }
+
+    .badge{
+
+        margin-top:10px;
+
+    }
+
+}
