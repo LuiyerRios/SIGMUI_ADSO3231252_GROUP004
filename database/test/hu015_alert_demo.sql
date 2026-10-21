@@ -17,7 +17,7 @@ INSERT INTO parking_sessions (
   payment_status
 ) VALUES (
   'REC-DEMO-015',
-  (SELECT id FROM users WHERE email = 'driver@sigmui.com' LIMIT 1),
+    (SELECT id FROM vehicles WHERE plate = 'ABC123' LIMIT 1),
   1,
   'ABC123',
   'A',
