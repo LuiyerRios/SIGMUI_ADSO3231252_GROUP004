@@ -1,0 +1,372 @@
+//- src/views/HU-000.pug
+//- HU-000 · Home / landing page pública de Tech Parking.
+//- Móvil por defecto; desde lg (1024px) se aplica el diseño de escritorio.
+//- Todo lo interactivo es demostración en la página (public/js/HU-000.js):
+//- solo Sign in / Get started / Create account / I already have one salen a /login y /signup.
+
+- const fmt = (n) => '$' + Number(n).toLocaleString('es-CO')
+- const rateLabel = fmt(rate || 2000)
+- const maxStayLabel = maxStay || '24 h'
+
+- const navLinks = [{ href: '#map', label: 'Live map' }, { href: '#day', label: 'A day with us' }, { href: '#simulator', label: 'Try it' }, { href: '#compare', label: 'Why switch' }]
+
+-
+  const day = [
+    { time: '7:52 AM', color: 'bg-tp-navy', title: 'Checks before leaving', text: 'She types her office address and sees a zone with free spaces two blocks away.', mobile: 'She types her office address and finds a zone with free spaces two blocks away.' },
+    { time: '8:10 AM', color: 'bg-tp-blue', title: 'Parks and taps start', text: 'Her plate is already saved. One tap and the session begins — no meter, no ticket.', mobile: 'Her plate is saved. One tap and the session begins — no meter, no ticket.' },
+    { time: '9:50 AM', color: 'bg-tp-teal', title: 'Gets a heads-up', text: 'Her meeting runs long. Ten minutes before time is up, her phone reminds her.', mobile: 'Her meeting runs long. Ten minutes before time is up, her phone reminds her.' },
+    { time: '9:51 AM', color: 'bg-tp-indigo', title: 'Extends from her desk', text: 'She adds 30 minutes without leaving the room. No fine, no running downstairs.', mobile: 'She adds 30 minutes without leaving the room. No fine, no running downstairs.' },
+    { time: '10:24 AM', color: 'bg-tp-navy', title: 'Leaves, receipt saved', text: 'She ends the session early and pays only for the minutes used. The receipt lands in her history.', mobile: 'She ends early and pays only for the minutes used. The receipt lands in her history.' }
+  ]
+
+- const durations = [{ min: 15, label: '15 min' }, { min: 30, label: '30 min' }, { min: 60, label: '1 h' }, { min: 90, label: '1 h 30', mobile: '1h 30' }, { min: 120, label: '2 h' }]
+
+- const oldWay = ['Driving around blocks looking for a space', 'Searching for coins or a meter that works', "Paying for time you didn't use", 'A fine because you lost track of time']
+- const techWay = [{ text: 'Drive straight to a free space' }, { text: 'Pay with one tap from your phone' }, { text: 'End early and pay only for minutes used', mobile: 'End early, pay only for minutes used' }, { text: 'Reminders and remote extensions' }]
+
+mixin logo(size)
+  if size === 'footer'
+    span(class="grid size-[30px] place-items-center rounded-lg tp-grad text-[13px] font-bold text-white lg:size-8 lg:text-sm") P
+    span(class="text-[13px] font-semibold text-tp-navy") tech parking
+  else
+    span(class="grid size-9 place-items-center rounded-[10px] tp-grad text-base font-bold text-white lg:size-10 lg:text-lg") P
+    span(class="text-lg font-semibold text-tp-navy lg:text-xl") tech parking
+
+mixin iconX
+  svg(class="size-[14px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true")
+    path(d="M18 6 6 18M6 6l12 12")
+
+mixin iconCheck
+  svg(class="size-[14px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+    path(d="M20 6 9 17l-5-5")
+
+mixin iconLock(cls)
+  svg(class=cls viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+    rect(x="4" y="11" width="16" height="10" rx="2")
+    path(d="M8 11V7a4 4 0 0 1 8 0v4")
+
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title= title || 'Tech Parking | SIGMUI'
+    meta(name="description" content="Tech Parking reads the blue zones of your city in real time, so you drive straight to a free space and pay from your phone.")
+    link(rel="preconnect" href="https://fonts.googleapis.com")
+    link(rel="preconnect" href="https://fonts.gstatic.com" crossorigin)
+    link(rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap")
+    link(rel="stylesheet" href="/css/HU-000.css")
+  body(class="bg-tp-bg font-poppins text-tp-navy" data-rate=(rate || 2000))
+
+    //- ===== Encabezado =====
+    header(id="siteHeader" class="sticky top-0 z-10 border-b border-tp-line bg-[rgba(238,242,247,0.94)] backdrop-blur-md lg:static lg:border-0 lg:bg-transparent lg:backdrop-blur-none")
+      div(class="mx-auto flex h-[72px] w-full max-w-[1240px] items-center justify-between px-5 lg:h-[99px] lg:px-6")
+        a(href="#top" class="flex items-center gap-[10px] lg:gap-3" aria-label="Tech Parking home")
+          +logo('header')
+
+        nav(class="hidden items-center gap-[6px] rounded-full border border-tp-line bg-white p-[6px] lg:flex" aria-label="Sections")
+          each link, i in navLinks
+            a(href=link.href data-nav-link class=`flex h-[41px] items-center rounded-full px-4 text-sm font-medium transition-colors ${i === 0 ? 'bg-tp-pale text-tp-blue' : 'text-tp-navy hover:text-tp-blue'}`)= link.label
+
+        div(class="flex items-center gap-[18px] lg:gap-[10px]")
+          a(href="/login" class="text-sm font-semibold text-tp-navy hover:text-tp-blue lg:px-[18px] lg:py-[10px] lg:text-[15px] lg:leading-[1.4]") Sign in
+          a(href="/signup" class="hidden h-11 items-center rounded-xl bg-tp-navy px-5 text-[15px] font-semibold leading-[1.4] text-white transition-opacity hover:opacity-90 lg:inline-flex") Get started
+          button(id="menuButton" type="button" class="grid size-11 place-items-center rounded-xl border border-tp-line bg-white lg:hidden" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu")
+            svg(class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true")
+              path(data-menu-icon="open" d="M4 7h16M4 12h16M4 17h16")
+              path(data-menu-icon="close" class="hidden" d="M6 6l12 12M18 6 6 18")
+
+      //- Menú móvil (demo: solo navega dentro de la página)
+      nav(id="mobileMenu" class="tp-fade pointer-events-none absolute inset-x-0 top-full -translate-y-2 border-b border-tp-line bg-tp-bg px-5 pb-5 pt-2 opacity-0 lg:hidden" aria-label="Sections")
+        each link in navLinks
+          a(href=link.href data-menu-link class="flex h-12 items-center rounded-xl px-4 text-[15px] font-medium text-tp-navy hover:bg-white")= link.label
+        a(href="/signup" class="mt-2 flex h-12 items-center justify-center rounded-xl bg-tp-navy text-[15px] font-semibold text-white") Get started
+
+    main
+      //- ===== Hero =====
+      section(id="top" class="mx-auto w-full max-w-[1240px] px-5 pb-6 pt-[32px] lg:flex lg:items-end lg:justify-between lg:gap-8 lg:px-6 lg:pb-[32px] lg:pt-[40px]")
+        h1(class="text-[42px] font-extrabold leading-[1.02] tracking-[-1.2px] text-tp-navy lg:text-[clamp(56px,calc(12.96vw_-_76.7px),84px)] lg:leading-[0.98] lg:tracking-[-2.5px]")
+          | The street already
+          br(class="hidden lg:inline")
+          |  knows where you'll
+          span(class="block text-tp-blue-2") park today.
+        div(class="lg:w-[340px] lg:shrink-0 lg:pb-[9px]")
+          p(class="mt-[18px] text-base leading-[1.6] text-tp-muted lg:mt-0 lg:text-[17px]")
+            span(class="lg:hidden") See free blue-zone spaces in real time, pay from your phone and forget about the meter.
+            span(class="hidden lg:inline") Tech Parking reads the blue zones of your city in real time, so you drive straight to a free space, pay from your phone and never think about the meter again.
+          a(href="#map" class="mt-[18.5px] hidden h-12 items-center gap-[10px] rounded-xl tp-grad px-5 text-[15px] font-semibold text-white transition-opacity hover:opacity-90 lg:inline-flex")
+            | Explore the live map
+            svg(class="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+              path(d="M12 5v14M6 13l6 6 6-6")
+
+      //- ===== Mapa en vivo (demo) =====
+      section(id="map" class="mx-auto w-full max-w-[1240px] scroll-mt-20 px-3 lg:scroll-mt-6 lg:px-6")
+        div(class="tp-map-grad relative overflow-hidden rounded-[28px] lg:grid lg:grid-cols-[1fr_320.234px] lg:gap-5 lg:rounded-[32px] lg:pr-5")
+          div(class="relative h-[380px] lg:h-[560px]")
+            //- Calles (móvil)
+            svg(class="absolute inset-0 size-full lg:hidden" viewBox="0 0 366 380" preserveAspectRatio="xMidYMid slice" aria-hidden="true")
+              path(d="M0 120h366M0 260h366M90 0v380M250 0v380" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="16")
+              path(d="M0 190h366M170 0v380M0 380 L366 60" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="8")
+              path(d="M98 135v110M178 270h150M258 30v80" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-dasharray="2 12")
+            //- Calles (escritorio)
+            svg(class="absolute inset-0 hidden size-full lg:block" viewBox="0 0 800 560" preserveAspectRatio="xMidYMid slice" aria-hidden="true")
+              path(d="M0 150h800M0 330h800M0 480h800M140 0v560M360 0v560M600 0v560" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="22")
+              path(d="M0 250h800M250 0v560M480 0v560M720 0v560" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="10")
+              path(d="M0 560 L800 40" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="10")
+              path(d="M150 170v140M370 345h210M610 60v80M30 140h100" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-dasharray="2 14")
+
+            //- Buscador (demo)
+            form(id="searchForm" class="absolute left-[14px] right-[14px] top-[14px] z-[2] flex h-14 items-center rounded-[14px] bg-white p-[6px] lg:left-6 lg:right-auto lg:top-6 lg:h-[60px] lg:w-[560px] lg:max-w-[calc(100%-48px)] lg:rounded-2xl lg:p-2" autocomplete="off")
+              label(for="destination" class="sr-only") Where are you going?
+              span(class="pl-2 text-tp-soft lg:pl-[10px]")
+                svg(class="size-[18px] lg:size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+                  circle(cx="11" cy="11" r="7")
+                  path(d="m20 20-3.5-3.5")
+              input(id="destination" name="destination" type="text" placeholder="Where are you going?" class="ml-[6px] h-full min-w-0 flex-1 bg-transparent text-[15px] text-tp-navy outline-none placeholder:text-tp-soft lg:ml-[10px]")
+              button(type="submit" class="grid size-11 shrink-0 place-items-center rounded-[10px] bg-tp-navy text-sm font-semibold text-white transition-opacity hover:opacity-90 lg:flex lg:w-auto lg:px-5" aria-label="Find spaces")
+                svg(class="size-[18px] lg:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+                  path(d="M5 12h14M13 6l6 6-6 6")
+                span(class="hidden lg:inline") Find spaces
+
+            //- Marcadores de zona (demo)
+            button(type="button" data-zone="A" class="absolute left-[12%] top-[38%] z-[1] flex flex-col items-center gap-[6px] lg:left-[20%] lg:top-[34%] lg:gap-2" aria-pressed="true")
+              span(class="flex h-[30px] items-center whitespace-nowrap rounded-[10px] bg-white px-[10px] text-xs font-semibold text-tp-navy lg:h-9 lg:rounded-xl lg:px-[14px] lg:text-[13px]") Zone A · 14 free
+              span(data-dot class="-my-[2px] size-6 rounded-full border-4 border-white bg-[#16a34a] lg:size-[26px]")
+            button(type="button" data-zone="B" class="absolute left-[42%] top-[62%] z-[1] flex flex-col items-center gap-[6px] lg:left-[50%] lg:top-[58%] lg:gap-2" aria-pressed="false")
+              span(class="flex h-[30px] items-center whitespace-nowrap rounded-[10px] bg-white px-[10px] text-xs font-semibold text-tp-navy lg:h-9 lg:rounded-xl lg:px-[14px] lg:text-[13px]") Zone B · 3 free
+              span(data-dot class="-my-[2px] size-6 rounded-full border-4 border-white bg-[#ea580c] lg:size-[26px]")
+            button(type="button" data-zone="C" class="absolute left-[60%] top-[24%] z-[1] flex flex-col items-center gap-[6px] lg:left-[70%] lg:top-[22%] lg:gap-2" aria-pressed="false")
+              span(class="flex h-[30px] items-center whitespace-nowrap rounded-[10px] bg-white px-[10px] text-xs font-semibold text-tp-navy lg:h-9 lg:rounded-xl lg:px-[14px] lg:text-[13px]") Zone C · 0 free
+              span(data-dot class="-my-[2px] size-6 rounded-full border-4 border-white bg-[#b91c1c] lg:size-[26px]")
+
+            div(class="absolute bottom-6 left-6 hidden h-9 items-center gap-2 rounded-[18px] bg-[rgba(15,42,92,0.55)] px-[14px] text-[13px] text-white lg:flex")
+              span(class="size-2 rounded-full bg-[#4ade80]")
+              | Demo data · tap a zone
+
+          //- Panel de zona seleccionada
+          div(id="zonePanel" class="relative z-[2] -mt-7 rounded-3xl bg-white px-5 pb-[22px] pt-3 lg:my-5 lg:mt-5 lg:p-7")
+            span(class="mx-auto block h-[5px] w-10 rounded-full bg-tp-line lg:hidden" aria-hidden="true")
+            div(class="mt-4 flex items-start justify-between gap-3 lg:mt-0 lg:block")
+              div
+                span(class="block text-[11px] font-semibold tracking-[1.2px] text-tp-blue lg:text-xs lg:tracking-[1.5px]")
+                  | SELECTED ZONE
+                  span(class="lg:hidden")= ' · DEMO'
+                h2(data-zone-name class="mt-[5px] text-[22px] font-bold text-tp-navy lg:mt-5 lg:text-[28px]") Zone A · Downtown
+              span(data-zone-badge class="inline-flex h-[26px] shrink-0 items-center rounded-full bg-[#dcfce7] px-[10px] text-xs font-semibold text-[#166534] lg:mt-[5.75px] lg:h-7 lg:px-3 lg:text-[13px]") Plenty of space
+
+            div(class="mt-4 grid grid-cols-2 gap-2 lg:mt-[20.25px] lg:gap-[10px]")
+              div(class="rounded-xl bg-tp-tile p-3 lg:rounded-[14px] lg:p-[14px]")
+                div(class="text-xs text-tp-soft") Free spaces
+                div(data-zone-free class="text-xl font-bold text-tp-navy lg:text-[22px]") 14
+              div(class="rounded-xl bg-tp-tile p-3 lg:rounded-[14px] lg:p-[14px]")
+                div(class="text-xs text-tp-soft")
+                  span(class="lg:hidden") Walk
+                  span(class="hidden lg:inline") From your destination
+                div(class="text-xl font-bold text-tp-navy lg:text-[22px]")
+                  span(data-zone-walk) 2 min
+                  span(class="hidden lg:inline")= ' walk'
+              div(class="rounded-xl bg-tp-tile p-3 lg:rounded-[14px] lg:p-[14px]")
+                div(class="text-xs text-tp-soft") Rate
+                div(class="text-[15px] font-semibold text-tp-navy lg:text-base")= `${rateLabel} / h`
+              div(class="rounded-xl bg-tp-tile p-3 lg:rounded-[14px] lg:p-[14px]")
+                div(class="text-xs text-tp-soft") Max stay
+                div(class="text-[15px] font-semibold text-tp-navy lg:text-base")= maxStayLabel
+
+            p(data-zone-tip class="mt-[15.5px] text-sm leading-[1.55] text-tp-muted lg:mt-[21px] lg:leading-[1.6]") Best pick right now: closest to your destination with room to spare.
+            button(id="navigateButton" type="button" class="mt-[16.5px] flex h-[50px] w-full items-center justify-center gap-2 rounded-[14px] tp-grad text-[15px] font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 leading-[1.4] lg:mt-5 lg:h-12 lg:rounded-xl")
+              span(data-navigate-label) Navigate & park here
+              svg(class="hidden size-[18px] lg:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+                path(d="M5 12h14M13 6l6 6-6 6")
+
+      //- ===== Un día con Laura =====
+      section(id="day" class="scroll-mt-20 pb-16 pt-16 lg:scroll-mt-0 lg:pb-24 lg:pt-24")
+        div(class="mx-auto w-full max-w-[1240px] px-5 lg:flex lg:items-end lg:justify-between lg:px-6")
+          h2(class="text-[32px] font-extrabold leading-[1.05] tracking-[-0.8px] text-tp-navy lg:text-[48px] lg:tracking-[-1px]")
+            | One morning,
+            br(class="hidden lg:inline")
+            |  zero parking stress.
+          p(class="mt-[10px] text-[15px] leading-[1.6] text-tp-muted lg:mt-0 lg:w-[380px] lg:text-base")
+            span(class="lg:hidden") Swipe through Laura's workday, minute by minute.
+            span(class="hidden lg:inline") Follow Laura on a normal workday and see where Tech Parking steps in, minute by minute.
+
+        //- Carrusel (móvil)
+        div(id="dayCarousel" class="tp-noscroll mt-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 pt-1 lg:hidden")
+          each item in day
+            article(class="w-[260px] shrink-0 snap-start rounded-[20px] bg-white p-5")
+              span(class=`inline-flex h-[37px] items-center rounded-[10px] px-3 text-sm font-bold text-white ${item.color}`)= item.time
+              h3(class="mt-[11px] text-[17px] font-semibold leading-[25.5px] text-tp-navy")= item.title
+              p(class="mt-[9px] text-sm leading-[1.55] text-tp-soft")= item.mobile
+        div(id="dayDots" class="mt-5 flex justify-center gap-[6px] lg:hidden")
+          each item, i in day
+            button(type="button" data-dot-index=i class=`h-[6px] rounded-full transition-all ${i === 0 ? 'w-5 bg-tp-blue' : 'w-[6px] bg-tp-border'}` aria-label=`Show ${item.time}`)
+
+        //- Línea de tiempo (escritorio)
+        div(class="relative mx-auto mt-10 hidden w-full max-w-[1240px] px-6 lg:block")
+          div(class="relative")
+            span(class="tp-line-grad absolute inset-x-0 top-[27px] h-[2px]" aria-hidden="true")
+            div(class="relative grid grid-cols-5 gap-4")
+              each item in day
+                div(data-step class="flex flex-col items-start")
+                  span(class=`inline-flex h-[51px] items-center rounded-[14px] px-4 text-[15px] font-bold leading-[1.4] text-white ${item.color}`)= item.time
+                  article(class="mt-[14px] w-full flex-1 rounded-[18px] bg-white p-[22px] transition-transform duration-300 hover:-translate-y-1")
+                    h3(class="text-[17px] font-semibold leading-[26px] text-tp-navy")= item.title
+                    p(class="mt-2 text-sm leading-[1.6] text-tp-soft")= item.text
+
+      //- ===== Simulador =====
+      section(id="simulator" class="scroll-mt-[72px] bg-tp-navy text-white lg:scroll-mt-0")
+        div(class="mx-auto flex w-full max-w-[1240px] flex-col px-5 pb-14 pt-14 lg:grid lg:grid-cols-[604fr_524fr] lg:items-center lg:gap-16 lg:px-6 lg:pb-24 lg:pt-24")
+          div(class="contents lg:block")
+            span(class="order-1 block text-xs font-semibold tracking-[1.5px] text-tp-eyebrow lg:text-[13px]") TRY IT BEFORE YOU SIGN UP
+            h2(class="order-2 mt-[22px] lg:mt-[22.5px] text-[32px] font-extrabold leading-[1.05] tracking-[-0.8px] lg:text-[48px] lg:tracking-[-1px]") How long will you stay?
+            p(class="order-3 mt-[22px] hidden text-base leading-[1.6] text-tp-ice lg:block") Pick a time and watch your session plan itself: when it ends and when we'll remind you.
+            div(id="durationButtons" class="order-5 mt-[22px] flex gap-[6px] lg:gap-[10px]" role="radiogroup" aria-label="Parking time")
+              each d in durations
+                button(type="button" role="radio" data-minutes=d.min aria-checked=(d.min === 60 ? 'true' : 'false') class=`h-12 flex-1 rounded-xl border text-[13px] font-semibold transition-colors lg:min-w-[76px] lg:flex-none lg:px-[18px] lg:text-[15px] lg:leading-[1.4] ${d.min === 60 ? 'border-white bg-white text-tp-navy' : 'border-white/35 text-white hover:border-white/70'}`)
+                  if d.mobile
+                    span(class="lg:hidden")= d.mobile
+                    span(class="hidden lg:inline")= d.label
+                  else
+                    = d.label
+            div(class="order-6 mt-[22px] rounded-2xl border border-white/15 bg-white/[0.08] lg:grid lg:grid-cols-3 lg:gap-3 lg:rounded-none lg:border-0 lg:bg-transparent")
+              each stat, i in [{ key: 'start', label: 'Start', value: '8:00 AM' }, { key: 'reminder', label: 'Reminder', value: '8:50 AM' }, { key: 'end', label: 'Ends', value: '9:00 AM' }]
+                div(class=`flex h-[54px] items-center justify-between px-4 lg:block lg:h-auto lg:rounded-2xl lg:border lg:border-white/15 lg:bg-white/[0.08] lg:p-4 ${i < 2 ? 'border-b border-white/12 lg:border-b' : ''}`)
+                  span(class="relative -top-[2px] text-sm text-tp-ice lg:static lg:block lg:text-xs")= stat.label
+                  span(data-sim=stat.key class="relative top-px text-base font-bold lg:static lg:block lg:text-xl")= stat.value
+
+          div(class="order-4 mt-[22px] flex justify-center lg:order-none lg:mt-0")
+            div(class="relative size-[240px] lg:size-80")
+              svg(class="size-full" viewBox="0 0 220 220" aria-hidden="true")
+                defs
+                  linearGradient(id="ringGrad" x1="0" y1="0" x2="1" y2="1")
+                    stop(offset="0" stop-color="#0ea5e9")
+                    stop(offset="1" stop-color="#6d5cf6")
+                circle(cx="110" cy="110" r="90" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="16")
+                circle(id="simRing" class="tp-ring" cx="110" cy="110" r="90" fill="none" stroke="url(#ringGrad)" stroke-width="16" stroke-linecap="round" stroke-dasharray="565.5" stroke-dashoffset="282.8" transform="rotate(-90 110 110)")
+              div(class="absolute inset-0 flex flex-col items-center justify-center text-center")
+                span(class="text-xs text-tp-ice lg:text-[13px]") Your session
+                span(data-sim="duration" class="mb-px mt-[3px] text-4xl font-extrabold leading-normal lg:mb-[3.5px] lg:mt-[4.5px] lg:text-[44px]") 1 h
+                span(class="text-xs text-tp-ice lg:text-[13px]")
+                  span(class="hidden lg:inline")= 'Cost: '
+                  span(data-sim="cost")= `${rateLabel} × time`
+
+      //- ===== Comparación =====
+      section(id="compare" class="mx-auto w-full max-w-[1240px] scroll-mt-20 px-5 pt-16 lg:scroll-mt-0 lg:px-6 lg:pt-24")
+        h2(class="text-[32px] font-extrabold leading-[1.05] tracking-[-0.8px] text-tp-navy lg:text-center lg:text-[48px] lg:tracking-[-1px]") Goodbye, parking meter.
+
+        div(id="compareTabs" class="mt-5 grid h-[52px] grid-cols-2 gap-1 rounded-[14px] bg-tp-line p-1 lg:hidden" role="tablist")
+          button(type="button" role="tab" data-compare-tab="old" aria-selected="false" class="rounded-[10px] text-sm font-semibold text-tp-navy transition-colors") The old way
+          button(type="button" role="tab" data-compare-tab="tech" aria-selected="true" class="rounded-[10px] bg-white text-sm font-semibold text-tp-navy transition-colors") Tech Parking
+
+        div(class="mt-5 grid gap-5 lg:mt-10 lg:grid-cols-2")
+          div(data-compare-card="old" class="hidden rounded-[20px] border border-tp-border bg-white p-6 lg:block lg:rounded-3xl lg:p-9")
+            span(class="hidden text-[13px] font-semibold tracking-[1.5px] text-tp-soft lg:block") THE OLD WAY
+            ul(class="flex flex-col gap-[14px] lg:mt-[18.5px]")
+              each item in oldWay
+                li(class="flex items-center gap-3 text-[15px] leading-[23px] text-tp-muted")
+                  span(class="grid size-7 shrink-0 place-items-center rounded-lg bg-tp-tile text-tp-soft")
+                    +iconX
+                  = item
+          div(data-compare-card="tech" class="tp-card-grad rounded-[20px] p-6 text-white lg:rounded-3xl lg:p-9")
+            span(class="hidden text-[13px] font-semibold tracking-[1.5px] text-tp-cloud lg:block") WITH TECH PARKING
+            ul(class="flex flex-col gap-[14px] lg:mt-[18.5px]")
+              each item in techWay
+                li(class="flex items-center gap-3 text-[15px] leading-[23px]")
+                  span(class="grid size-7 shrink-0 place-items-center rounded-lg bg-white/20")
+                    +iconCheck
+                  if item.mobile
+                    span(class="lg:hidden")= item.mobile
+                    span(class="hidden lg:inline")= item.text
+                  else
+                    = item.text
+
+      //- ===== Funciones =====
+      section(class="mx-auto grid w-full max-w-[1240px] grid-cols-2 gap-3 px-5 pt-16 lg:grid-cols-3 lg:gap-x-5 lg:gap-y-[18.5px] lg:px-6 lg:pt-24")
+        //- Garaje
+        div(class="col-span-2 rounded-[20px] bg-white p-[22px] lg:grid lg:grid-cols-2 lg:items-center lg:gap-7 lg:rounded-3xl lg:p-8")
+          div
+            h3(class="text-[19px] font-bold text-tp-navy lg:text-2xl lg:leading-[35px]") Your whole garage in one place
+            p(class="mt-[10px] hidden text-[15px] leading-[1.6] text-tp-soft lg:block") Save every car and motorcycle and switch plates before starting a session.
+          div(id="garage" class="mt-3 flex flex-col gap-3 lg:mt-0 lg:gap-[10px]")
+            button(type="button" data-plate aria-pressed="true" class="flex items-center justify-between rounded-xl border-2 border-tp-blue bg-tp-pale px-[14px] py-3 text-left transition-colors lg:rounded-[14px] lg:px-4 lg:py-[14px]")
+              span(class="text-sm font-semibold text-tp-navy lg:text-base lg:leading-[25px]") ABC 123 · Car
+              span(data-plate-state class="text-xs font-semibold text-tp-blue") Active
+            button(type="button" data-plate aria-pressed="false" class="flex items-center justify-between rounded-xl border-0 border-transparent bg-tp-tile px-[14px] py-3 text-left transition-colors lg:rounded-[14px] lg:px-4 lg:py-[14px]")
+              span(class="text-sm font-semibold text-tp-navy lg:text-base lg:leading-[25px]") XYZ 45D · Moto
+              span(data-plate-state class="text-xs text-tp-soft") Saved
+
+        //- Alertas
+        div(class="rounded-[20px] bg-white p-[18px] lg:rounded-3xl lg:p-8")
+          button(id="alertBadge" type="button" class="inline-flex h-[30px] items-center rounded-[10px] bg-[#fff7ed] px-[10px] text-xs font-semibold text-[#9a3412] transition-colors lg:h-10 lg:rounded-[14px] lg:px-[14px] lg:text-[13px]")
+            span(data-alert-text) 10 min left
+            span(data-alert-extra class="hidden lg:inline")= ' · Extend?'
+          h3(class="mt-[11px] text-base font-bold text-tp-navy lg:mt-[14.5px] lg:text-xl")
+            span(class="lg:hidden") Smart alerts
+            span(class="hidden lg:inline") Alerts that save you money
+          p(class="mt-[10.5px] text-[13px] leading-normal text-tp-soft lg:mt-[14px] lg:text-[15px] lg:leading-[1.6]")
+            span(class="lg:hidden") Warned before time runs out.
+            span(class="hidden lg:inline") A notification before time runs out, every single time.
+
+        //- 1 tap
+        div(class="rounded-[20px] bg-white p-[18px] lg:rounded-3xl lg:p-8")
+          span(class="block text-[28px] font-extrabold leading-normal text-tp-blue lg:mt-[2px] lg:text-4xl") 1 tap
+          h3(class="mt-[11px] text-base font-bold text-tp-navy lg:mt-[14px] lg:text-xl")
+            span(class="lg:hidden") Start & extend
+            span(class="hidden lg:inline") Start, extend, finish
+          p(class="mt-[10.5px] text-[13px] leading-normal text-tp-soft lg:mt-[14px] lg:text-[15px] lg:leading-[1.6]")
+            span(class="lg:hidden") One button controls it all.
+            span(class="hidden lg:inline") The whole session is controlled from one button.
+
+        //- Recibos
+        div(class="rounded-[20px] bg-white p-[18px] lg:rounded-3xl lg:p-8")
+          span(class="grid size-10 place-items-center rounded-xl bg-tp-pale text-tp-blue lg:hidden")
+            svg(class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+              path(d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z")
+              path(d="M14 2v6h6M8 13h8M8 17h5")
+          div(class="hidden lg:flex lg:mt-px lg:flex-col lg:gap-[6.5px]")
+            div(class="flex items-center justify-between border-b border-tp-line py-2 text-[13px] text-tp-navy")
+              span Zone A
+              span(class="font-semibold")= fmt(4000)
+            div(class="flex items-center justify-between py-2 text-[13px] text-tp-navy")
+              span Zone B
+              span(class="font-semibold")= fmt(2000)
+          h3(class="mt-[11px] text-base font-bold text-tp-navy lg:mt-[14.5px] lg:text-xl")
+            span(class="lg:hidden") Receipts
+            span(class="hidden lg:inline") Receipts, always
+          p(class="mt-[9.5px] text-[13px] leading-normal text-tp-soft lg:mt-[14px] lg:text-[15px] lg:leading-[1.6]")
+            span(class="lg:hidden") Every payment saved.
+            span(class="hidden lg:inline") Every payment stored in your history.
+
+        //- Seguridad
+        div(class="rounded-[20px] bg-white p-[18px] lg:rounded-3xl lg:p-8")
+          span(class="grid size-10 place-items-center rounded-xl bg-tp-pale text-tp-blue lg:size-11")
+            +iconLock('size-5 lg:size-[22px]')
+          h3(class="mt-[11px] text-base font-bold text-tp-navy lg:mt-[15px] lg:text-xl")
+            span(class="lg:hidden") Secure
+            span(class="hidden lg:inline") Secure by default
+          p(class="mt-[9.5px] text-[13px] leading-normal text-tp-soft lg:mt-[14px] lg:text-[15px] lg:leading-[1.6]")
+            span(class="lg:hidden") Encrypted passwords.
+            span(class="hidden lg:inline") Encrypted passwords and protected sessions.
+
+      //- ===== Llamado a la acción =====
+      section(class="mx-auto w-full max-w-[1240px] px-3 pt-16 lg:px-6 lg:pt-24")
+        div(class="rounded-[28px] bg-tp-navy px-6 pb-12 pt-12 text-center text-white lg:rounded-[32px] lg:pb-[72px] lg:pt-[72px]")
+          h2(class="text-[32px] font-extrabold leading-[1.05] tracking-[-0.8px] lg:text-[52px] lg:tracking-[-1px]") Your next space is waiting.
+          p(class="mx-auto mt-4 max-w-[318px] text-[15px] leading-[1.6] text-tp-ice lg:mt-5 lg:max-w-none lg:text-[17px]") Create a free account, save your plate and park in seconds.
+          div(class="mt-[22px] flex flex-col gap-[10px] lg:mt-[28.5px] lg:flex-row lg:justify-center lg:gap-3")
+            a(href="/signup" class="flex h-[52px] items-center justify-center rounded-[14px] tp-grad text-base font-semibold text-white transition-opacity hover:opacity-90 lg:rounded-xl lg:px-[26px]") Create account
+            a(href="/login" class="flex h-[52px] items-center justify-center rounded-[14px] border border-white/40 text-base font-semibold text-white transition-colors hover:bg-white/10 lg:rounded-xl lg:px-[26px]") I already have one
+
+    //- ===== Pie de página =====
+    footer(class="mx-auto flex w-full max-w-[1240px] flex-col items-center px-5 pb-10 pt-12 lg:flex-row lg:justify-between lg:px-6 lg:pt-[95.25px]")
+      a(href="#top" class="flex items-center gap-[10px]" aria-label="Tech Parking home")
+        +logo('footer')
+      nav(class="mt-[26px] flex gap-7 text-[13px] text-tp-muted lg:mt-0 lg:gap-5" aria-label="Legal")
+        a(href="#" data-demo-link class="hover:text-tp-navy") Terms
+        a(href="#" data-demo-link class="hover:text-tp-navy") Privacy
+        a(href="#" data-demo-link class="hover:text-tp-navy") Help
+      span(class="mt-[26.5px] text-[13px] text-tp-muted lg:mt-0") © Team 004 · SENA ADSO 3231252
+
+    //- Aviso de demo
+    div(id="demoToast" role="status" aria-live="polite" class="tp-fade pointer-events-none fixed inset-x-0 bottom-6 z-20 mx-auto w-max max-w-[calc(100%-40px)] translate-y-2 rounded-xl bg-tp-navy px-4 py-3 text-center text-sm text-white opacity-0")
+
+    script(src="/js/HU-000.js" defer)
