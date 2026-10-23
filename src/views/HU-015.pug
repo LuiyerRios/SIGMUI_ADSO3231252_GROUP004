@@ -1,0 +1,252 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title= title || 'Configuración de perfil - SIGMUI'
+    script(src="https://cdn.tailwindcss.com")
+
+  body(class="min-h-screen bg-[#F3F7FB] font-sans text-slate-800")
+    div(class="min-h-screen flex")
+
+      //- Barra lateral
+      aside(class="hidden md:flex w-64 flex-col bg-gradient-to-b from-[#15385F] to-[#071B35] text-white")
+        div(class="flex items-center gap-3 px-6 py-7 border-b border-white/10")
+          div(class="w-11 h-11 rounded-xl bg-sky-500 flex items-center justify-center text-xl font-bold") P
+          div
+            h1(class="text-lg font-bold") SIGMUI
+            p(class="text-xs text-blue-200") Smart Parking
+
+        nav(class="flex-1 p-4 space-y-2")
+          p(class="px-3 py-3 text-xs uppercase tracking-widest text-blue-300") Menú principal
+          a(href="/zones" class="block rounded-xl px-4 py-3 text-sm hover:bg-white/10") ⌂ &nbsp; Inicio
+          a(href="/parking/start" class="block rounded-xl px-4 py-3 text-sm hover:bg-white/10") ▣ &nbsp; Iniciar parqueo
+          a(href="/parking/extend" class="block rounded-xl px-4 py-3 text-sm hover:bg-white/10") ◷ &nbsp; Extender tiempo
+          a(href="#payments" class="block rounded-xl px-4 py-3 text-sm hover:bg-white/10") $ &nbsp; Pagos
+          a(href="#settings" class="block rounded-xl bg-sky-500 px-4 py-3 text-sm font-semibold") ⚙ &nbsp; Configuración
+          a(href="/help" class="block rounded-xl px-4 py-3 text-sm hover:bg-white/10") ? &nbsp; Ayuda
+
+        div(class="border-t border-white/10 p-4")
+          div(class="flex items-center gap-3 rounded-xl bg-white/5 p-3")
+            div(class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-900") LR
+            div
+              p(class="text-sm font-semibold") Luiyer Rios
+              p(class="text-xs text-blue-200") Conductor
+          a(href="#logout" class="block px-3 py-4 text-sm text-blue-200") ↪ Cerrar sesión
+
+      //- Contenido principal
+      main(class="min-w-0 flex-1")
+        header(class="flex flex-col gap-4 border-b border-slate-200 bg-white px-5 py-5 md:px-10 lg:flex-row lg:items-center lg:justify-between")
+          div
+            h2(class="text-2xl font-bold text-[#15385F]") Configuración
+            p(class="mt-1 text-sm text-slate-500") Tu cuenta, contraseña y vehículos
+          div(class="flex flex-wrap items-center gap-3")
+            input(type="search" placeholder="Buscar..." aria-label="Buscar" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-sky-400 sm:w-48")
+            button(type="button" aria-label="Cambiar apariencia" class="h-10 w-10 rounded-xl border border-slate-200") ☾
+            button(type="button" aria-label="Notificaciones" class="h-10 w-10 rounded-xl border border-slate-200") ♧
+            div(class="hidden border-l border-slate-200 pl-4 sm:block")
+              p(class="text-sm font-semibold") Hola, Luiyer
+              p(class="text-xs text-slate-500") Bienvenido a SIGMUI
+
+        section(id="settings" class="mx-auto max-w-7xl p-5 md:p-10")
+          div(class="mb-8")
+            p(class="mb-2 text-sm text-slate-400") Cuenta / Configuración
+            h3(class="text-2xl font-bold text-[#15385F]") Ajustes de tu cuenta
+            p(class="mt-2 text-sm text-slate-500") Administra tu información personal y las preferencias de tu cuenta.
+
+          div(class="grid grid-cols-1 gap-6 lg:grid-cols-12")
+
+            //- Navegación de configuración
+            div(class="lg:col-span-3")
+              div(class="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm")
+                p(class="px-3 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400") Configuración de cuenta
+
+                button(type="button" data-tab="profile" aria-controls="panel-profile" aria-selected="true" class="tab-button w-full rounded-xl bg-sky-50 px-4 py-3 text-left text-sm font-semibold text-sky-700") ♙ &nbsp; Perfil
+                button(type="button" data-tab="password" aria-controls="panel-password" aria-selected="false" class="tab-button w-full rounded-xl px-4 py-3 text-left text-sm text-slate-600 hover:bg-slate-50") ♧ &nbsp; Contraseña
+                button(type="button" data-tab="vehicles" aria-controls="panel-vehicles" aria-selected="false" class="tab-button w-full rounded-xl px-4 py-3 text-left text-sm text-slate-600 hover:bg-slate-50") ▰ &nbsp; Vehículos
+
+              div(class="mt-5 rounded-2xl bg-gradient-to-br from-[#15385F] to-sky-600 p-5 text-white")
+                p(class="mb-3 text-2xl") ✦
+                h4(class="font-semibold") Mantén tu cuenta actualizada
+                p(class="mt-2 text-sm leading-relaxed text-blue-100") Comprueba que tus datos estén correctos para recibir información importante sobre tus reservas.
+
+            //- Paneles de configuración
+            div(class="lg:col-span-9")
+
+              //- Perfil
+              div(id="panel-profile" role="tabpanel" class="tab-panel overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm")
+                div(class="border-b border-slate-100 px-6 py-6 md:px-8")
+                  h4(class="text-lg font-bold text-[#15385F]") Información del perfil
+                  p(class="mt-1 text-sm text-slate-500") Actualiza tus datos personales y de contacto.
+
+                form(id="profile-form" class="p-6 md:p-8")
+                  div(class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center")
+                    div(class="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-blue-800 text-2xl font-bold text-white") LR
+                    div
+                      h5(class="text-lg font-bold") Luiyer Rios
+                      p(class="mt-1 text-sm text-slate-500") Conductor · Miembro desde septiembre de 2026
+                      p(class="mt-2 text-xs text-slate-400") Foto de perfil
+
+                  div(class="grid grid-cols-1 gap-6 md:grid-cols-2")
+                    div
+                      label(for="fullName" class="mb-2 block text-sm font-semibold") Nombre completo
+                      input(id="fullName" name="fullName" type="text" value="Luiyer Rios" required autocomplete="name" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100")
+
+                    div
+                      label(for="phone" class="mb-2 block text-sm font-semibold") Número de teléfono
+                      input(id="phone" name="phone" type="tel" placeholder="Ej. 3001234567" autocomplete="tel" pattern="[0-9+() -]{7,20}" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100")
+
+                    div(class="md:col-span-2")
+                      label(for="email" class="mb-2 block text-sm font-semibold") Correo electrónico
+                      div(class="relative")
+                        input(id="email" name="email" type="email" value="luiyer@example.com" readonly aria-describedby="email-help" class="w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-28 text-sm text-slate-500")
+                        span(class="absolute right-3 top-1/2 -translate-y-1/2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700") ✓ Demo
+                      p(id="email-help" class="mt-2 text-xs text-slate-400") Correo de demostración; la verificación real requiere conexión con el servidor.
+
+                  div(id="profile-message" class="hidden mt-5 rounded-xl px-4 py-3 text-sm" role="status" aria-live="polite")
+
+                  div(class="mt-8 flex flex-col-reverse justify-end gap-3 border-t border-slate-100 pt-6 sm:flex-row")
+                    button(id="cancel-profile" type="button" class="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50") Restaurar
+                    button(type="submit" class="rounded-xl bg-sky-600 px-6 py-3 text-sm font-semibold text-white hover:bg-sky-700") Guardar cambios
+
+              //- Contraseña
+              div(id="panel-password" role="tabpanel" hidden class="tab-panel overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm")
+                div(class="border-b border-slate-100 px-6 py-6 md:px-8")
+                  h4(class="text-lg font-bold text-[#15385F]") Cambiar contraseña
+                  p(class="mt-1 text-sm text-slate-500") Valida los campos antes de conectar el cambio al servidor.
+
+                form(id="password-form" class="space-y-6 p-6 md:p-8")
+                  div
+                    label(for="currentPassword" class="mb-2 block text-sm font-semibold") Contraseña actual
+                    input(id="currentPassword" name="currentPassword" type="password" required autocomplete="current-password" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm")
+
+                  div
+                    label(for="newPassword" class="mb-2 block text-sm font-semibold") Nueva contraseña
+                    input(id="newPassword" name="newPassword" type="password" required minlength="8" autocomplete="new-password" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm")
+
+                  div
+                    label(for="confirmPassword" class="mb-2 block text-sm font-semibold") Confirmar nueva contraseña
+                    input(id="confirmPassword" name="confirmPassword" type="password" required minlength="8" autocomplete="new-password" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm")
+
+                  div(id="password-message" class="hidden rounded-xl px-4 py-3 text-sm" role="status" aria-live="polite")
+
+                  div(class="border-t border-slate-100 pt-6 text-right")
+                    button(type="submit" class="rounded-xl bg-sky-600 px-6 py-3 text-sm font-semibold text-white hover:bg-sky-700") Validar contraseña
+
+              //- Vehículos
+              div(id="panel-vehicles" role="tabpanel" hidden class="tab-panel overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm")
+                div(class="flex flex-col gap-4 border-b border-slate-100 px-6 py-6 sm:flex-row sm:items-center sm:justify-between md:px-8")
+                  div
+                    h4(class="text-lg font-bold text-[#15385F]") Mis vehículos
+                    p(class="mt-1 text-sm text-slate-500") Consulta los vehículos asociados a tu cuenta.
+                  button(id="add-vehicle" type="button" class="rounded-xl bg-sky-600 px-4 py-3 text-sm font-semibold text-white hover:bg-sky-700") + Agregar vehículo
+
+                div(class="p-6 md:p-8")
+                  div(class="flex flex-col gap-4 rounded-xl border border-slate-200 p-5 sm:flex-row sm:items-center")
+                    div(class="flex h-14 w-14 items-center justify-center rounded-xl bg-sky-50 text-2xl text-sky-700") ▰
+                    div(class="flex-1")
+                      h5(class="font-bold") Vehículo de demostración
+                      p(class="mt-1 text-sm text-slate-500") Placa: No disponible
+                      p(class="mt-1 text-xs text-slate-400") Los vehículos reales se mostrarán al conectar la base de datos.
+                    span(class="self-start rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500 sm:self-center") Demo
+
+                  div(id="vehicle-message" class="hidden mt-5 rounded-xl px-4 py-3 text-sm" role="status" aria-live="polite")
+
+          footer(class="mt-10 text-center text-xs text-slate-400")
+            p SIGMUI · Sistema de Gestión de Parqueaderos Inteligentes
+            p(class="mt-1") © 2026 · Todos los derechos reservados
+
+    script.
+      //- Navegación entre pestañas
+      const tabButtons = document.querySelectorAll('.tab-button');
+      const tabPanels = document.querySelectorAll('.tab-panel');
+
+      tabButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          tabButtons.forEach((item) => {
+            item.classList.remove('bg-sky-50', 'text-sky-700', 'font-semibold');
+            item.classList.add('text-slate-600');
+            item.setAttribute('aria-selected', 'false');
+          });
+
+          tabPanels.forEach((panel) => {
+            panel.hidden = true;
+            panel.classList.add('hidden');
+          });
+
+          button.classList.add('bg-sky-50', 'text-sky-700', 'font-semibold');
+          button.classList.remove('text-slate-600');
+          button.setAttribute('aria-selected', 'true');
+
+          const selectedPanel = document.getElementById('panel-' + button.dataset.tab);
+          if (selectedPanel) {
+            selectedPanel.hidden = false;
+            selectedPanel.classList.remove('hidden');
+          }
+        });
+      });
+
+      //- Guardar valores iniciales para restaurar el formulario
+      const profileForm = document.getElementById('profile-form');
+      const profileFields = [
+        document.getElementById('fullName'),
+        document.getElementById('phone')
+      ];
+      const originalValues = profileFields.map((field) => field.value);
+
+      //- Mostrar mensajes de forma segura
+      function showMessage(element, message, type) {
+        element.className = 'mt-5 rounded-xl px-4 py-3 text-sm';
+        if (type === 'success') {
+          element.classList.add('bg-emerald-50', 'text-emerald-800');
+        } else if (type === 'error') {
+          element.classList.add('bg-red-50', 'text-red-700');
+        } else {
+          element.classList.add('bg-amber-50', 'text-amber-800');
+        }
+        element.textContent = message;
+      }
+
+      //- Restaurar datos del perfil
+      document.getElementById('cancel-profile').addEventListener('click', () => {
+        profileFields.forEach((field, index) => {
+          field.value = originalValues[index];
+        });
+
+        const message = document.getElementById('profile-message');
+        showMessage(message, 'Se restauraron los datos iniciales de la demostración.', 'info');
+      });
+
+      //- Guardar perfil: solo demostración visual
+      profileForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const message = document.getElementById('profile-message');
+        showMessage(message, 'Demostración: los cambios todavía no se guardan en la base de datos.', 'info');
+      });
+
+      //- Validar contraseña: no cambia la contraseña real
+      document.getElementById('password-form').addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const current = document.getElementById('currentPassword').value;
+        const next = document.getElementById('newPassword').value;
+        const confirm = document.getElementById('confirmPassword').value;
+        const message = document.getElementById('password-message');
+
+        if (next.length < 8) {
+          showMessage(message, 'La nueva contraseña debe tener al menos 8 caracteres.', 'error');
+        } else if (next !== confirm) {
+          showMessage(message, 'Las nuevas contraseñas no coinciden.', 'error');
+        } else if (next === current) {
+          showMessage(message, 'La nueva contraseña debe ser diferente de la actual.', 'error');
+        } else {
+          showMessage(message, 'Validación correcta. Para cambiar la contraseña real se necesita conexión con el servidor.', 'info');
+        }
+      });
+
+      //- Botón de vehículos: solo demostración visual
+      document.getElementById('add-vehicle').addEventListener('click', () => {
+        const message = document.getElementById('vehicle-message');
+        showMessage(message, 'La función para agregar vehículos estará disponible al conectar esta sección al sistema.', 'info');
+      });
