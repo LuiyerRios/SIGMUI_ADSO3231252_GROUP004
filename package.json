@@ -8,6 +8,7 @@
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "build:css": "tailwindcss -i ./src/styles/input.css -o ./public/css/HU-001.css --watch",
+    "build:css:HU-000": "tailwindcss -i ./src/styles/HU-000.css -o ./public/css/HU-000.css --minify",
     "test": "cross-env NODE_ENV=test jest --detectOpenHandles"
   },
   "keywords": [
