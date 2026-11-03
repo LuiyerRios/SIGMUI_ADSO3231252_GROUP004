@@ -1,10 +1,15 @@
 //- src/views/partials/admin-sidebar.pug
+- const userName = (currentUser && currentUser.name) ? currentUser.name : 'Admin SIGMUI'
+- const nameParts = userName.trim().split(/\s+/)
+- const initials = nameParts.length >= 2 ? (nameParts[0].charAt(0) + nameParts[1].charAt(0)).toUpperCase() : userName.substring(0, 2).toUpperCase()
+
 aside.admin-sidebar#adminSidebar
   .sidebar-header
     .logo-group
       .logo-icon P
-      .logo-text tech 
-        span.logo-tech parking
+      .logo-text
+        span.logo-tech tech 
+        span.logo-parking parking
     button.btn-toggle-sidebar#toggleSidebar(type="button", title="Toggle Sidebar") «
 
   nav.sidebar-menu
@@ -30,9 +35,9 @@ aside.admin-sidebar#adminSidebar
 
   .sidebar-footer
     .user-profile-card
-      .avatar-circle= currentUser && currentUser.full_name ? currentUser.full_name.charAt(0).toUpperCase() : 'A'
+      .avatar-circle= initials
       .user-info
-        strong.user-name= currentUser && currentUser.full_name ? currentUser.full_name : 'Admin User'
+        strong.user-name= userName
         span.user-role Administrator
     a.btn-sidebar-logout(href="/logout", title="Logout")
       i.fas.fa-sign-out-alt

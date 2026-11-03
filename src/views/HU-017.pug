@@ -8,6 +8,18 @@ html(lang="en")
     link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap")
     link(rel="stylesheet", href="/css/HU-017.css")
   body
+    -
+      function pageUrl(params) {
+        const q = Object.assign({
+          from: filters.from,
+          to: filters.to,
+          zone: filters.zone || 'all',
+          plate: filters.plate || '',
+          page: 1
+        }, params);
+        return '/admin/payments?' + Object.keys(q).map(k => k + '=' + encodeURIComponent(q[k])).join('&');
+      }
+
     .admin-layout
       //- Sidebar parcial reutilizable
       - const active = 'payments'
@@ -57,9 +69,9 @@ html(lang="en")
 
               .filter-group-chips
                 input#zoneInput(type="hidden", name="zone", value=filters.zone || 'all')
-                a.chip-item(href="#", data-zone="all", class=(!filters.zone || filters.zone === 'all') ? 'active' : '') All zones
+                a.chip-item(href=pageUrl({ zone: 'all', page: 1 }), data-zone="all", class=(!filters.zone || filters.zone === 'all') ? 'active' : '') All zones
                 each z in ['A', 'B', 'C', 'D', 'E', 'F']
-                  a.chip-item(href="#", data-zone=z, class=filters.zone === z ? 'active' : '')= z
+                  a.chip-item(href=pageUrl({ zone: z, page: 1 }), data-zone=z, class=filters.zone === z ? 'active' : '')= z
 
               .filter-group-plate
                 i.fas.fa-search.filter-icon
@@ -110,18 +122,18 @@ html(lang="en")
                   tbody
                     each row in rows
                       tr
-                        td= row.formattedDate
-                        td.font-bold= row.receipt_number
-                        td.font-bold= row.plate
-                        td= row.driver_name
-                        td
+                        td(data-label="Date")= row.formattedDate
+                        td.font-bold(data-label="Receipt")= row.receipt_number
+                        td.font-bold(data-label="Plate")= row.plate
+                        td(data-label="Driver")= row.driver_name
+                        td(data-label="Zone")
                           span.zone-badge= row.zone
-                        td
+                        td(data-label="Type")
                           if row.type === 'parking'
                             span.type-pill.parking Parking
                           else
                             span.type-pill.extension Extension
-                        td.font-bold= row.formattedAmount
+                        td.font-bold(data-label="Amount")= row.formattedAmount
 
               //- Paginación
               footer.pagination-footer
@@ -129,7 +141,7 @@ html(lang="en")
                   | Showing #{pagination.fromItem}–#{pagination.toItem} of #{pagination.total}
                 .pagination-controls
                   if pagination.page > 1
-                    a.page-btn(href=`/admin/payments?from=${filters.from}&to=${filters.to}&zone=${filters.zone}&plate=${filters.plate}&page=${pagination.page - 1}`)
+                    a.page-btn(href=pageUrl({ page: pagination.page - 1 }))
                       i.fas.fa-chevron-left
                   else
                     span.page-btn.disabled
@@ -140,13 +152,13 @@ html(lang="en")
                     if p === pagination.page
                       span.page-btn.active= p
                     else if p <= 3 || p >= pagination.totalPages - 2 || Math.abs(p - pagination.page) <= 1
-                      a.page-btn(href=`/admin/payments?from=${filters.from}&to=${filters.to}&zone=${filters.zone}&plate=${filters.plate}&page=${p}`)= p
+                      a.page-btn(href=pageUrl({ page: p }))= p
                     else if p === 4 && pagination.page > 5
                       span.page-dots ...
                     - p++
 
                   if pagination.page < pagination.totalPages
-                    a.page-btn(href=`/admin/payments?from=${filters.from}&to=${filters.to}&zone=${filters.zone}&plate=${filters.plate}&page=${pagination.page + 1}`)
+                    a.page-btn(href=pageUrl({ page: pagination.page + 1 }))
                       i.fas.fa-chevron-right
                   else
                     span.page-btn.disabled

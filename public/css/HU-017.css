@@ -84,11 +84,14 @@ body {
 .logo-text {
   font-size: 16px;
   font-weight: 700;
-  color: var(--white);
 }
 
 .logo-tech {
   color: var(--tech);
+}
+
+.logo-parking {
+  color: var(--white);
 }
 
 .btn-toggle-sidebar {
