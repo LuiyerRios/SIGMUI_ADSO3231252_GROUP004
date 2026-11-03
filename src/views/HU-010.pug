@@ -10,6 +10,7 @@ block content
       nav.menu
         a.active(href="#") Parking Zones
         a.logout-button(href="/admin/dashboard") Dashboard
+        a(href="/admin/help-reports") Help reports
         a(href="#") Manage Users
         a(href="#") Payment History
         a(href="#") Settings
@@ -56,7 +57,7 @@ block content
         .stat-card
           .stat-icon.purple $
           .stat-data
-            strong $1,250.00
+            strong $2,000
             span Today's Revenue
 
       section.dashboard-grid
@@ -69,7 +70,7 @@ block content
               label Zones:
               select#zonesList
                 option(value="A,B,C,D") 4 Zones (A, B, C, D)
-                option(value="A,B") 2 Zonas (A, B)
+                option(value="A,B") 2 Zones (A, B)
                 option(value="A,B,C,D,E,F") 6 Zones (A, B, C, D, E, F)
               button#resizeBtn.btn-secondary(type="button") Resize Map
 
