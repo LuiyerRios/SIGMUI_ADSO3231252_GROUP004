@@ -5,11 +5,19 @@ import {
   renderHelpReport, 
   replyHelpReport 
 } from '../controllers/helpReportAdminController.js';
+import { 
+  renderPaymentHistory, 
+  exportPayments 
+} from '../controllers/paymentHistoryController.js';
 
 const router = express.Router();
 
 router.get('/', (req, res) => res.render('HU-010', { title: 'Admin | SIGMUI' }));                          // HU-010
 router.get('/dashboard', (req, res) => res.render('HU-008', { title: 'Administrative dashboard | SIGMUI' }));  // HU-008
+
+// HU-017 Admin Payment History Routes
+router.get('/payments', renderPaymentHistory);
+router.get('/payments/export', exportPayments);
 
 // HU-015 Admin Help Reports Routes
 const validateReplyRules = [

@@ -14,6 +14,7 @@ import agentRoutes from './routes/agentRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import helpRoutes from './routes/helpRoutes.js';
 import inboxRoutes from './routes/inboxRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 import apiRoutes from './routes/apiRoutes.js';
 
 dotenv.config({ quiet: true });
@@ -44,6 +45,7 @@ app.use(exposeUnreadCount);
 
 // Rutas
 app.use('/', authRoutes);                              // HU-001, HU-002, HU-009
+app.use('/api/payments', paymentRoutes);               // HU-017 (Pagos simulados)
 app.use('/api', apiRoutes);                            // APIs (protegidas adentro)
 app.use('/help', requireRole(), helpRoutes);           // HU-011
 app.use('/inbox', requireRole(), inboxRoutes);         // HU-015
