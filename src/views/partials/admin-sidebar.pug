@@ -1,0 +1,39 @@
+//- src/views/partials/admin-sidebar.pug
+aside.admin-sidebar#adminSidebar
+  .sidebar-header
+    .logo-group
+      .logo-icon P
+      .logo-text tech 
+        span.logo-tech parking
+    button.btn-toggle-sidebar#toggleSidebar(type="button", title="Toggle Sidebar") «
+
+  nav.sidebar-menu
+    .menu-label MENU
+    a.menu-item(href="/admin", class=active === 'zones' ? 'active' : '')
+      i.fas.fa-th-large
+      span.menu-text Parking zones
+    a.menu-item(href="/admin/dashboard", class=active === 'dashboard' ? 'active' : '')
+      i.fas.fa-chart-pie
+      span.menu-text Dashboard
+    a.menu-item(href="#", class=active === 'users' ? 'active' : '')
+      i.fas.fa-users
+      span.menu-text Manage users
+    a.menu-item(href="/admin/payments", class=active === 'payments' ? 'active' : '')
+      i.fas.fa-receipt
+      span.menu-text Payment history
+    a.menu-item(href="/admin/help-reports", class=active === 'reports' ? 'active' : '')
+      i.fas.fa-headset
+      span.menu-text Help reports
+    a.menu-item(href="#", class=active === 'settings' ? 'active' : '')
+      i.fas.fa-cog
+      span.menu-text Settings
+
+  .sidebar-footer
+    .user-profile-card
+      .avatar-circle= currentUser && currentUser.full_name ? currentUser.full_name.charAt(0).toUpperCase() : 'A'
+      .user-info
+        strong.user-name= currentUser && currentUser.full_name ? currentUser.full_name : 'Admin User'
+        span.user-role Administrator
+    a.btn-sidebar-logout(href="/logout", title="Logout")
+      i.fas.fa-sign-out-alt
+      span.menu-text Logout
