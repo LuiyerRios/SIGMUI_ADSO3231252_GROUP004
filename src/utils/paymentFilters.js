@@ -1,18 +1,34 @@
+function formatDateLocal(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function isValidRealDate(dateStr) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const d = new Date(year, month - 1, day);
+  return (
+    d.getFullYear() === year &&
+    d.getMonth() === month - 1 &&
+    d.getDate() === day
+  );
+}
+
 export function parseFilters(query = {}, today = new Date()) {
   let from = query.from ? String(query.from).trim() : '';
   let to = query.to ? String(query.to).trim() : '';
-
-  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
   const defaultToDate = new Date(today);
   const defaultFromDate = new Date(today);
   defaultFromDate.setDate(defaultFromDate.getDate() - 30);
 
-  const defaultTo = defaultToDate.toISOString().split('T')[0];
-  const defaultFrom = defaultFromDate.toISOString().split('T')[0];
+  const defaultTo = formatDateLocal(defaultToDate);
+  const defaultFrom = formatDateLocal(defaultFromDate);
 
-  if (!dateRegex.test(from)) from = defaultFrom;
-  if (!dateRegex.test(to)) to = defaultTo;
+  if (!isValidRealDate(from)) from = defaultFrom;
+  if (!isValidRealDate(to)) to = defaultTo;
 
   if (from > to) {
     return {

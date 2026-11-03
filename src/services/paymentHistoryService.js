@@ -19,7 +19,7 @@ function buildBaseQuery(filters) {
   const whereSql = whereClauses.join(' AND ');
 
   const sql = `
-    SELECT /*+ MAX_EXECUTION_TIME(8000) */
+    SELECT 
       p.id,
       p.payment_date,
       p.receipt_number,
@@ -69,7 +69,7 @@ export async function getPayments(filters, { page = 1, pageSize = 25 } = {}) {
 
   // 1. Obtener totales para el resumen
   const summarySql = `
-    SELECT 
+    SELECT /*+ MAX_EXECUTION_TIME(8000) */
       COALESCE(SUM(p.amount), 0) AS total_revenue,
       COUNT(p.id) AS total_count,
       COALESCE(SUM(CASE WHEN p.type = 'parking' THEN 1 ELSE 0 END), 0) AS parking_count,
@@ -91,8 +91,9 @@ export async function getPayments(filters, { page = 1, pageSize = 25 } = {}) {
   // 2. Obtener filas paginadas
   const offset = (page - 1) * pageSize;
   const pageSql = `
-    ${baseSql}
-    ORDER BY p.payment_date DESC
+    SELECT /*+ MAX_EXECUTION_TIME(8000) */ p.*
+    FROM (${baseSql}) p
+    ORDER BY p.payment_date DESC, p.type ASC, p.id DESC
     LIMIT ? OFFSET ?
   `;
 
@@ -118,8 +119,9 @@ export async function getPaymentsForExport(filters) {
   const { sql: baseSql, replacements } = buildBaseQuery(filters);
 
   const exportSql = `
-    ${baseSql}
-    ORDER BY p.payment_date DESC
+    SELECT /*+ MAX_EXECUTION_TIME(8000) */ p.*
+    FROM (${baseSql}) p
+    ORDER BY p.payment_date DESC, p.type ASC, p.id DESC
     LIMIT 5000
   `;
 

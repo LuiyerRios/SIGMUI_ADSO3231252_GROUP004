@@ -57,10 +57,10 @@ export async function recordParkingPayment(userId, input) {
       }
     }
 
-    // 3. Verificar que no exista sesión activa previa para la misma placa
+    // 3. Verificar que no exista sesión activa PAGADA previa para la misma placa
     const activeSessions = await db.query(
       `SELECT id FROM parking_sessions 
-       WHERE plate = ? AND status = 'active' AND end_time > NOW() 
+       WHERE plate = ? AND status = 'active' AND payment_status = 'paid' AND end_time > NOW() 
        LIMIT 1`,
       {
         replacements: [plate],

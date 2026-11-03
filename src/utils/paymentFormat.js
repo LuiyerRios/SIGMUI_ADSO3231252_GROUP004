@@ -9,11 +9,11 @@ export function formatPaymentDate(dateInput) {
   const date = new Date(dateInput);
 
   const month = date.toLocaleDateString('en-US', { month: 'short', timeZone: 'America/Bogota' });
-  const day = date.toLocaleDateString('en-US', { day: '2-digit', timeZone: 'America/Bogota' });
+  const day = date.toLocaleDateString('en-US', { day: 'numeric', timeZone: 'America/Bogota' });
   const time = date.toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
-    hour12: false,
+    hourCycle: 'h23',
     timeZone: 'America/Bogota'
   });
 

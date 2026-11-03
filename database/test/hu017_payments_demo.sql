@@ -6,15 +6,18 @@ SELECT
   (SELECT id FROM vehicles WHERE plate = 'ABC123' LIMIT 1),
   CASE (n.i % 3) WHEN 0 THEN 'ABC123' WHEN 1 THEN 'XYZ987' ELSE 'MNO456' END,
   CASE (n.i % 6) WHEN 0 THEN 'A' WHEN 1 THEN 'B' WHEN 2 THEN 'C' WHEN 3 THEN 'D' WHEN 4 THEN 'E' ELSE 'F' END,
-  CONCAT(CASE (n.i % 4) WHEN 0 THEN 'A' WHEN 1 THEN 'B' WHEN 2 THEN 'C' ELSE 'D' END, (n.i % 10) + 1),
+  NULL,
   CASE WHEN (n.i % 2 = 0) THEN 'hour' ELSE 'day' END,
   CASE WHEN (n.i % 2 = 0) THEN (n.i % 5) + 1 ELSE 1 END,
   CASE WHEN (n.i % 2 = 0) THEN ((n.i % 5) + 1) * 2000 ELSE 20000 END,
-  DATE_SUB(NOW(), INTERVAL (n.i * 12) HOUR),
-  DATE_SUB(NOW(), INTERVAL (n.i * 12 - 2) HOUR),
+  DATE_SUB(NOW(), INTERVAL (n.i * 16) HOUR),
+  CASE WHEN (n.i % 2 = 0) 
+    THEN DATE_ADD(DATE_SUB(NOW(), INTERVAL (n.i * 16) HOUR), INTERVAL ((n.i % 5) + 1) HOUR)
+    ELSE DATE_ADD(DATE_SUB(NOW(), INTERVAL (n.i * 16) HOUR), INTERVAL 1 DAY)
+  END,
   'expired',
   'paid',
-  DATE_SUB(NOW(), INTERVAL (n.i * 12) HOUR)
+  DATE_SUB(NOW(), INTERVAL (n.i * 16) HOUR)
 FROM (
   SELECT 1 AS i UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5
   UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10
@@ -30,15 +33,15 @@ SELECT
   CONCAT('DEMO-PENDING-', n.i),
   (SELECT id FROM users WHERE email = 'driver@sigmui.com' LIMIT 1),
   (SELECT id FROM vehicles WHERE plate = 'ABC123' LIMIT 1),
-  'ABC123',
+  'PND12A',
   'A',
-  CONCAT('A', n.i),
+  NULL,
   'hour',
   1,
   2000,
   NOW(),
   DATE_ADD(NOW(), INTERVAL 1 HOUR),
-  'active',
+  'cancelled',
   'pending',
   NOW()
 FROM (SELECT 1 AS i UNION ALL SELECT 2 UNION ALL SELECT 3) n;
@@ -54,3 +57,6 @@ SELECT
 FROM parking_sessions ps
 WHERE ps.receipt_number LIKE 'DEMO-P-%'
 LIMIT 10;
+
+-- DELETE se FROM session_extensions se JOIN parking_sessions ps ON se.session_id = ps.id WHERE ps.receipt_number LIKE 'DEMO-%';
+-- DELETE FROM parking_sessions WHERE receipt_number LIKE 'DEMO-%';
