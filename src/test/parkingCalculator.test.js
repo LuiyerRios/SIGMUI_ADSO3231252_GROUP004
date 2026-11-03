@@ -1,4 +1,4 @@
-const { calcularTarifa, validarPlaca } = require('../src/utils/parkingCalculator');
+import { calcularTarifa, validarPlaca } from '../utils/parkingCalculator.js';
 
 describe('Pruebas unitarias: Módulo de Parqueadero', () => {
 
