@@ -1,4 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // Función helper para prevenir XSS en la plantilla HTML del PDF
+  function escapeHtml(value) {
+    if (value === null || value === undefined) return '';
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   // 1. Manejo de Sidebar (Plegado / Desplegado + Mobile)
   const sidebar = document.getElementById('adminSidebar');
   const toggleBtn = document.getElementById('toggleSidebar');
@@ -41,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 2. Manejo de Filtros (Chips de Zona)
+  // 2. Manejo de Filtros (Chips de Zona, Fechas y Placa con Debounce)
   const filtersForm = document.getElementById('filtersForm');
   const zoneInput = document.getElementById('zoneInput');
   const chipItems = document.querySelectorAll('.chip-item');
@@ -58,6 +69,30 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+
+  // Filtros automáticos: Envío al cambiar campos date
+  const dateInputs = document.querySelectorAll('.input-date');
+  dateInputs.forEach(dateInput => {
+    dateInput.addEventListener('change', () => {
+      if (filtersForm) {
+        filtersForm.submit();
+      }
+    });
+  });
+
+  // Filtros automáticos: Envío al escribir placa con espera de 500 ms (Debounce)
+  const plateInput = document.querySelector('.input-plate');
+  let plateTimeout = null;
+  if (plateInput) {
+    plateInput.addEventListener('input', () => {
+      clearTimeout(plateTimeout);
+      plateTimeout = setTimeout(() => {
+        if (filtersForm) {
+          filtersForm.submit();
+        }
+      }, 500);
+    });
+  }
 
   // Toast Notification Helper
   function showToast(message) {
@@ -140,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 5. Exportar a PDF (html2pdf)
+  // 5. Exportar a PDF (html2pdf con sanitización HTML)
   const exportPdfBtn = document.getElementById('exportPdfBtn');
   if (exportPdfBtn) {
     exportPdfBtn.addEventListener('click', async () => {
@@ -163,11 +198,18 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        const from = params.get('from') || 'N/A';
-        const to = params.get('to') || 'N/A';
-        const zone = params.get('zone') || 'all';
+        const from = escapeHtml(params.get('from') || 'N/A');
+        const to = escapeHtml(params.get('to') || 'N/A');
+        const zone = escapeHtml(params.get('zone') || 'all');
 
-        // Construir plantilla HTML temporal para renderizar el PDF
+        // Escapar resumen de datos
+        const summaryRevenue = escapeHtml(result.summary.revenue);
+        const summaryCount = escapeHtml(result.summary.count);
+        const summaryParkingCount = escapeHtml(result.summary.parkingCount);
+        const summaryExtensionCount = escapeHtml(result.summary.extensionCount);
+        const summaryAverageTicket = escapeHtml(result.summary.averageTicket);
+
+        // Construir plantilla HTML temporal sanitizando todos los campos
         const container = document.createElement('div');
         container.style.padding = '20px';
         container.style.fontFamily = 'sans-serif';
@@ -182,10 +224,10 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
 
           <div style="display: flex; justify-content: space-between; margin-bottom: 20px; background: #F1F5FA; padding: 12px; border-radius: 8px; font-size: 12px;">
-            <div>Total Revenue: <strong>${result.summary.revenue}</strong></div>
-            <div>Total Payments: <strong>${result.summary.count}</strong></div>
-            <div>Parking/Extensions: <strong>${result.summary.parkingCount}/${result.summary.extensionCount}</strong></div>
-            <div>Avg Ticket: <strong>${result.summary.averageTicket}</strong></div>
+            <div>Total Revenue: <strong>${summaryRevenue}</strong></div>
+            <div>Total Payments: <strong>${summaryCount}</strong></div>
+            <div>Parking/Extensions: <strong>${summaryParkingCount}/${summaryExtensionCount}</strong></div>
+            <div>Avg Ticket: <strong>${summaryAverageTicket}</strong></div>
           </div>
 
           <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
@@ -203,13 +245,13 @@ document.addEventListener('DOMContentLoaded', () => {
             <tbody>
               ${result.rows.map((r, i) => `
                 <tr style="background-color: ${i % 2 === 0 ? '#ffffff' : '#f8fafc'}; border-bottom: 1px solid #e2e8f0;">
-                  <td style="padding: 6px;">${r.date}</td>
-                  <td style="padding: 6px; font-weight: bold;">${r.receipt}</td>
-                  <td style="padding: 6px; font-weight: bold;">${r.plate}</td>
-                  <td style="padding: 6px;">${r.driver}</td>
-                  <td style="padding: 6px; text-align: center;">${r.zone}</td>
-                  <td style="padding: 6px; text-align: center;">${r.type}</td>
-                  <td style="padding: 6px; text-align: right; font-weight: bold;">${r.formattedAmount}</td>
+                  <td style="padding: 6px;">${escapeHtml(r.date)}</td>
+                  <td style="padding: 6px; font-weight: bold;">${escapeHtml(r.receipt)}</td>
+                  <td style="padding: 6px; font-weight: bold;">${escapeHtml(r.plate)}</td>
+                  <td style="padding: 6px;">${escapeHtml(r.driver)}</td>
+                  <td style="padding: 6px; text-align: center;">${escapeHtml(r.zone)}</td>
+                  <td style="padding: 6px; text-align: center;">${escapeHtml(r.type)}</td>
+                  <td style="padding: 6px; text-align: right; font-weight: bold;">${escapeHtml(r.formattedAmount)}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -218,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const opt = {
           margin: 10,
-          filename: `payments_${from}_${to}.pdf`,
+          filename: `payments_${params.get('from') || 'all'}_${params.get('to') || 'all'}.pdf`,
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: { scale: 2 },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
