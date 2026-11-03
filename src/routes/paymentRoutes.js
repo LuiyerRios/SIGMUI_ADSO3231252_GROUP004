@@ -1,5 +1,5 @@
 /**
- * Contrato de API de Pagos Simultáneos (HU-017)
+ * Contrato de API de Pagos simulados (HU-017)
  * 
  * 1. POST /api/payments/parking
  *    - Requiere sesión de rol 'driver'

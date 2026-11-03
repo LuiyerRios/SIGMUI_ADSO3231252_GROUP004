@@ -1,8 +1,8 @@
 import crypto from 'crypto';
 
 export function normalizePlate(plate) {
-  if (!plate || typeof plate !== 'string') return '';
-  return plate.toUpperCase().replace(/[\s-]/g, '');
+  const str = String(plate ?? '');
+  return str.toUpperCase().replace(/[\s-]/g, '');
 }
 
 export function isValidPlate(plate) {
@@ -18,17 +18,21 @@ export function validateParkingPayment(body = {}) {
     return { error: { message: 'Please enter a valid plate.', status: 400 } };
   }
 
-  const zone = (body.zone || '').trim().toUpperCase();
-  if (!zone) {
+  const zone = String(body.zone ?? '').trim().toUpperCase();
+  if (!/^[A-F]$/.test(zone)) {
     return { error: { message: 'Please select a valid zone.', status: 400 } };
   }
 
-  const spaceId = body.spaceId ? body.spaceId.trim().toUpperCase() : null;
-  if (spaceId && !/^[A-F]\d{1,2}$/.test(spaceId)) {
-    return { error: { message: 'Please select a valid zone.', status: 400 } };
+  const rawSpaceId = String(body.spaceId ?? '').trim().toUpperCase();
+  const spaceId = rawSpaceId.length > 0 ? rawSpaceId : null;
+
+  if (spaceId) {
+    if (!/^[A-F]\d{1,2}$/.test(spaceId) || !spaceId.startsWith(zone)) {
+      return { error: { message: 'Please select a valid zone.', status: 400 } };
+    }
   }
 
-  const rateType = body.rateType;
+  const rateType = String(body.rateType ?? '').trim();
   if (!['hour', 'day'].includes(rateType)) {
     return { error: { message: 'Please enter a valid quantity.', status: 400 } };
   }

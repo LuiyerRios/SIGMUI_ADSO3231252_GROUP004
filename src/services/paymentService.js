@@ -41,7 +41,23 @@ export async function recordParkingPayment(userId, input) {
 
     const zoneRecord = zones[0];
 
-    // 2. Verificar que no exista sesión activa previa para la misma placa
+    // 2. Si viene spaceId, verificar que exista en la BD para esa zona
+    if (spaceId) {
+      const spaces = await db.query(
+        'SELECT id FROM parking_spaces WHERE id = ? AND zone = ? LIMIT 1',
+        {
+          replacements: [spaceId, zone],
+          type: QueryTypes.SELECT,
+          transaction
+        }
+      );
+
+      if (!spaces || spaces.length === 0) {
+        throw new PaymentError('Please select a valid zone.', 400);
+      }
+    }
+
+    // 3. Verificar que no exista sesión activa previa para la misma placa
     const activeSessions = await db.query(
       `SELECT id FROM parking_sessions 
        WHERE plate = ? AND status = 'active' AND end_time > NOW() 
@@ -57,7 +73,7 @@ export async function recordParkingPayment(userId, input) {
       throw new PaymentError('This vehicle already has an active parking session.', 409);
     }
 
-    // 3. Buscar id del vehículo si pertenece al mismo usuario
+    // 4. Buscar id del vehículo si pertenece al mismo usuario
     const vehicles = await db.query(
       'SELECT id FROM vehicles WHERE plate = ? AND user_id = ? LIMIT 1',
       {
@@ -69,7 +85,7 @@ export async function recordParkingPayment(userId, input) {
 
     const vehicleId = vehicles && vehicles.length > 0 ? vehicles[0].id : null;
 
-    // 4. Calcular el monto en el servidor
+    // 5. Calcular el monto en el servidor
     const amount = calculateAmount(rateType, quantity, {
       ratePerHour: zoneRecord.rate_per_hour,
       ratePerDay: zoneRecord.rate_per_day
@@ -78,7 +94,7 @@ export async function recordParkingPayment(userId, input) {
     const startTime = new Date();
     const endTime = calculateEndTime(startTime, rateType, quantity);
 
-    // 5. Generar número de recibo único (hasta 3 reintentos)
+    // 6. Generar número de recibo único (hasta 3 reintentos)
     let receiptNumber = '';
     let inserted = false;
     let attempts = 0;
