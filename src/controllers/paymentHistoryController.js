@@ -1,114 +1,68 @@
-import { parseFilters } from '../utils/paymentFilters.js';
-import { formatCOP, formatPaymentDate } from '../utils/paymentFormat.js';
 import { getPayments, getPaymentsForExport } from '../services/paymentHistoryService.js';
+import { parseFilters } from '../utils/paymentFilters.js';
 
-export const renderPaymentHistory = async (req, res) => {
-  const { filters, error: filterError } = parseFilters(req.query);
-
-  if (filterError) {
-    return res.render('HU-017', {
-      title: 'Payment History | SIGMUI Admin',
-      filters: req.query,
-      rows: [],
-      pagination: { total: 0, page: 1, totalPages: 1, fromItem: 0, toItem: 0 },
-      summary: { revenue: '$0 COP', count: 0, parkingCount: 0, extensionCount: 0, averageTicket: '$0 COP' },
-      errorMessage: filterError
-    });
-  }
-
+export async function showPaymentHistory(req, res) {
   try {
-    let currentPage = filters.page;
-    let { rows, total, summary } = await getPayments(filters, {
-      page: currentPage,
-      pageSize: 25
-    });
+    const { filters, error } = parseFilters(req.query);
 
-    const totalPages = Math.max(1, Math.ceil(total / 25));
-
-    if (currentPage > totalPages) {
-      currentPage = totalPages;
-      filters.page = currentPage;
-      const reQueryResult = await getPayments(filters, {
-        page: currentPage,
-        pageSize: 25
+    if (error) {
+      return res.render('HU-017', {
+        title: 'Payment History | SIGMUI Admin',
+        activeMenu: 'payments',
+        pageTitle: 'Payment history',
+        pageSubtitle: 'Audit every payment of the system',
+        errorMessage: error,
+        filters: req.query,
+        summary: { revenue: '$0 COP', count: 0, parkingCount: 0, extensionCount: 0, averageTicket: '$0 COP' },
+        rows: [],
+        pagination: { page: 1, totalPages: 1, total: 0, fromItem: 0, toItem: 0 }
       });
-      rows = reQueryResult.rows;
-      total = reQueryResult.total;
-      summary = reQueryResult.summary;
     }
 
-    const formattedRows = rows.map(row => ({
-      ...row,
-      formattedDate: formatPaymentDate(row.payment_date),
-      formattedAmount: formatCOP(row.amount)
-    }));
+    const data = await getPayments(filters);
 
     res.render('HU-017', {
       title: 'Payment History | SIGMUI Admin',
-      filters,
-      rows: formattedRows,
-      pagination: {
-        total,
-        page: currentPage,
-        totalPages,
-        fromItem: total > 0 ? (currentPage - 1) * 25 + 1 : 0,
-        toItem: Math.min(currentPage * 25, total)
-      },
-      summary: {
-        revenue: formatCOP(summary.revenue),
-        count: summary.count,
-        parkingCount: summary.parkingCount,
-        extensionCount: summary.extensionCount,
-        averageTicket: formatCOP(summary.averageTicket)
-      },
-      errorMessage: null
+      activeMenu: 'payments',
+      pageTitle: 'Payment history',
+      pageSubtitle: 'Audit every payment of the system',
+      errorMessage: null,
+      filters: data.filters,
+      summary: data.summary,
+      rows: data.rows,
+      pagination: data.pagination
     });
-  } catch (error) {
-    console.error('Error in renderPaymentHistory:', error);
-    res.status(500).render('HU-017', {
+  } catch (err) {
+    console.error('Error in showPaymentHistory:', err);
+    res.render('HU-017', {
       title: 'Payment History | SIGMUI Admin',
-      filters,
-      rows: [],
-      pagination: { total: 0, page: 1, totalPages: 1, fromItem: 0, toItem: 0 },
+      activeMenu: 'payments',
+      pageTitle: 'Payment history',
+      pageSubtitle: 'Audit every payment of the system',
+      errorMessage: 'The payment history is temporarily unavailable.',
+      filters: { from: '', to: '', zone: 'all', plate: '', page: 1 },
       summary: { revenue: '$0 COP', count: 0, parkingCount: 0, extensionCount: 0, averageTicket: '$0 COP' },
-      errorMessage: 'The payment history is temporarily unavailable.'
+      rows: [],
+      pagination: { page: 1, totalPages: 1, total: 0, fromItem: 0, toItem: 0 }
     });
   }
-};
+}
 
-export const exportPayments = async (req, res) => {
-  const { filters, error: filterError } = parseFilters(req.query);
-
-  if (filterError) {
-    return res.status(400).json({ error: filterError });
-  }
-
+export async function exportPayments(req, res) {
   try {
-    const { rows, summary } = await getPaymentsForExport(filters);
+    const { filters, error } = parseFilters(req.query);
 
-    const formattedRows = rows.map(row => ({
-      date: formatPaymentDate(row.payment_date),
-      receipt: row.receipt_number,
-      plate: row.plate,
-      driver: row.driver_name,
-      zone: row.zone,
-      type: row.type === 'parking' ? 'Parking' : 'Extension',
-      amount: row.amount,
-      formattedAmount: formatCOP(row.amount)
-    }));
+    if (error) {
+      return res.status(400).json({ error });
+    }
 
-    return res.json({
-      rows: formattedRows,
-      summary: {
-        revenue: formatCOP(summary.revenue),
-        count: summary.count,
-        parkingCount: summary.parkingCount,
-        extensionCount: summary.extensionCount,
-        averageTicket: formatCOP(summary.averageTicket)
-      }
-    });
-  } catch (error) {
-    console.error('Error in exportPayments:', error);
-    return res.status(500).json({ error: 'The payment history is temporarily unavailable.' });
+    const data = await getPaymentsForExport(filters);
+    res.json(data);
+  } catch (err) {
+    console.error('Error in exportPayments:', err);
+    res.status(500).json({ error: 'The payment history is temporarily unavailable.' });
   }
-};
+}
+
+// Alias para compatibilidad con la importación en src/routes/adminRoutes.js
+export const renderPaymentHistory = showPaymentHistory;
