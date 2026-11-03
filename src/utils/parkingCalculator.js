@@ -55,4 +55,4 @@ function validarPlaca(placa, tipoVehiculo) {
   return true;
 }
 
-module.exports = { calcularTarifa, validarPlaca };
+export { calcularTarifa, validarPlaca };
