@@ -1,121 +1,37 @@
-doctype html
-html
+extends layouts/main
 
-  head
+block content
+  .parking-container
+    h2 Start Parking Session
+    p Select your space and duration to register your parking session.
 
-    meta(charset="UTF-8")
-    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    .parking-card
+      form#parkingForm(on-submit="return false;")
+        .form-group
+          label(for="plateInput") Vehicle Plate:
+          input#plateInput.form-control(type="text", placeholder="ABC123", required)
 
-    title My Reservations
+        .form-group
+          label(for="zoneSelect") Space / Zone:
+          select#zoneSelect.form-control(required)
+            option(value="A1") A1 - Zone A
+            option(value="B1") B1 - Zone B
+            option(value="C1") C1 - Zone C
+            option(value="D1") D1 - Zone D
 
-    link(rel="stylesheet", href="/css/HU-004.css")
+        .form-group
+          label(for="rateTypeSelect") Duration Type:
+          select#rateTypeSelect.form-control(required)
+            option(value="hour") Hourly
+            option(value="day") Daily
 
+        .form-group
+          label(for="quantityInput") Quantity:
+          input#quantityInput.form-control(type="number", min="1", max="12", value="1", required)
 
-  body
+        .form-actions
+          button#confirmReservationBtn.btn-primary(type="button") Pay & Start Session
 
+      div#paymentMessage.payment-msg-box
 
-    .main-container
-
-
-      .header
-
-
-        .header-left
-
-          img(
-            src="/img/calendario.png"
-            alt="Calendar"
-          )
-
-          h2 My Reservations
-
-
-
-        .header-right(onclick="goBack()")
-
-          img(
-            src="/img/flecha.png"
-            alt="Back"
-          )
-
-      .content
-
-        .form
-
-          input#plate(
-            type="text"
-            placeholder="Plate (required)"
-          )
-
-          select#zone
-
-            option(value="") Select Zone
-
-            option(value="A1") A1
-
-            option(value="A2") A2
-
-            option(value="B1") B1
-
-          select#type
-
-            option(value="hour") Per Hour ($2.000)
-
-            option(value="day") Per Day ($20.000)
-
-          input#quantity(
-            type="number"
-            placeholder="Hours or Days"
-          )
-
-          p
-
-            | Total: $
-
-            span#total 0
-
-          button(
-            onclick="calculate()"
-          )
-
-            | Calculate
-
-          button(
-            onclick="confirmReservation()"
-          )
-
-            | Confirm
-
-        .top-bar
-
-          h3 List of reservations
-
-          button.btn(
-            onclick="showReservations()"
-          )
-
-            | View reservation
-
-        .table-container#reservationTable(
-          style="display:none"
-        )
-
-          table
-
-            thead
-
-              tr
-
-                th Nro
-
-                th Plate
-
-                th Location
-
-                th Time
-
-                th Status
-
-            tbody#tableBody
-
-    script(src="/js/HU-004.js")
+  script(src="/js/HU-004.js")
