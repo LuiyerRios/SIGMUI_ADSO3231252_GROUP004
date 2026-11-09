@@ -1,0 +1,28 @@
+      //- Barra lateral
+      aside(class="hidden md:flex w-64 flex-col bg-gradient-to-b from-[#15385F] to-[#071B35] text-white")
+        div(class="flex items-center gap-3 px-6 py-7 border-b border-white/10")
+          div(class="w-11 h-11 rounded-xl bg-sky-500 flex items-center justify-center text-xl font-bold") P
+          div
+            h1(class="text-lg font-bold") SIGMUI
+            p(class="text-xs text-blue-200") Smart Parking
+
+        nav(class="flex-1 p-4 space-y-2")
+          p(class="px-3 py-3 text-xs uppercase tracking-widest text-blue-300") Main Menu
+          a(href="/zones" class="block rounded-xl px-4 py-3 text-sm hover:bg-white/10") ⌂ &nbsp; Home
+          a(href="/parking/start" class="block rounded-xl px-4 py-3 text-sm hover:bg-white/10") ▣ &nbsp; Start Parking
+          a(href="/parking/extend" class="block rounded-xl px-4 py-3 text-sm hover:bg-white/10") ◷ &nbsp; Extend Time
+          a(href="#payments" class="block rounded-xl px-4 py-3 text-sm hover:bg-white/10") $ &nbsp; Payments
+          a(href="#settings" class="block rounded-xl bg-sky-500 px-4 py-3 text-sm font-semibold") ⚙ &nbsp; Settings
+          a(href="/help" class="block rounded-xl px-4 py-3 text-sm hover:bg-white/10") ? &nbsp; Help
+
+        div(class="border-t border-white/10 p-4")
+          div(class="flex items-center gap-3 rounded-xl bg-white/5 p-3")
+            div(class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-900") LR
+            div
+              p(class="text-sm font-semibold") Luiyer Rios
+              p(class="text-xs text-blue-200") Driver
+
+          //- Botón para cerrar sesión con imagen
+          a(href="/logout" class="flex items-center gap-3 px-3 py-4 text-sm text-blue-200 hover:text-white")
+            img(src="/images/logout.png" alt="Log Out" class="h-5 w-5 object-contain")
+            span Log Out
