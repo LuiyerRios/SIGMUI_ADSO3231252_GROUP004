@@ -1,6 +1,33 @@
 /* Descripción: Manejo del evento submit, validaciones en cliente e integración con n8n
  */
 
+// Requisitos de la contraseña: actualiza las barras y los textos al escribir
+const passwordRules = {
+    length: (value) => value.length >= 8,
+    upper: (value) => /[A-Z]/.test(value),
+    number: (value) => /[0-9]/.test(value),
+    symbol: (value) => /[^A-Za-z0-9]/.test(value)
+};
+
+function updatePasswordRules() {
+    const value = document.getElementById("password").value;
+    let passed = 0;
+
+    document.querySelectorAll("[data-rule]").forEach((item) => {
+        const isMet = passwordRules[item.dataset.rule](value);
+        if (isMet) passed++;
+        item.textContent = `${isMet ? "✓" : "○"} ${item.dataset.label}`;
+        item.classList.toggle("text-success", isMet);
+    });
+
+    document.querySelectorAll("[data-strength-bar]").forEach((bar, index) => {
+        bar.classList.toggle("bg-brand-tech", index < passed);
+        bar.classList.toggle("bg-track", index >= passed);
+    });
+}
+
+document.getElementById("password").addEventListener("input", updatePasswordRules);
+
 document.getElementById("registro-form").addEventListener("submit", async function(e) {
     // 1. Prevenir que el formulario se envíe de forma tradicional (recarga de página)
     e.preventDefault(); 
@@ -8,10 +35,8 @@ document.getElementById("registro-form").addEventListener("submit", async functi
     // 2. Captura de los valores desde el DOM
     const formData = {
         full_name: document.getElementById("full_name").value.trim(),
-        identity_document: document.getElementById("identity_document").value.trim(),
         email: document.getElementById("email_address").value.trim(),
         phone: document.getElementById("phone_number").value.trim(),
-        plate: document.getElementById("vehicle_plate").value.trim().toUpperCase(),
         password: document.getElementById("password").value,
         confirm: document.getElementById("confirm_password").value
     };
@@ -26,15 +51,6 @@ document.getElementById("registro-form").addEventListener("submit", async functi
     errorDiv.style.color = "blue";
 
     // 3. VALIDACIONES
-    // Regex para placa: 3 letras seguidas de 3 números (ej. ABC123)
-    const formatoPlaca = /^[A-Z]{3}[0-9]{3}$/;
-
-    if (!formatoPlaca.test(formData.plate)) {
-        errorDiv.textContent = "Error: Formato de matrícula inválido. Ej: ABC123";
-        errorDiv.style.color = "red";
-        return; // Detiene la ejecución
-    }
-
     // Validación de seguridad básica para la contraseña
     if (formData.password.length < 8) {
         errorDiv.textContent = "Error: La contraseña debe tener al menos 8 caracteres.";
@@ -78,6 +94,7 @@ document.getElementById("registro-form").addEventListener("submit", async functi
             
             // Limpiar formulario tras éxito
             document.getElementById("registro-form").reset();
+            updatePasswordRules();
         } else {
             throw new Error("No se pudo conectar con el servidor.");
         }
