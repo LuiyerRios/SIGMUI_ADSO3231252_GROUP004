@@ -1,0 +1,25 @@
+/* HU-001 · Inicio de sesión de Tech Parking
+   Solo escanea la vista y el JS de la HU-001 para no mezclar clases con otras HU. */
+@import "tailwindcss" source(none);
+@source "../views/HU-001.pug";
+@source "../../public/js/HU-001.js";
+
+@theme {
+  --font-poppins: "Poppins", system-ui, sans-serif;
+
+  --color-brand-primary: #2565AE;      /* Azul de enlaces y botones */
+  --color-brand-tech-soft: #CDEFFF;    /* Azul claro para 'tech' */
+  --color-brand-soft: #DCEBFB;         /* Fondo de iconos en celular */
+  --color-surface: #EDF2F7;            /* Fondo de la página */
+  --color-ink: #172033;                /* Títulos y texto escrito */
+  --color-ink-soft: #33445C;           /* Beneficios en celular */
+  --color-muted: #5B6B82;              /* Texto secundario */
+  --color-line: #D4DCE7;               /* Bordes de campos y separadores */
+  --color-line-strong: #B9CCE3;        /* Borde de 'Create an account' */
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-poppins);
+}

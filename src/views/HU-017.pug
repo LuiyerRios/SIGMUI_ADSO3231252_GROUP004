@@ -1,0 +1,172 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title= title || "Payment History | SIGMUI Admin"
+    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css")
+    link(rel="stylesheet", href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap")
+    link(rel="stylesheet", href="/css/HU-017.css")
+  body
+    -
+      function pageUrl(params) {
+        const q = Object.assign({
+          from: filters.from,
+          to: filters.to,
+          zone: filters.zone || 'all',
+          plate: filters.plate || '',
+          page: 1
+        }, params);
+        return '/admin/payments?' + Object.keys(q).map(k => k + '=' + encodeURIComponent(q[k])).join('&');
+      }
+
+    .admin-layout
+      //- Sidebar parcial reutilizable
+      - const active = 'payments'
+      include partials/admin-sidebar
+
+      //- Overlay para móviles
+      .sidebar-overlay#sidebarOverlay
+
+      //- Contenido Principal
+      main.admin-main-content
+        header.topbar-header
+          .topbar-title-group
+            button.btn-mobile-toggle#mobileToggle(type="button")
+              i.fas.fa-bars
+            div
+              h1 Payment history
+              p Audit every payment of the system
+
+          .topbar-actions
+            a.topbar-icon-btn(href="/admin/help-reports", title="Help reports")
+              i.far.fa-comment-alt
+            a.topbar-icon-btn.relative(href="/inbox", title="Notifications")
+              i.far.fa-bell
+              if unreadCount && unreadCount > 0
+                span.notification-badge-dot
+            .topbar-user-greeting
+              span Hello, 
+              strong Admin
+
+        .content-body
+          //- Banner de Alerta / Error
+          if errorMessage
+            .alert-banner-error
+              i.fas.fa-exclamation-circle
+              span= errorMessage
+
+          //- Formulario de Filtros
+          form.filters-card#filtersForm(action="/admin/payments", method="GET")
+            input(type="hidden", name="page", value="1")
+            
+            .filters-wrapper
+              .filter-group-date
+                i.far.fa-calendar.filter-icon
+                input.input-date(type="date", name="from", value=filters.from)
+                span.date-separator →
+                input.input-date(type="date", name="to", value=filters.to)
+
+              .filter-group-chips
+                input#zoneInput(type="hidden", name="zone", value=filters.zone || 'all')
+                a.chip-item(href=pageUrl({ zone: 'all', page: 1 }), data-zone="all", class=(!filters.zone || filters.zone === 'all') ? 'active' : '') All zones
+                each z in ['A', 'B', 'C', 'D', 'E', 'F']
+                  a.chip-item(href=pageUrl({ zone: z, page: 1 }), data-zone=z, class=filters.zone === z ? 'active' : '')= z
+
+              .filter-group-plate
+                i.fas.fa-search.filter-icon
+                input.input-plate(type="text", name="plate", value=filters.plate || '', placeholder="Plate...", maxlength="10")
+
+              .filter-group-actions
+                button.btn-filter-apply(type="submit") Apply
+                button.btn-export.excel#exportExcelBtn(type="button")
+                  i.fas.fa-file-excel
+                  span Excel
+                button.btn-export.pdf#exportPdfBtn(type="button")
+                  i.fas.fa-file-pdf
+                  span PDF
+
+          //- Tarjetas de Resumen
+          .summary-cards-grid
+            .summary-card
+              span.card-label Total revenue (filtered)
+              strong.card-value.primary= summary.revenue
+            .summary-card
+              span.card-label Payments
+              strong.card-value= summary.count
+            .summary-card
+              span.card-label Parking / extensions
+              strong.card-value #{summary.parkingCount} / #{summary.extensionCount}
+            .summary-card
+              span.card-label Average ticket
+              strong.card-value= summary.averageTicket
+
+          //- Tabla de Resultados
+          .table-card
+            if rows.length === 0
+              .table-empty-state
+                i.far.fa-folder-open.empty-icon
+                p No payments found for the selected filters.
+            else
+              .table-responsive
+                table.payments-table
+                  thead
+                    tr
+                      th DATE
+                      th RECEIPT
+                      th PLATE
+                      th DRIVER
+                      th ZONE
+                      th TYPE
+                      th AMOUNT
+                  tbody
+                    each row in rows
+                      tr
+                        td(data-label="Date")= row.formattedDate
+                        td.font-bold(data-label="Receipt")= row.receipt_number
+                        td.font-bold(data-label="Plate")= row.plate
+                        td(data-label="Driver")= row.driver_name
+                        td(data-label="Zone")
+                          span.zone-badge= row.zone
+                        td(data-label="Type")
+                          if row.type === 'parking'
+                            span.type-pill.parking Parking
+                          else
+                            span.type-pill.extension Extension
+                        td.font-bold(data-label="Amount")= row.formattedAmount
+
+              //- Paginación
+              footer.pagination-footer
+                .pagination-info
+                  | Showing #{pagination.fromItem}–#{pagination.toItem} of #{pagination.total}
+                .pagination-controls
+                  if pagination.page > 1
+                    a.page-btn(href=pageUrl({ page: pagination.page - 1 }))
+                      i.fas.fa-chevron-left
+                  else
+                    span.page-btn.disabled
+                      i.fas.fa-chevron-left
+
+                  - let p = 1
+                  while p <= pagination.totalPages
+                    if p === pagination.page
+                      span.page-btn.active= p
+                    else if p <= 3 || p >= pagination.totalPages - 2 || Math.abs(p - pagination.page) <= 1
+                      a.page-btn(href=pageUrl({ page: p }))= p
+                    else if p === 4 && pagination.page > 5
+                      span.page-dots ...
+                    - p++
+
+                  if pagination.page < pagination.totalPages
+                    a.page-btn(href=pageUrl({ page: pagination.page + 1 }))
+                      i.fas.fa-chevron-right
+                  else
+                    span.page-btn.disabled
+                      i.fas.fa-chevron-right
+
+    //- Toast de Alerta Dinámico
+    .toast-notification#toastNotification
+
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js")
+    script(src="/js/HU-017.js")
