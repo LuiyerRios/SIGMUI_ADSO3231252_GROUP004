@@ -1,123 +1,125 @@
-doctype html
-html
+extends layouts/app
 
-  head
+block content
+  - const currentZoneCode = selectedZoneCode || 'A'
 
-    meta(charset="UTF-8")
-    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+  .flex.flex-col.gap-6#startParkingContainer
+    if errorMessage
+      .alert.alert-error
+        i.fas.fa-exclamation-circle
+        span= errorMessage
 
-    title My Reservations
+    .grid.grid-cols-12.gap-6.items-start
+      //- Columna Izquierda: Pasos de Configuración
+      div(class="card col-span-12 lg:col-span-8")
+        .card-header.mb-6
+          h2.card-title Start a parking session
+          p.card-subtitle Three quick steps. You can extend your time later from your phone.
 
-    link(rel="stylesheet", href="/css/HU-004.css")
+        .flex.flex-col.gap-8
+          //- Paso 1: Seleccionar Zona
+          .flex.flex-col.gap-3
+            .flex.items-center.gap-3
+              div(class="w-7 h-7 rounded-full bg-primary text-white font-bold text-xs flex items-center justify-center shrink-0") 1
+              div
+                h3.text-sm.font-bold.text-ink Choose a zone
+                p.text-xs.text-muted We assign the first free space in that zone
 
+            .flex.items-center.gap-2.flex-wrap.pl-10#zoneSelectGroup
+              if zones
+                each z in zones
+                  a.chip(
+                    href=`/parking/start?zone=${z.code}`,
+                    data-zone=z.code,
+                    class=(z.code === currentZoneCode ? 'active' : '')
+                  ) Zone #{z.code} · #{z.free} free
 
-  body
+          hr.border-line
 
+          //- Paso 2: Seleccionar Vehículo
+          .flex.flex-col.gap-3
+            .flex.items-center.gap-3
+              div(class="w-7 h-7 rounded-full bg-primary text-white font-bold text-xs flex items-center justify-center shrink-0") 2
+              div
+                h3.text-sm.font-bold.text-ink Select your vehicle
+                p.text-xs.text-muted Choose which registered vehicle you are parking
 
-    .main-container
+            div(class="grid grid-cols-1 sm:grid-cols-3 gap-3 pl-10")#vehicleSelectGroup
+              button.vehicle-card.selected(type="button", data-plate="KJT-482")
+                .flex.items-center.gap-3
+                  i.fas.fa-car.text-base.text-muted
+                  .flex.flex-col.text-left
+                    strong.text-xs.font-bold.text-ink KJT-482
+                    span(class="text-[11px] text-muted") Mazda 3 · White
 
+              button.vehicle-card(type="button", data-plate="LPA-118")
+                .flex.items-center.gap-3
+                  i.fas.fa-motorcycle.text-base.text-muted
+                  .flex.flex-col.text-left
+                    strong.text-xs.font-bold.text-ink LPA-118
+                    span(class="text-[11px] text-muted") Moto · Yamaha
 
-      .header
+              a.vehicle-card-add(href="#")
+                i.fas.fa-plus.text-xs
+                span Add vehicle
 
+          hr.border-line
 
-        .header-left
+          //- Paso 3: Duración
+          .flex.flex-col.gap-3
+            .flex.items-center.gap-3
+              div(class="w-7 h-7 rounded-full bg-primary text-white font-bold text-xs flex items-center justify-center shrink-0") 3
+              div
+                h3.text-sm.font-bold.text-ink How long will you stay?
+                p.text-xs.text-muted Maximum 4 hours per session
 
-          img(
-            src="/img/calendario.png"
-            alt="Calendar"
-          )
+            .flex.items-center.gap-2.flex-wrap.pl-10#durationSelectGroup
+              button.chip.duration-chip(type="button", data-hours="0.5") 30 min
+              button.chip.duration-chip.active(type="button", data-hours="1") 1 h
+              button.chip.duration-chip(type="button", data-hours="2") 2 h
+              button.chip.duration-chip(type="button", data-hours="3") 3 h
+              button.chip.duration-chip(type="button", data-hours="4") 4 h
 
-          h2 My Reservations
+      //- Columna Derecha: Resumen de Compra
+      div(class="card col-span-12 lg:col-span-4")#parkingSummaryPanel
+        .card-header.mb-4
+          span.text-xs.font-bold.tracking-wider.text-muted.uppercase SUMMARY
 
+        //- Tarjeta Ilustrativa del Espacio
+        div(class="rounded-2xl bg-gradient-to-r from-tech to-accent p-5 text-white mb-6 shadow-md")
+          span(class="text-xs text-white/80 font-medium") Your space
+          h2.text-3xl.font-extrabold.mt-1#summarySpaceCode= selectedSpaceId || `${currentZoneCode}1`
+          p(class="text-xs text-white/90 mt-1")#summaryZonePlate Zone #{currentZoneCode} · KJT-482
 
+        .data-list.mb-6
+          .data-list-item
+            span.data-list-label Starts
+            span.data-list-value#summaryStartsVal Now · --:--
+          .data-list-item
+            span.data-list-label Ends
+            span.data-list-value#summaryEndsVal --:--
+          .data-list-item
+            span.data-list-label Duration
+            span.data-list-value#summaryDurationVal 1 h
+          .data-list-item
+            span.data-list-label Rate
+            span.data-list-value#summaryRateVal= formattedRate || '$2,000 COP / hour'
 
-        .header-right(onclick="goBack()")
+        .flex.items-center.justify-between.pt-4.border-t.border-line.mb-6
+          strong.text-sm.text-ink Total
+          strong.text-2xl.font-extrabold.text-ink#summaryTotalAmount $2,000 COP
 
-          img(
-            src="/img/flecha.png"
-            alt="Back"
-          )
+        form#startParkingForm(action="/parking/start", method="POST")
+          input#inputZone(type="hidden", name="zone", value=currentZoneCode)
+          input#inputSpace(type="hidden", name="spaceId", value=selectedSpaceId)
+          input#inputPlate(type="hidden", name="plate", value="KJT-482")
+          input#inputDuration(type="hidden", name="durationHours", value="1")
 
-      .content
+          button.btn.btn-primary.btn-block.py-3.text-sm#startParkingSubmitBtn(type="submit")
+            span Start parking
+            i.fas.fa-arrow-right
 
-        .form
+        p(class="text-[11px] text-muted text-center mt-4") Rate is demo data · set by the admin in parking_config
 
-          input#plate(
-            type="text"
-            placeholder="Plate (required)"
-          )
-
-          select#zone
-
-            option(value="") Select Zone
-
-            option(value="A1") A1
-
-            option(value="A2") A2
-
-            option(value="B1") B1
-
-          select#type
-
-            option(value="hour") Per Hour ($2.000)
-
-            option(value="day") Per Day ($20.000)
-
-          input#quantity(
-            type="number"
-            placeholder="Hours or Days"
-          )
-
-          p
-
-            | Total: $
-
-            span#total 0
-
-          button(
-            onclick="calculate()"
-          )
-
-            | Calculate
-
-          button(
-            onclick="confirmReservation()"
-          )
-          
-            | Confirm 
-
-          #paymentMessage.payment-msg(style="display:none")
-
-        .top-bar
-
-          h3 List of reservations
-
-          button.btn(
-            onclick="showReservations()"
-          )
-
-            | View reservation
-
-        .table-container#reservationTable(
-          style="display:none"
-        )
-
-          table
-
-            thead
-
-              tr
-
-                th Nro
-
-                th Plate
-
-                th Location
-
-                th Time
-
-                th Status
-
-            tbody#tableBody
-
-    script(src="/js/HU-004.js")
+block scripts
+  script(src="/js/HU-004.js")

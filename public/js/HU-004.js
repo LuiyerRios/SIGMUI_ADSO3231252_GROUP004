@@ -1,164 +1,103 @@
-console.log("HU-004.js cargado");
-let reservations = [];
+document.addEventListener('DOMContentLoaded', () => {
+  const vehicleSelectGroup = document.getElementById('vehicleSelectGroup');
+  const durationSelectGroup = document.getElementById('durationSelectGroup');
+  const startParkingForm = document.getElementById('startParkingForm');
 
-// CALCULAR
+  const summarySpaceCode = document.getElementById('summarySpaceCode');
+  const summaryZonePlate = document.getElementById('summaryZonePlate');
+  const summaryStartsVal = document.getElementById('summaryStartsVal');
+  const summaryEndsVal = document.getElementById('summaryEndsVal');
+  const summaryDurationVal = document.getElementById('summaryDurationVal');
+  const summaryRateVal = document.getElementById('summaryRateVal');
+  const summaryTotalAmount = document.getElementById('summaryTotalAmount');
 
-function calculate(){
-    const type =
-    document.getElementById("type").value;
-    const quantity =
-    Number(
-        document.getElementById("quantity").value
-    );
+  const inputPlate = document.getElementById('inputPlate');
+  const inputDuration = document.getElementById('inputDuration');
 
-    if(quantity <= 0){
-        alert("Please enter a valid quantity");
-        return;
-    }
+  let selectedPlate = 'KJT-482';
+  let selectedHours = 1;
+  const ratePerHour = 2000;
 
-    let total;
-    if(type === "hour"){
-        total = quantity * 2000;
-    }else{
-        total = quantity * 20000;
-    }
+  // 1. Selección de Vehículo
+  if (vehicleSelectGroup) {
+    vehicleSelectGroup.addEventListener('click', (e) => {
+      const card = e.target.closest('button.vehicle-card');
+      if (!card) return;
 
-    document.getElementById("total")
-    .textContent =
-    total.toLocaleString("es-US");
-}
+      document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
 
-// CONFIRMAR (CONECTADO A BD VÍA FETCH)
+      selectedPlate = card.getAttribute('data-plate') || 'KJT-482';
+      if (inputPlate) inputPlate.value = selectedPlate;
 
-async function confirmReservation(){
-    const plate = document.getElementById("plate").value.trim();
-    const zoneValue = document.getElementById("zone").value; // ej: "A1"
-    const type = document.getElementById("type").value;
-    const quantity = Number(document.getElementById("quantity").value);
-    const paymentMessage = document.getElementById("paymentMessage");
-
-    if(!plate || !zoneValue || quantity <= 0){
-        if (paymentMessage) {
-            paymentMessage.style.display = 'block';
-            paymentMessage.className = 'payment-msg error';
-            paymentMessage.textContent = 'Please fill in all required fields';
-        }
-        return;
-    }
-
-    if (paymentMessage) {
-        paymentMessage.style.display = 'block';
-        paymentMessage.className = 'payment-msg info';
-        paymentMessage.textContent = 'Processing payment...';
-    }
-
-    try {
-        const response = await fetch('/api/payments/parking', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                plate: plate,
-                zone: zoneValue ? zoneValue.charAt(0) : '',
-                spaceId: zoneValue,
-                rateType: type,
-                quantity: quantity
-            })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            if (paymentMessage) {
-                paymentMessage.className = 'payment-msg error';
-                paymentMessage.textContent = data.error || 'The payment could not be processed. Please try again.';
-            }
-            return;
-        }
-
-        // Agregar a la tabla de reservas en memoria utilizando los datos reales del servidor
-        const reservation = {
-            plate: plate.toUpperCase(),
-            location: zoneValue,
-            time: type === "hour" ? quantity + " Hour(s)" : quantity + " Day(s)",
-            total: data.amount,
-            receipt: data.receiptNumber,
-            status: "Confirmed"
-        };
-        reservations.push(reservation);
-
-        if (paymentMessage) {
-            paymentMessage.className = 'payment-msg success';
-            paymentMessage.textContent = `Payment completed. Receipt ${data.receiptNumber}`;
-        }
-
-        cleanForm();
-
-    } catch (err) {
-        console.error('Error confirming reservation:', err);
-        if (paymentMessage) {
-            paymentMessage.className = 'payment-msg error';
-            paymentMessage.textContent = 'The payment could not be processed. Please try again.';
-        }
-    }
-}
-
-// MOSTRAR RESERVAS
-
-function showReservations(){
-    const table =
-    document.getElementById(
-        "reservationTable"
-    );
-
-    table.style.display="block";
-    const body =
-    document.getElementById(
-        "tableBody"
-    );
-
-    body.innerHTML="";
-    if(reservations.length===0){
-        body.innerHTML=`
-        <tr>
-        <td colspan="5">
-        No reservations found
-        </td>
-        </tr>
-        `;
-        return;
-    }
-
-    reservations.forEach(
-        (reservation,index)=>{
-        body.innerHTML += `
-        <tr>
-        <td>${index+1}</td>
-        <td>${reservation.plate}</td>
-        <td>${reservation.location}</td>
-        <td>${reservation.time}</td>
-        <td>
-        <span class="status status-active">
-        ${reservation.status}
-        </span>
-        </td>
-        </tr>
-        `;
+      updateSummary();
     });
-}
+  }
 
-// LIMPIAR
+  // 2. Selección de Duración
+  if (durationSelectGroup) {
+    durationSelectGroup.addEventListener('click', (e) => {
+      const btn = e.target.closest('button.duration-chip');
+      if (!btn) return;
 
-function cleanForm(){
+      document.querySelectorAll('.duration-chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
 
-document.getElementById("plate").value="";
-document.getElementById("zone").value="";
-document.getElementById("quantity").value="";
-document.getElementById("total").textContent="0";
+      selectedHours = parseFloat(btn.getAttribute('data-hours')) || 1;
+      if (inputDuration) inputDuration.value = selectedHours;
 
-}
+      updateSummary();
+    });
+  }
 
-// VOLVER
+  // 3. Formateador a Pesos Colombianos
+  function formatCOP(amount) {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      maximumFractionDigits: 0
+    }).format(amount);
+  }
 
-function goBack() {
-    window.location.href = '/zones';
-}
+  // 4. Actualización Dinámica del Resumen de Compra
+  function updateSummary() {
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+
+    const startHours = pad(now.getHours());
+    const startMinutes = pad(now.getMinutes());
+    if (summaryStartsVal) summaryStartsVal.textContent = `Now · ${startHours}:${startMinutes}`;
+
+    const endTime = new Date(now.getTime() + selectedHours * 60 * 60 * 1000);
+    const endHours = pad(endTime.getHours());
+    const endMinutes = pad(endTime.getMinutes());
+    if (summaryEndsVal) summaryEndsVal.textContent = `${endHours}:${endMinutes}`;
+
+    if (summaryDurationVal) {
+      summaryDurationVal.textContent = selectedHours === 0.5 ? '30 min' : `${selectedHours} h`;
+    }
+
+    const currentZone = document.getElementById('inputZone') ? document.getElementById('inputZone').value : 'A';
+    if (summaryZonePlate) {
+      summaryZonePlate.textContent = `Zone ${currentZone} · ${selectedPlate}`;
+    }
+
+    const totalCost = selectedHours * ratePerHour;
+    if (summaryTotalAmount) {
+      summaryTotalAmount.textContent = formatCOP(totalCost);
+    }
+  }
+
+  updateSummary();
+
+  // 5. Envío de Formulario
+  if (startParkingForm) {
+    startParkingForm.addEventListener('submit', (e) => {
+      const submitBtn = document.getElementById('startParkingSubmitBtn');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-75');
+      }
+    });
+  }
+});
