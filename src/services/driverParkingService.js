@@ -96,7 +96,8 @@ export async function getTotals() {
 }
 
 /**
- * Obtiene las sesiones activas pagadas de un conductor específico ordenadas por end_time ASC (la que vence primero).
+ * Obtiene las sesiones activas pagadas de un conductor, ordenadas por end_time ASC (la que vence primero).
+ * Incluye la tarifa por hora y si la zona permite extensiones (HU-005).
  */
 export async function getActiveSessions(userId) {
   const query = `
@@ -107,8 +108,11 @@ export async function getActiveSessions(userId) {
       s.zone,
       s.space_id AS spaceId,
       s.start_time AS startTime,
-      s.end_time AS endTime
+      s.end_time AS endTime,
+      z.rate_per_hour AS ratePerHour,
+      z.allows_extension AS allowsExtension
     FROM parking_sessions s
+    JOIN zones z ON z.code = s.zone
     WHERE s.user_id = :userId
       AND s.status = 'active'
       AND s.payment_status = 'paid'
@@ -128,8 +132,49 @@ export async function getActiveSessions(userId) {
     zone: r.zone,
     spaceId: r.spaceId,
     startTime: r.startTime,
-    endTime: r.endTime
+    endTime: r.endTime,
+    ratePerHour: Number(r.ratePerHour),
+    allowsExtension: Boolean(r.allowsExtension)
   }));
+}
+
+/**
+ * Pagos de HOY del conductor (parqueos y extensiones) para el historial de HU-005.
+ * Devuelve { items: [{ type, spaceId, zone, plate, time, hours, rateType, amount }], totalToday }.
+ */
+export async function getTodayActivity(userId) {
+  const query = `
+    SELECT 'parking' AS type, s.space_id AS spaceId, s.zone, s.plate,
+           s.start_time AS time, s.rate_type AS rateType, s.quantity, s.amount
+    FROM parking_sessions s
+    WHERE s.user_id = :userId AND s.payment_status = 'paid' AND DATE(s.start_time) = CURDATE()
+    UNION ALL
+    SELECT 'extension' AS type, s.space_id AS spaceId, s.zone, s.plate,
+           e.created_at AS time, 'hour' AS rateType, e.hours AS quantity, e.amount
+    FROM session_extensions e
+    JOIN parking_sessions s ON s.id = e.session_id
+    WHERE s.user_id = :userId AND s.payment_status = 'paid' AND DATE(e.created_at) = CURDATE()
+    ORDER BY time ASC
+  `;
+
+  const rows = await db.query(query, {
+    replacements: { userId },
+    type: QueryTypes.SELECT
+  });
+
+  const items = rows.map(r => ({
+    type: r.type,
+    spaceId: r.spaceId,
+    zone: r.zone,
+    plate: r.plate,
+    time: r.time,
+    rateType: r.rateType,
+    quantity: Number(r.quantity),
+    amount: Number(r.amount)
+  }));
+
+  const totalToday = items.reduce((sum, item) => sum + item.amount, 0);
+  return { items, totalToday };
 }
 
 /**
