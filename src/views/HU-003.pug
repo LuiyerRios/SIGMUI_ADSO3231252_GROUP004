@@ -1,85 +1,134 @@
-//- src/views/available-areas.pug
-extends layouts/main.pug
+extends layouts/app
 
 block content
-  div(class="bg-white rounded-lg p-6 shadow-md max-w-6xl mx-auto")
-    
-    //- Encabezado
-    div(class="flex justify-between items-center mb-4")
-      h1(class="text-2xl font-black text-gray-800 tracking-wide") CENTRAL PARKING - LEVEL 1
-      span(class="text-gray-600 font-semibold text-sm") May 14th, 15:45
+  - const activeSession = (activeSessions && activeSessions.length > 0) ? activeSessions[0] : null
+  - const currentZoneCode = selectedZone ? selectedZone.code : 'A'
 
-    //- Leyenda y Selector de Nivel
-    div(class="flex justify-between items-center bg-gray-50 p-2 rounded border mb-6 text-xs font-semibold")
-      div(class="flex space-x-4 items-center")
-        span(class="flex items-center space-x-1")
-          span(class="w-3 h-3 bg-green-500 inline-block rounded-sm")
-          span Available
-        span(class="flex items-center space-x-1")
-          span(class="w-3 h-3 bg-red-500 inline-block rounded-sm")
-          span Occupied
-        span(class="flex items-center space-x-1")
-          span(class="w-3 h-3 bg-blue-500 inline-block rounded-sm")
-          span Selected
-        span(class="flex items-center space-x-1")
-          span(class="w-3 h-3 bg-gray-400 inline-block rounded-sm")
-          span Reserved
+  .flex.flex-col.gap-6#driverHomeContainer(data-user-id=currentUser ? currentUser.id : '')
+    if errorMessage
+      .alert.alert-error
+        i.fas.fa-exclamation-circle
+        span= errorMessage
 
-      div(class="flex space-x-1")
-        button(class="px-3 py-1 bg-gray-700 text-white rounded text-xs") LEVEL 1
-        button(class="px-3 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300") LEVEL 2
-        button(class="px-3 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300") LEVEL 3
+    //- 1. Tarjetas de Estadísticas Principales
+    .stat-grid
+      .stat-card
+        .flex.items-center.justify-between
+          span.card-label Available spaces
+          .w-8.h-8.rounded-full.bg-green-500.bg-opacity-10.text-success.flex.items-center.justify-center.text-xs
+            i.fas.fa-location-dot
+        strong.card-value#statFreeCount= totals ? totals.free : 0
+        span.text-xs.text-muted Across #{zones ? zones.length : 0} zones right now
 
-    //- Cuadrícula de Bahías de Parqueo
-    div(class="grid grid-cols-4 gap-6")
-      
-      div(class="col-span-3 border-2 border-gray-300 p-4 rounded-lg bg-gray-50 relative")
-        
-        //- Zona A
-        h3(class="text-center font-bold text-gray-700 mb-2") Zona A
-        div(class="grid grid-cols-10 gap-1 mb-6 text-xs text-center font-bold text-white")
-          - const spotsA = ['A01','A02','A03','A04','A05','A06','A07','A08','A09','A10']
-          each spot in spotsA
-            div(class="bg-green-500 py-2 rounded cursor-pointer hover:opacity-80" onclick=`selectSpot('${spot}')`)= spot
-        
-        //- Zona B
-        h3(class="text-center font-bold text-gray-700 mb-2") Zona B
-        div(class="grid grid-cols-10 gap-1 mb-6 text-xs text-center font-bold text-white")
-          - const spotsB = ['B1','B2','B3','B4','B5','B17','B18','B19','B20','B21']
-          each spot in spotsB
-            div(class="bg-green-500 py-2 rounded cursor-pointer hover:opacity-80" onclick=`selectSpot('${spot}')`)= spot
+      .stat-card
+        .flex.items-center.justify-between
+          span.card-label Occupancy
+          .w-8.h-8.rounded-full.bg-primary.bg-opacity-10.text-primary.flex.items-center.justify-center.text-xs
+            i.fas.fa-chart-pie
+        strong.card-value#statOccupancyPercent #{totals ? totals.occupancyPercent : 0}%
+        span.text-xs.text-muted#statOccupancyText #{totals ? totals.occupied : 0} of #{totals ? totals.total : 0} spaces in use
 
-        //- Zona C
-        h3(class="text-center font-bold text-gray-700 mb-2") Zona C
-        div(class="grid grid-cols-10 gap-1 text-xs text-center font-bold text-white")
-          - const spotsC = ['C1','C2','C3','C4','C5','C7','C9','C11','C13','C15']
-          each spot in spotsC
-            div(class="bg-green-500 py-2 rounded cursor-pointer hover:opacity-80" onclick=`selectSpot('${spot}')`)= spot
+      .stat-card
+        .flex.items-center.justify-between
+          span.card-label My active parking
+          .w-8.h-8.rounded-full.bg-accent.bg-opacity-10.text-accent.flex.items-center.justify-center.text-xs
+            i.fas.fa-car
+        strong.card-value#statActiveSessionText= activeSession ? `${activeSession.spaceId} · ${activeSession.plate}` : '—'
+        span.text-xs.text-muted#statActiveSessionSub= activeSession ? `Zone ${activeSession.zone}` : 'No active session'
 
-      //- Panel Lateral de Estatus
-      div(class="col-span-1 bg-gray-100 p-4 rounded-lg flex flex-col justify-between border")
-        div
-          h2(class="font-bold text-gray-800 text-sm mb-3 border-b pb-1") Status
-          p(class="text-xs text-gray-600 mb-1") Selected Space: 
-            span(id="selected-space" class="font-bold text-gray-800") -
-          p(class="text-xs text-gray-600 mb-1") Status: 
-            span(id="selected-status" class="font-bold text-green-600") -
-          p(class="text-xs text-gray-600 mb-4") Rate/Hour: 
-            span(id="selected-rate" class="font-bold text-gray-800") -
-          p(class="text-xs text-gray-500") Standard Duration: 
-            strong 1 Hour
+      .stat-card
+        .flex.items-center.justify-between
+          span.card-label Time remaining
+          .w-8.h-8.rounded-full.bg-warning.bg-opacity-10.text-warning.flex.items-center.justify-center.text-xs
+            i.fas.fa-clock
+        strong.card-value#statTimeRemaining= activeSession ? 'Calculating...' : '—'
+        span.text-xs.text-muted#statTimeRemainingSub(data-end-time=activeSession ? activeSession.endTime : '')= activeSession ? 'Active session' : '—'
 
-        button(class="w-full bg-emerald-500 text-white font-bold py-2 rounded text-xs mt-4 hover:bg-emerald-600 uppercase shadow")
-          | Confirm Reservation Button
+    //- 2. Contenido Principal: Mapa de Zonas y Panel de Detalle
+    .grid.grid-cols-12.gap-6.items-start
+      //- Columna Izquierda: Mapa de Espacios (8 columnas en escritorio, 12 en tablet/celular)
+      .col-span-12.lg_col-span-8.card
+        .card-header.flex.items-center.justify-between.flex-wrap.gap-4
+          div
+            h2.card-title Blue-zone map
+            p.card-subtitle Click a space to see details or change its status
 
-    //- Botón Inferior Centrado CONFIRM PAYMENT
-    div(class="mt-8 flex justify-center")
-      button(class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-base py-3 px-16 rounded-full shadow-lg transition duration-200 uppercase tracking-wide")
-        | CONFIRM PAYMENT
+          .flex.items-center.gap-2.text-xs.text-muted
+            i.fas.fa-rotate.animate-spin-slow
+            span Auto-refresh every 30 s
 
-  script.
-    function selectSpot(spotId) {
-      document.getElementById('selected-space').textContent = spotId;
-      document.getElementById('selected-status').textContent = 'AVAILABLE';
-      document.getElementById('selected-rate').textContent = '$2,000/hr';
-    }
+        //- Chips de Selección de Zonas
+        .flex.items-center.gap-2.flex-wrap.mb-6#zoneChipsContainer
+          if zones
+            each z in zones
+              a.chip(
+                href=`/zones?zone=${z.code}`,
+                data-zone=z.code,
+                class=(z.code === currentZoneCode ? 'active' : '')
+              ) Zone #{z.code} · #{z.free} free
+
+        //- Grid de Espacios (8 columnas por defecto, 4 en celular)
+        .grid.grid-cols-4.sm_grid-cols-8.gap-3.mb-6#spacesGrid(data-current-zone=currentZoneCode)
+          if spaces
+            each space in spaces
+              button.space-grid-item(
+                type="button",
+                data-space-id=space.id,
+                data-occupied=space.occupied ? 'true' : 'false',
+                disabled=space.occupied,
+                class=space.occupied ? 'occupied' : 'available'
+              )
+                span.space-dot
+                span.space-code= space.id
+
+        //- Leyenda de Colores
+        .flex.items-center.gap-6.pt-4.border-t.border-line.text-xs.text-muted
+          .flex.items-center.gap-2
+            span.w-3.h-3.rounded-full.bg-green-500
+            span Available
+          .flex.items-center.gap-2
+            span.w-3.h-3.rounded-full.bg-red-500
+            span Occupied
+          .flex.items-center.gap-2
+            span.w-3.h-3.rounded-full.border-2.border-accent.bg-purple-100
+            span Selected
+
+      //- Columna Derecha: Panel Lateral de Detalles del Espacio (4 columnas en escritorio, 12 en tablet/celular)
+      .col-span-12.lg_col-span-4.card#spaceDetailsPanel
+        .card-header
+          span.text-xs.font-bold.tracking-wider.text-muted.uppercase SELECTED SPACE
+
+        .flex.items-center.gap-4.mb-6
+          .w-14.h-14.rounded-2xl.bg-gradient-to-br.from-tech.to-accent.text-white.flex.items-center.justify-center.font-extrabold.text-xl.shadow-md#panelSpaceBadge
+            span#panelSpaceIdBadge —
+          div
+            h3.text-lg.font-bold.text-ink#panelSpaceTitle Select a space
+            span.pill.pill-success#panelSpaceStatusPill Select on map
+
+        .data-list.mb-6
+          .data-list-item
+            span.data-list-label Zone
+            span.data-list-value#panelZoneVal= selectedZone ? `Zone ${selectedZone.code}` : '—'
+          .data-list-item
+            span.data-list-label Free in this zone
+            span.data-list-value#panelFreeVal= selectedZone ? `${selectedZone.free} spaces` : '—'
+          .data-list-item
+            span.data-list-label Rate
+            span.data-list-value#panelRateVal= formattedRate || '$2,000 COP / hour'
+          .data-list-item
+            span.data-list-label Max time
+            span.data-list-value 4 h
+
+        p.text-xs.text-muted.mb-6 "Park here" opens Start parking with the zone already selected.
+
+        .flex.flex-col.gap-3
+          a.btn.btn-primary.btn-block#parkHereBtn(href=`/parking/start?zone=${currentZoneCode}`)
+            span Park here
+            i.fas.fa-arrow-right
+          if activeSession
+            a.btn.btn-secondary.btn-block#extendTimeBtn(href="/parking/extend")
+              i.fas.fa-clock
+              span Extend my time
+
+block scripts
+  script(src="/js/HU-003.js")

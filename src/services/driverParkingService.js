@@ -1,6 +1,5 @@
 import db from '../config/db.js';
 import { QueryTypes } from 'sequelize';
-import { formatCOP } from '../utils/paymentFormat.js';
 
 /**
  * Consulta la regla de ocupación en SQL:
@@ -97,7 +96,7 @@ export async function getTotals() {
 }
 
 /**
- * Obtiene las sesiones activas pagadas de un conductor especifico ordenadas por end_time descendente.
+ * Obtiene las sesiones activas pagadas de un conductor específico ordenadas por end_time ASC (la que vence primero).
  */
 export async function getActiveSessions(userId) {
   const query = `
@@ -114,7 +113,7 @@ export async function getActiveSessions(userId) {
       AND s.status = 'active'
       AND s.payment_status = 'paid'
       AND s.end_time > NOW()
-    ORDER BY s.end_time DESC
+    ORDER BY s.end_time ASC
   `;
 
   const rows = await db.query(query, {
