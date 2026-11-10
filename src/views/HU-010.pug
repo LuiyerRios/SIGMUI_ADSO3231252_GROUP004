@@ -1,118 +1,199 @@
-extends layouts/main2
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Tech Parking - Admin Dashboard
+    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css")
+    link(rel="stylesheet", href="HU-010.css")
+  body
+    #app.app-container
 
-block content
-  .app
-    aside.sidebar
-      .logo
-        .logo-icon P
-        h1 Tech Parking
+      //- ==================== VISTA DE LOGIN ====================
+      section#login-view.view.active-view
+        .login-card
+          .login-header
+            .brand-logo
+              span.logo-icon P
+              span.logo-text tech parking
+            h2 Iniciar Sesión
+            p Ingrese las credenciales para acceder al sistema
+          
+          form#login-form.login-form(on-submit="return false;")
+            .form-group
+              label(for="username") Usuario
+              input#username(type="text", value="admin", placeholder="Ingrese su usuario")
+            .form-group
+              label(for="password") Contraseña
+              input#password(type="password", value="123456", placeholder="Ingrese su contraseña")
+            .form-group
+              label(for="role-select") Rol de Acceso
+              select#role-select
+                option(value="admin", selected) Administrador (Admin SIGMUI)
+                option(value="operator") Operador Standard
+            
+            button.btn-primary#btn-login(type="button") Ingresar al Dashboard
 
-      nav.menu
-        a.active(href="#") Parking Zones
-        a.logout-button(href="/admin/dashboard") Dashboard
-        a(href="/admin/help-reports") Help reports
-        a(href="#") Manage Users
-        a(href="/admin/payments") Payment History
-        a(href="#") Settings
-        a.logout-button(href="/logout") Exit
+      //- ==================== VISTA DASHBOARD ADMIN ====================
+      section#admin-view.view
+        //- BARRA LATERAL (SIDEBAR)
+        aside.sidebar
+          .sidebar-header
+            .brand-logo
+              span.logo-icon P
+              span.logo-text tech parking
+            button.sidebar-toggle
+              i.fa-solid.fa-angles-left
 
-      .legend
-        h3 Legend
-        .legend-item
-          span.legend-color.available
-          | Available
-        .legend-item
-          span.legend-color.occupied
-          | Occupied
-        .legend-item
-          span.legend-color.selected
-          | Selected
+          nav.sidebar-nav
+            p.menu-title MENU
+            ul.nav-list
+              li.nav-item.active
+                a(href="#")
+                  i.fa-solid.fa-border-all
+                  span Parking zones
+              li.nav-item
+                a(href="#")
+                  i.fa-solid.fa-chart-line
+                  span Dashboard
+              li.nav-item.disabled
+                a(href="#")
+                  i.fa-solid.fa-user-group
+                  span Manage users
+                  span.badge SOON
+              li.nav-item.disabled
+                a(href="#")
+                  i.fa-solid.fa-credit-card
+                  span Payment history
+                  span.badge SOON
+              li.nav-item.disabled
+                a(href="#")
+                  i.fa-solid.fa-gear
+                  span Settings
+                  span.badge SOON
 
-    main.main-content
-      header.topbar
-        .welcome
-          h2 Parking Dashboard
-        .top-buttons
-          button Occupancy
-          button Today's Bookings
-          button Available
-          button#themeToggle 🌙 Dark Mode
+          .sidebar-footer
+            .user-profile
+              .avatar AS
+              .user-info
+                p.user-name Admin SIGMUI
+                p.user-role Administrator
+            button#btn-logout.btn-logout
+              i.fa-solid.fa-right-from-bracket
+              span Logout
 
-      section.statistics
-        .stat-card
-          .stat-icon.blue 🚗
-          .stat-data
-            strong#occupancy 0%
-            span Occupancy
-        .stat-card
-          .stat-icon.green P
-          .stat-data
-            strong#availableCount 0
-            span Available Spaces
-        .stat-card
-          .stat-icon.yellow 📅
-          .stat-data
-            strong#bookingCount 0
-            span Today's Bookings
-        .stat-card
-          .stat-icon.purple $
-          .stat-data
-            strong $2,000
-            span Today's Revenue
+        //- CONTENIDO PRINCIPAL
+        main.main-content
+          header.top-header
+            .page-title
+              h1 Parking zones
+              p.subtitle Live occupancy of the blue zones · Tuesday, Oct 20
+            .header-actions
+              .search-box
+                i.fa-solid.fa-magnifying-glass
+                input#search-input(type="text", placeholder="Search space or plate...")
+              .header-icons
+                button.icon-btn: i.fa-solid.fa-moon
+                button.icon-btn: i.fa-solid.fa-envelope
+                button.icon-btn: i.fa-solid.fa-bell
+              .user-greeting
+                p Hello, #[strong Admin]
 
-      section.dashboard-grid
-        .parking-area
-          .parking-header
-            h3 Parking Map
-            .map-controls
-              label Spaces per Zone:
-              input#spacesPerZone(type="number" value="10" min="1" max="50")
-              label Zones:
-              select#zonesList
-                option(value="A,B,C,D") 4 Zones (A, B, C, D)
-                option(value="A,B") 2 Zones (A, B)
-                option(value="A,B,C,D,E,F") 6 Zones (A, B, C, D, E, F)
-              button#resizeBtn.btn-secondary(type="button") Resize Map
+          //- TARJETAS DE MÉTRICAS (KPIs)
+          .stats-grid
+            .stat-card
+              .stat-icon.blue: i.fa-solid.fa-gauge-high
+              .stat-data
+                span.stat-label Occupancy
+                h2#kpi-occupancy 23%
+                p.stat-sub#kpi-occupancy-sub 30 of 128 spaces in use
+            .stat-card
+              .stat-icon.green: i.fa-solid.fa-location-dot
+              .stat-data
+                span.stat-label Available spaces
+                h2#kpi-available 98
+                p.stat-sub Across 4 zones
+            .stat-card
+              .stat-icon.sky: i.fa-solid.fa-calendar-days
+              .stat-data
+                span.stat-label Today's bookings
+                h2 39
+                p.stat-sub.up ▲ 12% vs. yesterday
+            .stat-card
+              .stat-icon.purple: i.fa-solid.fa-dollar-sign
+              .stat-data
+                span.stat-label Today's revenue
+                h2 $2.000
+                p.stat-sub Demo value · from parking sessions
 
-          .map-note Click a space on the map to view details or update status
+          //- SECCIÓN PRINCIPAL DE MAPA Y DETALLES
+          .dashboard-body
+            //- MAPA DE PARQUEADEROS
+            .map-card
+              .map-header
+                .map-title-area
+                  h3 Parking map
+                  p Click a space to see details or change its status
+                .map-meta
+                  span.meta-badge Spaces/zone #[strong 32]
+                  span.meta-badge Zones #[strong 4 (A–D)]
+                  button.btn-resize
+                    i.fa-solid.fa-expand
+                    span Resize map
 
-          .parking-map#parkingMap
+              .zone-tabs
+                button.zone-tab.active Zone A - 25 free
+                button.zone-tab Zone B - 25 free
+                button.zone-tab Zone C - 24 free
+                button.zone-tab Zone D - 24 free
 
-        aside.details-panel
-          .details-header
-            h3 Selected Space
-            button.close-button(type="button") ×
+              .spaces-grid#spaces-grid
+                //- Generado dinámicamente por JavaScript
 
-          .selected-badge#spaceName None
+              .map-legend
+                span.legend-item
+                  span.dot.green
+                  | Available
+                span.legend-item
+                  span.dot.red
+                  | Occupied
+                span.legend-item
+                  span.dot.purple
+                  | Selected
+                span.legend-live
+                  span.live-dot
+                  | Live - updated just now
 
-          .info-list
-            .info-item
-              span Status
-              strong#spaceStatus.badge-status ---
-            .info-item
-              span Vehicle
-              strong#vehicleNumber ---
-            .info-item
-              span Owner
-              strong#ownerName ---
-            .info-item
-              span Entry Time
-              strong#entryTime ---
-            .info-item
-              span Description
-              strong#description ---
-            .info-item
-              span Zone
-              strong#zoneName ---
+            //- PANEL LATERAL DERECHO (ESPACIO SELECCIONADO)
+            aside.detail-card
+              p.panel-title SELECTED SPACE
+              .selected-badge-box
+                .space-badge#selected-badge A7
+                .space-meta-info
+                  h4#selected-title Space A7
+                  span.status-pill.occupied#selected-status-pill Occupied
+              
+              .info-list
+                .info-row
+                  span.info-label Zone
+                  span.info-value#info-zone Zone A
+                .info-row
+                  span.info-label Vehicle
+                  span.info-value#info-vehicle TYU-029
+                .info-row
+                  span.info-label Owner
+                  span.info-value#info-owner Mateo Díaz
+                .info-row
+                  span.info-label Entry time
+                  span.info-value#info-time 09:49
+                .info-row
+                  span.info-label Time left
+                  span.info-value#info-timeleft 1h 17m
 
-          .change-status-box
-            h4 Change Status
-            .status-toggle-group
-              button.btn-status.btn-status-available.available-button(type="button") Available
-              button.btn-status.btn-status-occupied.occupied-button(type="button") Occupied
+              .status-actions
+                p.actions-title Change status
+                .btn-group
+                  button.btn-status#btn-available(onclick="updateSpaceStatus('available')") Available
+                  button.btn-status.active-occupied#btn-occupied(onclick="updateSpaceStatus('occupied')") Occupied
 
-            button.confirm-button#confirmChanges(type="button") Confirm Changes
-
-            p.message#message
-
-  script(src="/js/HU-010.js")
+    script(src="HU-010.js")
