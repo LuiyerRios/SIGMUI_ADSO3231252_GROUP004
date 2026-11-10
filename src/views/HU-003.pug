@@ -13,48 +13,51 @@ block content
     //- 1. Tarjetas de Estadísticas Principales
     .stat-grid
       .stat-card
-        .flex.items-center.justify-between
-          span.card-label Available spaces
-          .w-8.h-8.rounded-full.bg-green-500.bg-opacity-10.text-success.flex.items-center.justify-center.text-xs
+        .flex.items-center.gap-3.mb-2
+          div(class="w-10 h-10 rounded-xl bg-success/10 text-success flex items-center justify-center shrink-0")
             i.fas.fa-location-dot
-        strong.card-value#statFreeCount= totals ? totals.free : 0
+          .flex.flex-col
+            span.card-label Available spaces
+            strong.card-value#statFreeCount= totals ? totals.free : 0
         span.text-xs.text-muted Across #{zones ? zones.length : 0} zones right now
 
       .stat-card
-        .flex.items-center.justify-between
-          span.card-label Occupancy
-          .w-8.h-8.rounded-full.bg-primary.bg-opacity-10.text-primary.flex.items-center.justify-center.text-xs
+        .flex.items-center.gap-3.mb-2
+          div(class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0")
             i.fas.fa-chart-pie
-        strong.card-value#statOccupancyPercent #{totals ? totals.occupancyPercent : 0}%
+          .flex.flex-col
+            span.card-label Occupancy
+            strong.card-value#statOccupancyPercent #{totals ? totals.occupancyPercent : 0}%
         span.text-xs.text-muted#statOccupancyText #{totals ? totals.occupied : 0} of #{totals ? totals.total : 0} spaces in use
 
       .stat-card
-        .flex.items-center.justify-between
-          span.card-label My active parking
-          .w-8.h-8.rounded-full.bg-accent.bg-opacity-10.text-accent.flex.items-center.justify-center.text-xs
+        .flex.items-center.gap-3.mb-2
+          div(class="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center shrink-0")
             i.fas.fa-car
-        strong.card-value#statActiveSessionText= activeSession ? `${activeSession.spaceId} · ${activeSession.plate}` : '—'
-        span.text-xs.text-muted#statActiveSessionSub= activeSession ? `Zone ${activeSession.zone}` : 'No active session'
+          .flex.flex-col
+            span.card-label My active parking
+            strong.card-value#statActiveSessionText= activeSession ? `${activeSession.spaceId} · ${activeSession.plate}` : '—' span.text-xs.text-muted#statActiveSessionSub= activeSession ? `Zone ${activeSession.zone}` : 'No active session'
 
       .stat-card
-        .flex.items-center.justify-between
-          span.card-label Time remaining
-          .w-8.h-8.rounded-full.bg-warning.bg-opacity-10.text-warning.flex.items-center.justify-center.text-xs
+        .flex.items-center.gap-3.mb-2
+          div(class="w-10 h-10 rounded-xl bg-warning/10 text-warning flex items-center justify-center shrink-0")
             i.fas.fa-clock
-        strong.card-value#statTimeRemaining= activeSession ? 'Calculating...' : '—'
-        span.text-xs.text-muted#statTimeRemainingSub(data-end-time=activeSession ? activeSession.endTime : '')= activeSession ? 'Active session' : '—'
+          .flex.flex-col
+            span.card-label Time remaining
+            strong.card-value#statTimeRemaining= activeSession ? 'Calculating...' : '—'
+        span.text-xs.text-muted#statTimeRemainingSub(data-end-time=activeSession ? new Date(activeSession.endTime).toISOString() : '')= activeSession ? 'Active session' : '—'
 
     //- 2. Contenido Principal: Mapa de Zonas y Panel de Detalle
     .grid.grid-cols-12.gap-6.items-start
-      //- Columna Izquierda: Mapa de Espacios (8 columnas en escritorio, 12 en tablet/celular)
-      .col-span-12.lg_col-span-8.card
+      //- Columna Izquierda: Mapa de Espacios
+      div(class="card col-span-12 lg:col-span-8")
         .card-header.flex.items-center.justify-between.flex-wrap.gap-4
           div
             h2.card-title Blue-zone map
-            p.card-subtitle Click a space to see details or change its status
+            p.card-subtitle Pick a green space to start parking
 
           .flex.items-center.gap-2.text-xs.text-muted
-            i.fas.fa-rotate.animate-spin-slow
+            i.fas.fa-rotate
             span Auto-refresh every 30 s
 
         //- Chips de Selección de Zonas
@@ -62,73 +65,4 @@ block content
           if zones
             each z in zones
               a.chip(
-                href=`/zones?zone=${z.code}`,
-                data-zone=z.code,
-                class=(z.code === currentZoneCode ? 'active' : '')
-              ) Zone #{z.code} · #{z.free} free
-
-        //- Grid de Espacios (8 columnas por defecto, 4 en celular)
-        .grid.grid-cols-4.sm_grid-cols-8.gap-3.mb-6#spacesGrid(data-current-zone=currentZoneCode)
-          if spaces
-            each space in spaces
-              button.space-grid-item(
-                type="button",
-                data-space-id=space.id,
-                data-occupied=space.occupied ? 'true' : 'false',
-                disabled=space.occupied,
-                class=space.occupied ? 'occupied' : 'available'
-              )
-                span.space-dot
-                span.space-code= space.id
-
-        //- Leyenda de Colores
-        .flex.items-center.gap-6.pt-4.border-t.border-line.text-xs.text-muted
-          .flex.items-center.gap-2
-            span.w-3.h-3.rounded-full.bg-green-500
-            span Available
-          .flex.items-center.gap-2
-            span.w-3.h-3.rounded-full.bg-red-500
-            span Occupied
-          .flex.items-center.gap-2
-            span.w-3.h-3.rounded-full.border-2.border-accent.bg-purple-100
-            span Selected
-
-      //- Columna Derecha: Panel Lateral de Detalles del Espacio (4 columnas en escritorio, 12 en tablet/celular)
-      .col-span-12.lg_col-span-4.card#spaceDetailsPanel
-        .card-header
-          span.text-xs.font-bold.tracking-wider.text-muted.uppercase SELECTED SPACE
-
-        .flex.items-center.gap-4.mb-6
-          .w-14.h-14.rounded-2xl.bg-gradient-to-br.from-tech.to-accent.text-white.flex.items-center.justify-center.font-extrabold.text-xl.shadow-md#panelSpaceBadge
-            span#panelSpaceIdBadge —
-          div
-            h3.text-lg.font-bold.text-ink#panelSpaceTitle Select a space
-            span.pill.pill-success#panelSpaceStatusPill Select on map
-
-        .data-list.mb-6
-          .data-list-item
-            span.data-list-label Zone
-            span.data-list-value#panelZoneVal= selectedZone ? `Zone ${selectedZone.code}` : '—'
-          .data-list-item
-            span.data-list-label Free in this zone
-            span.data-list-value#panelFreeVal= selectedZone ? `${selectedZone.free} spaces` : '—'
-          .data-list-item
-            span.data-list-label Rate
-            span.data-list-value#panelRateVal= formattedRate || '$2,000 COP / hour'
-          .data-list-item
-            span.data-list-label Max time
-            span.data-list-value 4 h
-
-        p.text-xs.text-muted.mb-6 "Park here" opens Start parking with the zone already selected.
-
-        .flex.flex-col.gap-3
-          a.btn.btn-primary.btn-block#parkHereBtn(href=`/parking/start?zone=${currentZoneCode}`)
-            span Park here
-            i.fas.fa-arrow-right
-          if activeSession
-            a.btn.btn-secondary.btn-block#extendTimeBtn(href="/parking/extend")
-              i.fas.fa-clock
-              span Extend my time
-
-block scripts
-  script(src="/js/HU-003.js")
+                href=`/

@@ -46,17 +46,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 2. Temporizador Cuenta Regresiva (Sesión Activa)
+  // 2. Temporizador Cuenta Regresiva (Sesión Activa con formato ISO)
   function updateCountdown() {
     if (!statTimeRemainingSub || !statTimeRemaining) return;
 
-    const endTimeStr = statTimeRemainingSub.getAttribute('data-end-time');
-    if (!endTimeStr) {
+    const endTimeIso = statTimeRemainingSub.getAttribute('data-end-time');
+    if (!endTimeIso) {
       statTimeRemaining.textContent = '—';
       return;
     }
 
-    const endTime = new Date(endTimeStr).getTime();
+    const endTime = new Date(endTimeIso).getTime();
+    if (isNaN(endTime)) {
+      statTimeRemaining.textContent = '—';
+      return;
+    }
+
     const now = new Date().getTime();
     const diff = endTime - now;
 
@@ -78,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
       statTimeRemaining.textContent = `${pad(minutes)}m ${pad(seconds)}s`;
     }
 
-    const endDate = new Date(endTimeStr);
+    const endDate = new Date(endTimeIso);
     const endHours = pad(endDate.getHours());
     const endMinutes = pad(endDate.getMinutes());
     statTimeRemainingSub.textContent = `ends ${endHours}:${endMinutes}`;
@@ -116,6 +121,12 @@ document.addEventListener('DOMContentLoaded', () => {
             chip.textContent = `Zone ${z.code} · ${z.free} free`;
           }
         });
+
+        // Calcular "Free in this zone" buscando la zona actual en la respuesta
+        const targetZoneData = data.zones.find(z => z.code === currentZone);
+        if (targetZoneData && panelFreeVal) {
+          panelFreeVal.textContent = `${targetZoneData.free} spaces`;
+        }
       }
 
       // Actualizar Grid de Espacios
@@ -154,10 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // Actualizar información del panel
-      if (data.selectedZone) {
-        if (panelFreeVal) panelFreeVal.textContent = `${data.selectedZone.free} spaces`;
-      }
       if (data.formattedRate && panelRateVal) {
         panelRateVal.textContent = data.formattedRate;
       }
