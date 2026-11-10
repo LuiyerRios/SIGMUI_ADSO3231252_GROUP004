@@ -1,14 +1,12 @@
 import express from 'express';
 import { login, logout, renderLogin } from '../controllers/authController.js';
 import { handleVerifyEmail, handleResendEmail, validateResendRules } from '../controllers/verifyEmailController.js';
-import { HOME_BY_ROLE } from '../middlewares/auth.js';
 
 const router = express.Router();
 
 router.get('/', (req, res) => {
   const user = req.session?.user;
-  res.redirect(user ? HOME_BY_ROLE[user.role] : '/login');
-});
+
 router.get('/login', renderLogin);
 router.post('/login', login);
 router.get('/logout', logout);
