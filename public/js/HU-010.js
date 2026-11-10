@@ -258,6 +258,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (statFreeCount) statFreeCount.textContent = data.stats.free;
         if (statFreeSub) statFreeSub.textContent = `Across ${data.stats.zonesCount} zones`;
         if (statTodayBookings) statTodayBookings.textContent = data.stats.todayBookings;
+        const statTodayRevenue = document.getElementById('statTodayRevenue');
+        if (statTodayRevenue) statTodayRevenue.textContent = `$${new Intl.NumberFormat('en-US').format(Number(data.stats.todayRevenue) || 0)} COP`;
       }
 
       // Actualizar Chips de Zonas

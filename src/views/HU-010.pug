@@ -54,8 +54,8 @@ block content
           i.fas.fa-triangle-exclamation.text-warning
           span Dynamic map resize will reset space statuses. Confirm changes?
         .flex.items-center.gap-2
-          button.btn.btn-primary.py-1.5.px-3.text-xs#confirmResizeBtn(type="button") Confirm resize
-          button.btn.btn-ghost.py-1.5.px-3.text-xs#cancelResizeBtn(type="button") Cancel
+          button(type="button", id="confirmResizeBtn", class="btn btn-primary py-1.5 px-3 text-xs") Confirm resize
+          button(type="button", id="cancelResizeBtn", class="btn btn-ghost py-1.5 px-3 text-xs") Cancel
 
     //- 2. Contenido Principal: Mapa de Parqueo y Panel Lateral
     .grid.grid-cols-12.gap-6.items-start
@@ -68,16 +68,16 @@ block content
 
           //- Formulario Inline de Redimensionamiento
           form#resizeMapForm(class="flex items-center gap-3 flex-wrap")
-            .flex.items-center.gap-1.5
+            div(class="flex items-center gap-1.5")
               label.text-xs.text-muted(for="inputSpacesPerZone") Spaces/zone
-              input.input.w-16.py-1.px-2.text-xs#inputSpacesPerZone(
+              input(id="inputSpacesPerZone", class="input w-16 py-1 px-2 text-xs",
                 type="number", 
                 min="1", 
                 max="50", 
                 value=config ? config.spacesPerZone : 32
               )
 
-            .flex.items-center.gap-1.5
+            div(class="flex items-center gap-1.5")
               label.text-xs.text-muted(for="selectZonesRange") Zones
               select.select.w-28.py-1.px-2.text-xs#selectZonesRange
                 - const currentZonesStr = config && config.zones ? config.zones.join(',') : 'A,B,C,D'
@@ -85,7 +85,7 @@ block content
                 option(value="A,B,C,D", selected=currentZonesStr === 'A,B,C,D') 4 (A–D)
                 option(value="A,B,C,D,E,F", selected=currentZonesStr === 'A,B,C,D,E,F') 6 (A–F)
 
-            button.btn.btn-secondary.py-1.5.px-3.text-xs#triggerResizeBtn(type="button")
+            button(type="button", id="triggerResizeBtn", class="btn btn-secondary py-1.5 px-3 text-xs")
               i.fas.fa-expand.text-xs
               span Resize map
 
@@ -101,7 +101,7 @@ block content
               ) Zone #{zCode} · #{freeInZone} free
 
         //- Grid de Espacios
-        div(class="grid grid-cols-4 sm:grid-cols-8 gap-3 mb-6")#adminSpacesGrid(data-current-zone=currentZoneCode)
+        div(id="adminSpacesGrid", class="grid grid-cols-4 sm:grid-cols-8 gap-3 mb-6", data-current-zone=currentZoneCode)
           if spaces
             each space in spaces.filter(s => s.zone === currentZoneCode)
               button.space-grid-item(
@@ -132,7 +132,7 @@ block content
               span.w-3.h-3.rounded-full.border-2.border-accent.bg-purple-100
               span Selected
 
-          .flex.items-center.gap-1.5
+          div(class="flex items-center gap-1.5")
             span.w-2.h-2.rounded-full.bg-success
             span Live · updated just now
 
@@ -172,7 +172,7 @@ block content
             button.btn.btn-secondary.w-full#btnSetAvailable(type="button", disabled=true) Available
             button.btn.btn-secondary.w-full#btnSetOccupied(type="button", disabled=true) Occupied
 
-        p.text-\[11px\].text-muted.mt-3.hidden#sessionOccupiedNote Occupied by a paid session · cannot toggle manually.
+        p(id="sessionOccupiedNote", class="text-[11px] text-muted mt-3 hidden") Occupied by a paid session · cannot toggle manually.
 
 block scripts
   script(src="/js/HU-010.js")
