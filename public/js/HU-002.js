@@ -1,4 +1,4 @@
-/* Descripción: Manejo del evento submit, validaciones en cliente e integración con n8n
+/* Descripción: Manejo del evento submit, validaciones en cliente y envío del registro a POST /signup
  */
 
 // Requisitos de la contraseña: actualiza las barras y los textos al escribir
@@ -38,70 +38,55 @@ document.getElementById("registro-form").addEventListener("submit", async functi
         email: document.getElementById("email_address").value.trim(),
         phone: document.getElementById("phone_number").value.trim(),
         password: document.getElementById("password").value,
-        confirm: document.getElementById("confirm_password").value
+        confirm: document.getElementById("confirm_password").value,
+        terms: document.getElementById("terms").checked
     };
 
     const errorDiv = document.getElementById("mensaje-feedback");
-    
-    // Configura aquí la URL de tu Webhook generado en n8n
-    const webhookURL = "TU_WEBHOOK_URL_AQUI"; 
+    const submitButton = this.querySelector("button[type=submit]");
+    const showMessage = (text, color) => {
+        errorDiv.textContent = text;
+        errorDiv.style.color = color;
+    };
 
-    // Limpiar mensajes anteriores y mostrar estado de procesamiento
-    errorDiv.textContent = "Procesando registro...";
-    errorDiv.style.color = "blue";
-
-    // 3. VALIDACIONES
-    // Validación de seguridad básica para la contraseña
-    if (formData.password.length < 8) {
-        errorDiv.textContent = "Error: La contraseña debe tener al menos 8 caracteres.";
-        errorDiv.style.color = "red";
-        return;
+    // 3. VALIDACIONES (las mismas que revisa el servidor)
+    if (!passwordRules.length(formData.password)) {
+        return showMessage("Password must have at least 8 characters.", "red");
     }
-
-    // Validación de coincidencia de contraseñas
+    if (!passwordRules.upper(formData.password)) {
+        return showMessage("Password must include an uppercase letter.", "red");
+    }
+    if (!passwordRules.number(formData.password)) {
+        return showMessage("Password must include a number.", "red");
+    }
     if (formData.password !== formData.confirm) {
-        errorDiv.textContent = "Error: Las contraseñas no coinciden.";
-        errorDiv.style.color = "red";
-        return;
+        return showMessage("Passwords do not match.", "red");
     }
 
-    // 4. VALIDACIÓN DE DUPLICADOS (LocalStorage)
-    // Recupera la lista existente o crea una nueva si no existe
-    let correos = JSON.parse(localStorage.getItem("correos")) || [];
-    if (correos.includes(formData.email)) {
-        errorDiv.textContent = "Error: Este correo ya está registrado en el sistema.";
-        errorDiv.style.color = "red";
-        return;
-    }
+    // 4. ENVÍO AL SERVIDOR: guarda el usuario en la base de datos
+    showMessage("Creating your account...", "blue");
+    submitButton.disabled = true;
 
-    // 5. INTEGRACIÓN CON N8N
     try {
-        // Enviar datos mediante solicitud POST al Webhook
-        const response = await fetch(webhookURL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData) // Convierte el objeto JS a JSON
+        const response = await fetch("/signup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formData)
         });
+        const result = await response.json();
 
-        // Verificar si la respuesta de n8n fue exitosa
         if (response.ok) {
-            // Guardar el nuevo correo en el registro local
-            correos.push(formData.email);
-            localStorage.setItem("correos", JSON.stringify(correos));
-
-            errorDiv.style.color = "green";
-            errorDiv.textContent = "¡Registro exitoso! Información procesada por n8n.";
-            
-            // Limpiar formulario tras éxito
-            document.getElementById("registro-form").reset();
+            showMessage(result.message, "green");
+            this.reset();
             updatePasswordRules();
         } else {
-            throw new Error("No se pudo conectar con el servidor.");
+            showMessage(result.error, "red");
         }
     } catch (err) {
         // Manejo de errores de conexión o de red
-        errorDiv.style.color = "red";
-        errorDiv.textContent = "Error de conexión. Verifica tu Webhook de n8n.";
+        showMessage("Error connecting to the server. Please try again later.", "red");
         console.error("Detalle del error:", err);
+    } finally {
+        submitButton.disabled = false;
     }
 });
