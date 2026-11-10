@@ -1,6 +1,7 @@
 import express from 'express';
 import { login, logout, renderLogin } from '../controllers/authController.js';
 import { handleVerifyEmail, handleResendEmail, validateResendRules } from '../controllers/verifyEmailController.js';
+import { handleSignup, validateSignupRules } from '../controllers/signupController.js';
 import { HOME_BY_ROLE } from '../middlewares/auth.js';
 
 const router = express.Router();
@@ -15,6 +16,7 @@ router.get('/login', renderLogin);
 router.post('/login', login);
 router.get('/logout', logout);
 router.get('/signup', (req, res) => res.render('HU-002', { title: 'Sign up | SIGMUI' }));
+router.post('/signup', validateSignupRules, handleSignup);
 router.get('/forgot-password', (req, res) => res.render('HU-009', { title: 'Forgot your password | SIGMUI' }));
 
 // HU-012 Email Verification Routes
