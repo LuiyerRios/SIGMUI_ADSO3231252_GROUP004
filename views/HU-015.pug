@@ -1,0 +1,113 @@
+extends layouts/main
+
+block content
+  link(rel="stylesheet", href="/css/HU-015.css")
+
+  if errorMessage
+    div(class="inbox-alert-error")
+      i(class="fas fa-exclamation-triangle")
+      span= errorMessage
+
+  else
+    div(class="inbox-container")
+      //- Columna Izquierda: Lista de mensajes
+      aside(class="inbox-list-card")
+        header(class="inbox-list-header")
+          div(class="inbox-title-group")
+            h2 Inbox
+            if unreadCount > 0
+              span(class="inbox-badge-unread") #{unreadCount} unread
+            else
+              span(class="inbox-badge-read") All read
+          
+          form(action=`/inbox/read-all?filter=${activeFilter}`, method="POST")
+            button(type="submit", class="btn-mark-all") Mark all as read
+
+        nav(class="inbox-filter-chips")
+          a(href="/inbox?filter=all", class=`chip ${activeFilter === 'all' ? 'active' : ''}`) All
+          a(href="/inbox?filter=unread", class=`chip ${activeFilter === 'unread' ? 'active' : ''}`) Unread
+          a(href="/inbox?filter=alerts", class=`chip ${activeFilter === 'alerts' ? 'active' : ''}`) Alerts
+          a(href="/inbox?filter=support", class=`chip ${activeFilter === 'support' ? 'active' : ''}`) Support
+
+        if notifications.length === 0
+          div(class="inbox-empty-list-container")
+            if activeFilter === 'all'
+              p(class="inbox-empty-text") Your inbox is empty.
+            else
+              p(class="inbox-empty-text") No messages in this filter.
+        else
+          ul(class="inbox-messages-list")
+            each notif in notifications
+              - const isSelected = selectedNotification && selectedNotification.id === notif.id
+              li(class=`inbox-item ${isSelected ? 'selected' : ''} ${!notif.readAt ? 'unread' : ''}`)
+                a(href=`/inbox?filter=${activeFilter}&id=${notif.id}`, class="inbox-item-link")
+                  div(class=`icon-box ${notif.type}`)
+                    if notif.type === 'parking_alert'
+                      i(class="fas fa-clock")
+                    else if notif.type === 'support_reply'
+                      i(class="fas fa-comment-dots")
+                    else
+                      i(class="fas fa-bullhorn")
+
+                  div(class="inbox-item-content")
+                    div(class="inbox-item-top")
+                      h4(class=`inbox-item-title ${!notif.readAt ? 'font-bold' : ''}`)= notif.title
+                      span(class="inbox-item-date")= notif.formattedDate
+                    
+                    p(class="inbox-item-preview")= notif.body
+
+                  if !notif.readAt
+                    span(class="unread-dot")
+
+      //- Columna Derecha: Panel de lectura
+      section(class="inbox-detail-card")
+        if selectedNotification
+          header(class="inbox-detail-header")
+            div(class="detail-header-left")
+              div(class=`detail-icon ${selectedNotification.type}`)
+                if selectedNotification.type === 'parking_alert'
+                  i(class="fas fa-clock")
+                else if selectedNotification.type === 'support_reply'
+                  i(class="fas fa-comment-dots")
+                else
+                  i(class="fas fa-bullhorn")
+
+              div(class="detail-title-group")
+                h3(class="detail-title")= selectedNotification.title
+                p(class="detail-meta") #{selectedNotification.senderName} · #{selectedNotification.formattedDetailDateTime}
+
+            div(class="detail-header-right")
+              if selectedNotification.type === 'parking_alert'
+                span(class="type-pill alert") Parking alert
+              else if selectedNotification.type === 'support_reply'
+                span(class="type-pill support") Support reply
+              else
+                span(class="type-pill info") News
+
+          hr(class="detail-divider")
+
+          div(class="inbox-detail-body")
+            p(class="detail-text")= selectedNotification.body
+
+            if selectedNotification.type === 'support_reply' && selectedNotification.originalReport
+              div(class="original-report-box")
+                div(class="report-box-header")
+                  i(class="fas fa-reply")
+                  span Your report #{selectedNotification.originalReport.code}
+                p(class="report-box-desc")= selectedNotification.originalReport.description
+
+            if selectedNotification.type === 'parking_alert'
+              div(class="parking-alert-card")
+                div(class="alert-card-content")
+                  i(class="fas fa-stopwatch alert-card-icon")
+                  div
+                    if selectedNotification.sessionInfo
+                      h5(class="alert-card-title") 10 min left · #{selectedNotification.sessionInfo.spaceId}
+                      p(class="alert-card-desc") #{selectedNotification.sessionInfo.plate} · ends at #{selectedNotification.sessionInfo.endTime}
+                    else
+                      h5(class="alert-card-title") Time is running out
+                      p(class="alert-card-desc") Extend your parking session now to keep your spot and prevent penalties.
+                a(href=selectedNotification.link || '/parking/extend', class="btn-extend-time") Extend time →
+        else
+          div(class="inbox-empty-detail")
+            p Select a message to view details.
