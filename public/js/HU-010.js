@@ -1,213 +1,316 @@
-document.addEventListener("DOMContentLoaded", () => {
-    let spaces = [];
-    let selectedSpace = null;
-    let pendingStatus = 'available';
+document.addEventListener('DOMContentLoaded', () => {
+  const adminSpacesGrid = document.getElementById('adminSpacesGrid');
+  const adminZoneChips = document.getElementById('adminZoneChips');
+  
+  // Elementos del Panel Lateral
+  const adminPanelSpaceCode = document.getElementById('adminPanelSpaceCode');
+  const adminPanelSpaceTitle = document.getElementById('adminPanelSpaceTitle');
+  const adminPanelSpaceStatus = document.getElementById('adminPanelSpaceStatus');
+  const panelValZone = document.getElementById('panelValZone');
+  const panelValVehicle = document.getElementById('panelValVehicle');
+  const panelValOwner = document.getElementById('panelValOwner');
+  const panelValEntryTime = document.getElementById('panelValEntryTime');
+  const panelValTimeLeft = document.getElementById('panelValTimeLeft');
+  const btnSetAvailable = document.getElementById('btnSetAvailable');
+  const btnSetOccupied = document.getElementById('btnSetOccupied');
+  const sessionOccupiedNote = document.getElementById('sessionOccupiedNote');
 
-    const parkingMap = document.getElementById("parkingMap");
-    const occupancyEl = document.getElementById("occupancy");
-    const availableCountEl = document.getElementById("availableCount");
-    const spaceNameEl = document.getElementById("spaceName");
-    const spaceStatusEl = document.getElementById("spaceStatus");
-    const vehicleNumberEl = document.getElementById("vehicleNumber");
-    const ownerNameEl = document.getElementById("ownerName");
-    const entryTimeEl = document.getElementById("entryTime");
-    const descriptionEl = document.getElementById("description");
-    const zoneNameEl = document.getElementById("zoneName");
-    const messageEl = document.getElementById("message");
+  // Elementos de Redimensionamiento
+  const triggerResizeBtn = document.getElementById('triggerResizeBtn');
+  const resizeConfirmAlert = document.getElementById('resizeConfirmAlert');
+  const confirmResizeBtn = document.getElementById('confirmResizeBtn');
+  const cancelResizeBtn = document.getElementById('cancelResizeBtn');
 
-    const availableBtn = document.querySelector(".available-button, .btn-status-available");
-    const occupiedBtn = document.querySelector(".occupied-button, .btn-status-occupied");
-    const confirmBtn = document.getElementById("confirmChanges");
-    const resizeBtn = document.getElementById("resizeBtn");
+  let selectedSpaceData = null;
+  let countdownTimer = null;
 
-    // ==========================================
-    // LÓGICA MODO OSCURO (DARK MODE)
-    // ==========================================
-    const darkModeBtn = Array.from(document.querySelectorAll('.top-buttons button'))
-        .find(btn => btn.textContent.toLowerCase().includes('dark mode')) || document.getElementById("darkModeBtn");
+  // 1. Manejador de Cambio de Zona mediante Chips
+  if (adminZoneChips) {
+    adminZoneChips.addEventListener('click', (e) => {
+      const chip = e.target.closest('button.chip');
+      if (!chip) return;
 
-    // Restaurar tema guardado en localStorage
-    if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark-mode');
+      const zoneCode = chip.getAttribute('data-zone');
+      document.querySelectorAll('#adminZoneChips button.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+
+      if (adminSpacesGrid) {
+        adminSpacesGrid.setAttribute('data-current-zone', zoneCode);
+      }
+      refreshData();
+    });
+  }
+
+  // 2. Selección de Espacio en la Cuadrícula
+  if (adminSpacesGrid) {
+    adminSpacesGrid.addEventListener('click', (e) => {
+      const btn = e.target.closest('button.space-grid-item');
+      if (!btn) return;
+
+      const spaceId = btn.getAttribute('data-space-id');
+      const occupied = btn.getAttribute('data-occupied') === 'true';
+      const source = btn.getAttribute('data-source');
+      const plate = btn.getAttribute('data-plate');
+      const owner = btn.getAttribute('data-owner');
+      const startTime = btn.getAttribute('data-start-time');
+      const endTime = btn.getAttribute('data-end-time');
+
+      selectAdminSpace({
+        id: spaceId,
+        zone: spaceId.charAt(0),
+        occupied,
+        source,
+        plate,
+        owner,
+        startTime,
+        endTime
+      });
+    });
+  }
+
+  function selectAdminSpace(space) {
+    selectedSpaceData = space;
+
+    document.querySelectorAll('.space-grid-item').forEach(b => b.classList.remove('selected'));
+    const targetBtn = document.querySelector(`.space-grid-item[data-space-id="${space.id}"]`);
+    if (targetBtn) targetBtn.classList.add('selected');
+
+    if (adminPanelSpaceCode) adminPanelSpaceCode.textContent = space.id;
+    if (adminPanelSpaceTitle) adminPanelSpaceTitle.textContent = `Space ${space.id}`;
+    if (panelValZone) panelValZone.textContent = `Zone ${space.zone}`;
+
+    if (adminPanelSpaceStatus) {
+      if (space.occupied) {
+        adminPanelSpaceStatus.textContent = space.source === 'session' ? 'Occupied (Session)' : 'Occupied (Manual)';
+        adminPanelSpaceStatus.className = 'pill pill-danger';
+      } else {
+        adminPanelSpaceStatus.textContent = 'Available';
+        adminPanelSpaceStatus.className = 'pill pill-success';
+      }
     }
 
-    if (darkModeBtn) {
-        darkModeBtn.onclick = () => {
-            document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        };
+    if (panelValVehicle) panelValVehicle.textContent = space.plate || '—';
+    if (panelValOwner) panelValOwner.textContent = space.owner || '—';
+
+    // Formatear hora de entrada
+    if (panelValEntryTime) {
+      if (space.startTime) {
+        const d = new Date(space.startTime);
+        const pad = n => String(n).padStart(2, '0');
+        panelValEntryTime.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      } else {
+        panelValEntryTime.textContent = '—';
+      }
     }
 
-    // 1. Fetch data from backend
-    async function fetchParkingSpaces() {
-        try {
-            const response = await fetch('/api/parking-spaces');
-            if (!response.ok) throw new Error('Error fetching spaces');
-            
-            spaces = await response.json();
-            renderParking();
-            updateStatistics();
-            
-            if (selectedSpace) {
-                const updated = spaces.find(s => s.id === selectedSpace.id);
-                if (updated) selectSpace(updated);
-            }
-        } catch (error) {
-            console.error("Error:", error);
-            showMessage("Server connection error.", "error");
-        }
+    // Iniciar temporizador de tiempo restante
+    if (countdownTimer) clearInterval(countdownTimer);
+    updateSpaceTimeLeft();
+    if (space.endTime) {
+      countdownTimer = setInterval(updateSpaceTimeLeft, 1000);
     }
 
-    // 2. Render map grid
-    function renderParking() {
-        if (!parkingMap) return;
-        parkingMap.innerHTML = "";
+    // Botones de acción manual
+    if (space.source === 'session') {
+      if (btnSetAvailable) { btnSetAvailable.disabled = true; btnSetAvailable.className = 'btn btn-secondary w-full opacity-50 cursor-not-allowed'; }
+      if (btnSetOccupied) { btnSetOccupied.disabled = true; btnSetOccupied.className = 'btn btn-danger w-full opacity-50 cursor-not-allowed'; }
+      if (sessionOccupiedNote) {
+        const d = new Date(space.endTime);
+        const pad = n => String(n).padStart(2, '0');
+        sessionOccupiedNote.textContent = `Occupied by a paid session · ends ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        sessionOccupiedNote.classList.remove('hidden');
+      }
+    } else {
+      if (sessionOccupiedNote) sessionOccupiedNote.classList.add('hidden');
+      
+      if (btnSetAvailable) {
+        btnSetAvailable.disabled = false;
+        btnSetAvailable.className = !space.occupied ? 'btn btn-success w-full' : 'btn btn-secondary w-full';
+      }
+      if (btnSetOccupied) {
+        btnSetOccupied.disabled = false;
+        btnSetOccupied.className = space.occupied ? 'btn btn-danger w-full' : 'btn btn-secondary w-full';
+      }
+    }
+  }
 
-        spaces.forEach(space => {
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.className = `space-btn ${space.status}`;
-            if (selectedSpace && selectedSpace.id === space.id) {
-                btn.classList.add("selected");
-            }
-            btn.innerHTML = `<span>${space.id}</span>`;
-            btn.onclick = () => selectSpace(space);
-            parkingMap.appendChild(btn);
+  function updateSpaceTimeLeft() {
+    if (!panelValTimeLeft) return;
+
+    if (!selectedSpaceData || !selectedSpaceData.endTime) {
+      panelValTimeLeft.textContent = '—';
+      return;
+    }
+
+    const end = new Date(selectedSpaceData.endTime).getTime();
+    const now = new Date().getTime();
+    const diff = end - now;
+
+    if (diff <= 0) {
+      panelValTimeLeft.textContent = 'Expired';
+      return;
+    }
+
+    const h = Math.floor(diff / (1000 * 60 * 60));
+    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const s = Math.floor((diff % (1000 * 60)) / 1000);
+    const pad = n => String(n).padStart(2, '0');
+
+    panelValTimeLeft.textContent = h > 0 ? `${h}h ${pad(m)}m` : `${pad(m)}m ${pad(s)}s`;
+  }
+
+  // 3. Modificación Manual de Estado (PUT /api/parking-spaces/:id)
+  async function updateSpaceStatus(newStatus) {
+    if (!selectedSpaceData) return;
+
+    try {
+      const response = await fetch(`/api/parking-spaces/${selectedSpaceData.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      const resData = await response.json();
+
+      if (!response.ok) {
+        if (window.showToast) window.showToast(resData.error || 'Failed to update space.', 'error');
+        return;
+      }
+
+      if (window.showToast) window.showToast('Space status updated.', 'success');
+      refreshData();
+    } catch (err) {
+      console.error('Error updating space status:', err);
+      if (window.showToast) window.showToast('Network error while updating space.', 'error');
+    }
+  }
+
+  if (btnSetAvailable) btnSetAvailable.addEventListener('click', () => updateSpaceStatus('available'));
+  if (btnSetOccupied) btnSetOccupied.addEventListener('click', () => updateSpaceStatus('occupied'));
+
+  // 4. Redimensionamiento del Mapa (POST /api/parking-config)
+  if (triggerResizeBtn && resizeConfirmAlert) {
+    triggerResizeBtn.addEventListener('click', () => {
+      resizeConfirmAlert.classList.remove('hidden');
+    });
+  }
+
+  if (cancelResizeBtn && resizeConfirmAlert) {
+    cancelResizeBtn.addEventListener('click', () => {
+      resizeConfirmAlert.classList.add('hidden');
+    });
+  }
+
+  if (confirmResizeBtn) {
+    confirmResizeBtn.addEventListener('click', async () => {
+      const spacesPerZone = document.getElementById('inputSpacesPerZone').value;
+      const zonesRangeStr = document.getElementById('selectZonesRange').value;
+      const zones = zonesRangeStr.split(',');
+
+      try {
+        const response = await fetch('/api/parking-config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ spacesPerZone: Number(spacesPerZone), zones })
         });
-    }
 
-    // 3. Select space
-    function selectSpace(space) {
-        selectedSpace = space;
-        pendingStatus = space.status;
+        const resData = await response.json();
 
-        if (spaceNameEl) spaceNameEl.textContent = space.id;
-        if (spaceStatusEl) {
-            spaceStatusEl.textContent = space.status.toUpperCase();
-            spaceStatusEl.className = `badge-status ${space.status}`;
+        if (!response.ok) {
+          if (window.showToast) window.showToast(resData.error || 'Cannot resize map.', 'error');
+          resizeConfirmAlert.classList.add('hidden');
+          return;
         }
 
-        if (vehicleNumberEl) vehicleNumberEl.textContent = space.vehicle || "---";
-        if (ownerNameEl) ownerNameEl.textContent = space.owner || "---";
-        if (entryTimeEl) entryTimeEl.textContent = space.entry || "---";
-        if (descriptionEl) descriptionEl.textContent = space.description || "---";
-        if (zoneNameEl) zoneNameEl.textContent = `Zone ${space.zone || 'A'}`;
+        if (window.showToast) window.showToast('Map resized successfully.', 'success');
+        resizeConfirmAlert.classList.add('hidden');
+        window.location.reload();
+      } catch (err) {
+        console.error('Error resizing map:', err);
+        if (window.showToast) window.showToast('Network error during resize.', 'error');
+        resizeConfirmAlert.classList.add('hidden');
+      }
+    });
+  }
 
-        updateStatusButtonsUI(pendingStatus);
-        renderParking();
-    }
+  // 5. Refresco Periódico AJAX (cada 30 s)
+  async function refreshData() {
+    if (document.hidden) return;
 
-    // 4. Update status toggle UI
-    function updateStatusButtonsUI(status) {
-        if (availableBtn) {
-            if (status === 'available') availableBtn.classList.add('active');
-            else availableBtn.classList.remove('active');
+    const currentZone = adminSpacesGrid ? adminSpacesGrid.getAttribute('data-current-zone') : 'A';
+
+    try {
+      const response = await fetch('/api/parking-spaces');
+      if (!response.ok) return;
+
+      const data = await response.json();
+
+      // Actualizar Tarjetas de Estadísticas
+      if (data.stats) {
+        const statOccupancyPercent = document.getElementById('statOccupancyPercent');
+        const statOccupancySub = document.getElementById('statOccupancySub');
+        const statFreeCount = document.getElementById('statFreeCount');
+        const statFreeSub = document.getElementById('statFreeSub');
+        const statTodayBookings = document.getElementById('statTodayBookings');
+
+        if (statOccupancyPercent) statOccupancyPercent.textContent = `${data.stats.occupancyPercent}%`;
+        if (statOccupancySub) statOccupancySub.textContent = `${data.stats.occupied} of ${data.stats.total} spaces in use`;
+        if (statFreeCount) statFreeCount.textContent = data.stats.free;
+        if (statFreeSub) statFreeSub.textContent = `Across ${data.stats.zonesCount} zones`;
+        if (statTodayBookings) statTodayBookings.textContent = data.stats.todayBookings;
+      }
+
+      // Actualizar Chips de Zonas
+      if (data.spaces) {
+        const zonesInUse = Array.from(new Set(data.spaces.map(s => s.zone)));
+        zonesInUse.forEach(zCode => {
+          const freeCount = data.spaces.filter(s => s.zone === zCode && !s.occupied).length;
+          const chip = document.querySelector(`#adminZoneChips button[data-zone="${zCode}"]`);
+          if (chip) chip.textContent = `Zone ${zCode} · ${freeCount} free`;
+        });
+
+        // Actualizar Cuadrícula
+        if (adminSpacesGrid) {
+          adminSpacesGrid.innerHTML = '';
+          const currentZoneSpaces = data.spaces.filter(s => s.zone === currentZone);
+
+          currentZoneSpaces.forEach(space => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `space-grid-item ${space.occupied ? 'occupied' : 'available'}`;
+            btn.setAttribute('data-space-id', space.id);
+            btn.setAttribute('data-occupied', space.occupied ? 'true' : 'false');
+            btn.setAttribute('data-source', space.source || '');
+            btn.setAttribute('data-plate', space.plate || '');
+            btn.setAttribute('data-owner', space.owner || '');
+            btn.setAttribute('data-start-time', space.startTime || '');
+            btn.setAttribute('data-end-time', space.endTime || '');
+
+            const dot = document.createElement('span');
+            dot.className = 'space-dot';
+
+            const code = document.createElement('span');
+            code.className = 'space-code';
+            code.textContent = space.id;
+
+            btn.appendChild(dot);
+            btn.appendChild(code);
+            adminSpacesGrid.appendChild(btn);
+          });
+
+          // Reestablecer Selección
+          if (selectedSpaceData) {
+            const updatedSelected = data.spaces.find(s => s.id === selectedSpaceData.id);
+            if (updatedSelected) {
+              selectAdminSpace(updatedSelected);
+            }
+          }
         }
-        if (occupiedBtn) {
-            if (status === 'occupied') occupiedBtn.classList.add('active');
-            else occupiedBtn.classList.remove('active');
-        }
+      }
+    } catch (err) {
+      console.warn('Error refreshing admin spaces data:', err);
     }
+  }
 
-    if (availableBtn) {
-        availableBtn.onclick = () => {
-            pendingStatus = 'available';
-            updateStatusButtonsUI('available');
-        };
-    }
-
-    if (occupiedBtn) {
-        occupiedBtn.onclick = () => {
-            pendingStatus = 'occupied';
-            updateStatusButtonsUI('occupied');
-        };
-    }
-
-    // 5. Confirm Status Changes
-    if (confirmBtn) {
-        confirmBtn.onclick = async () => {
-            if (!selectedSpace) {
-                showMessage("Please select a space first", "error");
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/parking-spaces/${selectedSpace.id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        status: pendingStatus,
-                        description: pendingStatus === 'available' ? 'Space available' : 'Vehicle parked'
-                    })
-                });
-
-                if (response.ok) {
-                    await fetchParkingSpaces();
-                    showMessage(`Space ${selectedSpace.id} updated successfully!`, "success");
-                } else {
-                    showMessage("Failed to update space", "error");
-                }
-            } catch (err) {
-                console.error(err);
-                showMessage("API connection error", "error");
-            }
-        };
-    }
-
-    // 6. Resize layout
-    if (resizeBtn) {
-        resizeBtn.onclick = async () => {
-            const spacesPerZoneInput = document.getElementById("spacesPerZone");
-            const zonesListInput = document.getElementById("zonesList");
-
-            if (!spacesPerZoneInput || !zonesListInput) return;
-
-            const spacesPerZone = parseInt(spacesPerZoneInput.value);
-            const zones = zonesListInput.value.split(",");
-
-            try {
-                const response = await fetch('/api/parking-config', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ spacesPerZone, zones })
-                });
-
-                if (response.ok) {
-                    selectedSpace = null;
-                    if (spaceNameEl) spaceNameEl.textContent = "None";
-                    await fetchParkingSpaces();
-                    showMessage("Parking layout reconfigured", "success");
-                }
-            } catch (err) {
-                console.error(err);
-                showMessage("Error reconfiguring layout", "error");
-            }
-        };
-    }
-
-    // Stats calculation
-    function updateStatistics() {
-        const total = spaces.length;
-        if (total === 0) return;
-
-        const occupied = spaces.filter(s => s.status === 'occupied').length;
-        const available = total - occupied;
-        const percentage = Math.round((occupied / total) * 100);
-
-        if (occupancyEl) occupancyEl.textContent = `${percentage}%`;
-        if (availableCountEl) availableCountEl.textContent = available;
-    }
-
-    function showMessage(msg, type) {
-        if (!messageEl) return;
-        messageEl.textContent = msg;
-        messageEl.className = `message ${type}`;
-        messageEl.style.display = 'block';
-        setTimeout(() => {
-            messageEl.style.display = 'none';
-        }, 3500);
-    }
-
-    fetchParkingSpaces();
+  setInterval(refreshData, 30000);
 });

@@ -6,11 +6,13 @@
 @source "../views/HU-003.pug";
 @source "../views/HU-004.pug";
 @source "../views/HU-005.pug";
+@source "../views/HU-010.pug";
 @source "../../public/js/app.js";
 @source "../../public/js/HU-017.js";
 @source "../../public/js/HU-003.js";
 @source "../../public/js/HU-004.js";
 @source "../../public/js/HU-005.js";
+@source "../../public/js/HU-010.js";
 
 @theme {
   --font-sans: "Poppins", system-ui, sans-serif;
