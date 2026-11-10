@@ -53,7 +53,6 @@
 }
 
 @layer components {
-  @reference "tailwindcss";
 
   /* Layout Base */
   .app-layout {
@@ -455,6 +454,18 @@
     font-size: 0.75rem;
     font-weight: 600;
     transition: all 0.2s ease-in-out;
+  }
+
+  .vehicle-card-add {
+    width: 100%;
+    cursor: pointer;
+    background-color: transparent;
+  }
+
+  .vehicle-card-add.selected {
+    border: 2px solid var(--color-accent);
+    color: var(--color-accent);
+    background-color: #ffffff;
   }
 
   .vehicle-card-add:hover {

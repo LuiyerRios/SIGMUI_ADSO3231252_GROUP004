@@ -7,6 +7,7 @@ import {
   calculateEndTime,
   buildReceiptNumber
 } from '../utils/paymentRules.js';
+import { SQL_OCCUPIED_EXISTS } from './driverParkingService.js';
 
 export class PaymentError extends Error {
   constructor(message, status = 400) {
@@ -41,10 +42,16 @@ export async function recordParkingPayment(userId, input) {
 
     const zoneRecord = zones[0];
 
-    // 2. Si viene spaceId, verificar que exista en la BD para esa zona
+    // 2. Espacio: si viene spaceId se verifica que exista y esté libre;
+    //    si no viene, se asigna el primer espacio libre de la zona (HU-004).
+    let assignedSpaceId = spaceId;
+
     if (spaceId) {
       const spaces = await db.query(
-        'SELECT id FROM parking_spaces WHERE id = ? AND zone = ? LIMIT 1',
+        `SELECT ps.id, ${SQL_OCCUPIED_EXISTS} AS occupied
+         FROM parking_spaces ps
+         WHERE ps.id = ? AND ps.zone = ?
+         LIMIT 1 FOR UPDATE`,
         {
           replacements: [spaceId, zone],
           type: QueryTypes.SELECT,
@@ -55,6 +62,29 @@ export async function recordParkingPayment(userId, input) {
       if (!spaces || spaces.length === 0) {
         throw new PaymentError('Please select a valid zone.', 400);
       }
+
+      if (Number(spaces[0].occupied) === 1) {
+        throw new PaymentError('This space is no longer available.', 409);
+      }
+    } else {
+      const freeSpaces = await db.query(
+        `SELECT ps.id
+         FROM parking_spaces ps
+         WHERE ps.zone = ? AND NOT ${SQL_OCCUPIED_EXISTS}
+         ORDER BY CHAR_LENGTH(ps.id), ps.id
+         LIMIT 1 FOR UPDATE`,
+        {
+          replacements: [zone],
+          type: QueryTypes.SELECT,
+          transaction
+        }
+      );
+
+      if (!freeSpaces || freeSpaces.length === 0) {
+        throw new PaymentError('There are no free spaces in this zone.', 409);
+      }
+
+      assignedSpaceId = freeSpaces[0].id;
     }
 
     // 3. Verificar que no exista sesión activa PAGADA previa para la misma placa
@@ -115,7 +145,7 @@ export async function recordParkingPayment(userId, input) {
               vehicleId,
               plate,
               zone,
-              spaceId,
+              assignedSpaceId,
               rateType,
               quantity,
               amount,
@@ -132,7 +162,9 @@ export async function recordParkingPayment(userId, input) {
           receiptNumber,
           amount,
           startTime,
-          endTime
+          endTime,
+          zone,
+          spaceId: assignedSpaceId
         };
       } catch (err) {
         if (err.name === 'SequelizeUniqueConstraintError' || err.code === 'ER_DUP_ENTRY') {

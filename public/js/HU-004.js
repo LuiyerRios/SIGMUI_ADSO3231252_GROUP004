@@ -1,103 +1,197 @@
+// HU-004 · Start parking: zona, vehículo y duración; el pago se guarda con POST /api/payments/parking
 document.addEventListener('DOMContentLoaded', () => {
-  const vehicleSelectGroup = document.getElementById('vehicleSelectGroup');
-  const durationSelectGroup = document.getElementById('durationSelectGroup');
-  const startParkingForm = document.getElementById('startParkingForm');
+  const zoneGroup = document.getElementById('zoneSelectGroup');
+  const vehicleGroup = document.getElementById('vehicleSelectGroup');
+  const durationGroup = document.getElementById('durationSelectGroup');
+  const otherPlateCard = document.getElementById('otherPlateCard');
+  const otherPlateBox = document.getElementById('otherPlateBox');
+  const otherPlateInput = document.getElementById('otherPlate');
 
   const summarySpaceCode = document.getElementById('summarySpaceCode');
   const summaryZonePlate = document.getElementById('summaryZonePlate');
-  const summaryStartsVal = document.getElementById('summaryStartsVal');
-  const summaryEndsVal = document.getElementById('summaryEndsVal');
-  const summaryDurationVal = document.getElementById('summaryDurationVal');
-  const summaryRateVal = document.getElementById('summaryRateVal');
-  const summaryTotalAmount = document.getElementById('summaryTotalAmount');
+  const summaryStarts = document.getElementById('summaryStartsVal');
+  const summaryEnds = document.getElementById('summaryEndsVal');
+  const summaryDuration = document.getElementById('summaryDurationVal');
+  const summaryRate = document.getElementById('summaryRateVal');
+  const summaryTotal = document.getElementById('summaryTotalAmount');
 
-  const inputPlate = document.getElementById('inputPlate');
-  const inputDuration = document.getElementById('inputDuration');
+  const startBtn = document.getElementById('startParkingBtn');
+  const errorBox = document.getElementById('paymentError');
+  const errorText = document.getElementById('paymentErrorText');
+  const afterPayment = document.getElementById('afterPayment');
 
-  let selectedPlate = 'KJT-482';
-  let selectedHours = 1;
-  const ratePerHour = 2000;
+  const activeZoneChip = zoneGroup ? zoneGroup.querySelector('.zone-chip.active') : null;
 
-  // 1. Selección de Vehículo
-  if (vehicleSelectGroup) {
-    vehicleSelectGroup.addEventListener('click', (e) => {
-      const card = e.target.closest('button.vehicle-card');
-      if (!card) return;
+  // Estado de la selección
+  const state = {
+    zone: activeZoneChip ? activeZoneChip.dataset.zone : null,
+    rateHour: activeZoneChip ? Number(activeZoneChip.dataset.rateHour) : 0,
+    rateDay: activeZoneChip ? Number(activeZoneChip.dataset.rateDay) : 0,
+    plate: startBtn ? startBtn.dataset.firstPlate || '' : '',
+    useOtherPlate: !(startBtn && startBtn.dataset.firstPlate),
+    rateType: 'hour',
+    quantity: 1,
+    paid: false
+  };
 
-      document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('selected'));
+  const pad = (n) => String(n).padStart(2, '0');
+  const formatCOP = (n) => `$${new Intl.NumberFormat('en-US').format(Math.round(n))} COP`;
+  const formatTime = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const normalizePlate = (value) => String(value || '').toUpperCase().replace(/[\s-]/g, '');
+
+  function currentPlate() {
+    return state.useOtherPlate ? normalizePlate(otherPlateInput ? otherPlateInput.value : '') : state.plate;
+  }
+
+  function showError(message) {
+    if (!errorBox || !errorText) return;
+    errorText.textContent = message;
+    errorBox.classList.remove('hidden');
+  }
+
+  function hideError() {
+    if (errorBox) errorBox.classList.add('hidden');
+  }
+
+  // Actualiza el resumen (solo para mostrar; el monto real lo calcula el servidor)
+  function updateSummary() {
+    if (state.paid) return;
+
+    const now = new Date();
+    const end = new Date(now);
+    if (state.rateType === 'day') end.setDate(end.getDate() + state.quantity);
+    else end.setHours(end.getHours() + state.quantity);
+
+    const isDay = state.rateType === 'day';
+    const rate = isDay ? state.rateDay : state.rateHour;
+    const plate = currentPlate();
+
+    if (summaryStarts) summaryStarts.textContent = `Now · ${formatTime(now)}`;
+    if (summaryEnds) summaryEnds.textContent = isDay ? `Tomorrow · ${formatTime(end)}` : formatTime(end);
+    if (summaryDuration) summaryDuration.textContent = isDay ? `${state.quantity} day` : `${state.quantity} h`;
+    if (summaryRate) summaryRate.textContent = state.zone ? `${formatCOP(rate)} / ${isDay ? 'day' : 'hour'}` : '—';
+    if (summaryTotal) summaryTotal.textContent = state.zone ? formatCOP(rate * state.quantity) : '—';
+    if (summaryZonePlate) {
+      summaryZonePlate.textContent = state.zone
+        ? `Zone ${state.zone} · ${plate || 'No plate yet'} · Assigned when you start`
+        : 'Choose a zone';
+    }
+  }
+
+  // 1. Zona
+  if (zoneGroup) {
+    zoneGroup.addEventListener('click', (e) => {
+      const chip = e.target.closest('.zone-chip');
+      if (!chip || chip.disabled || state.paid) return;
+      zoneGroup.querySelectorAll('.zone-chip').forEach((c) => c.classList.remove('active'));
+      chip.classList.add('active');
+      state.zone = chip.dataset.zone;
+      state.rateHour = Number(chip.dataset.rateHour);
+      state.rateDay = Number(chip.dataset.rateDay);
+      if (startBtn) startBtn.disabled = false;
+      hideError();
+      updateSummary();
+    });
+  }
+
+  // 2. Vehículo u otra placa
+  if (vehicleGroup) {
+    vehicleGroup.addEventListener('click', (e) => {
+      const card = e.target.closest('.vehicle-card, .vehicle-card-add');
+      if (!card || state.paid) return;
+      vehicleGroup.querySelectorAll('.vehicle-card, .vehicle-card-add').forEach((c) => c.classList.remove('selected'));
       card.classList.add('selected');
 
-      selectedPlate = card.getAttribute('data-plate') || 'KJT-482';
-      if (inputPlate) inputPlate.value = selectedPlate;
-
+      if (card === otherPlateCard) {
+        state.useOtherPlate = true;
+        if (otherPlateBox) otherPlateBox.classList.remove('hidden');
+        if (otherPlateInput) otherPlateInput.focus();
+      } else {
+        state.useOtherPlate = false;
+        state.plate = card.dataset.plate;
+        if (otherPlateBox) otherPlateBox.classList.add('hidden');
+      }
+      hideError();
       updateSummary();
     });
   }
 
-  // 2. Selección de Duración
-  if (durationSelectGroup) {
-    durationSelectGroup.addEventListener('click', (e) => {
-      const btn = e.target.closest('button.duration-chip');
-      if (!btn) return;
-
-      document.querySelectorAll('.duration-chip').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      selectedHours = parseFloat(btn.getAttribute('data-hours')) || 1;
-      if (inputDuration) inputDuration.value = selectedHours;
-
+  if (otherPlateInput) {
+    otherPlateInput.addEventListener('input', () => {
+      otherPlateInput.value = normalizePlate(otherPlateInput.value);
       updateSummary();
     });
   }
 
-  // 3. Formateador a Pesos Colombianos
-  function formatCOP(amount) {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      maximumFractionDigits: 0
-    }).format(amount);
+  // 3. Duración
+  if (durationGroup) {
+    durationGroup.addEventListener('click', (e) => {
+      const chip = e.target.closest('.duration-chip');
+      if (!chip || state.paid) return;
+      durationGroup.querySelectorAll('.duration-chip').forEach((c) => c.classList.remove('active'));
+      chip.classList.add('active');
+      state.rateType = chip.dataset.rateType;
+      state.quantity = Number(chip.dataset.quantity);
+      updateSummary();
+    });
   }
 
-  // 4. Actualización Dinámica del Resumen de Compra
-  function updateSummary() {
-    const now = new Date();
-    const pad = n => String(n).padStart(2, '0');
+  // 4. Pagar e iniciar el parqueo
+  if (startBtn) {
+    startBtn.addEventListener('click', async () => {
+      hideError();
+      const plate = currentPlate();
 
-    const startHours = pad(now.getHours());
-    const startMinutes = pad(now.getMinutes());
-    if (summaryStartsVal) summaryStartsVal.textContent = `Now · ${startHours}:${startMinutes}`;
+      if (!state.zone) {
+        showError('Please select a valid zone.');
+        return;
+      }
+      if (!plate) {
+        showError('Please enter a valid plate.');
+        return;
+      }
 
-    const endTime = new Date(now.getTime() + selectedHours * 60 * 60 * 1000);
-    const endHours = pad(endTime.getHours());
-    const endMinutes = pad(endTime.getMinutes());
-    if (summaryEndsVal) summaryEndsVal.textContent = `${endHours}:${endMinutes}`;
+      const label = startBtn.querySelector('.btn-label');
+      startBtn.disabled = true;
+      if (label) label.textContent = 'Processing…';
 
-    if (summaryDurationVal) {
-      summaryDurationVal.textContent = selectedHours === 0.5 ? '30 min' : `${selectedHours} h`;
-    }
+      try {
+        const response = await fetch('/api/payments/parking', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plate, zone: state.zone, rateType: state.rateType, quantity: state.quantity })
+        });
+        const data = await response.json().catch(() => ({}));
 
-    const currentZone = document.getElementById('inputZone') ? document.getElementById('inputZone').value : 'A';
-    if (summaryZonePlate) {
-      summaryZonePlate.textContent = `Zone ${currentZone} · ${selectedPlate}`;
-    }
+        if (!response.ok) {
+          showError(data.error || 'The payment could not be processed. Please try again.');
+          startBtn.disabled = false;
+          if (label) label.textContent = 'Start parking';
+          return;
+        }
 
-    const totalCost = selectedHours * ratePerHour;
-    if (summaryTotalAmount) {
-      summaryTotalAmount.textContent = formatCOP(totalCost);
-    }
-  }
+        // Éxito: mostrar el espacio asignado y el recibo
+        state.paid = true;
+        const end = new Date(data.endTime);
+        if (summarySpaceCode) summarySpaceCode.textContent = data.spaceId || data.zone;
+        if (summaryZonePlate) summaryZonePlate.textContent = `Zone ${data.zone} · ${plate} · Receipt ${data.receiptNumber}`;
+        if (summaryEnds && !Number.isNaN(end.getTime())) summaryEnds.textContent = formatTime(end);
+        if (summaryTotal) summaryTotal.textContent = formatCOP(data.amount);
 
-  updateSummary();
-
-  // 5. Envío de Formulario
-  if (startParkingForm) {
-    startParkingForm.addEventListener('submit', (e) => {
-      const submitBtn = document.getElementById('startParkingSubmitBtn');
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.classList.add('opacity-75');
+        startBtn.classList.add('hidden');
+        if (afterPayment) afterPayment.classList.remove('hidden');
+        if (typeof window.showToast === 'function') {
+          window.showToast(`Payment completed. Receipt ${data.receiptNumber}`, 'success');
+        }
+      } catch (err) {
+        showError('The payment could not be processed. Please try again.');
+        startBtn.disabled = false;
+        if (label) label.textContent = 'Start parking';
       }
     });
   }
+
+  updateSummary();
+  // Mantener la hora de inicio y fin al día mientras no se haya pagado
+  setInterval(updateSummary, 30000);
 });

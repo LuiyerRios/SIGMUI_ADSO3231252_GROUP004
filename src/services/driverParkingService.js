@@ -6,7 +6,7 @@ import { QueryTypes } from 'sequelize';
  * Un espacio está ocupado si status = 'occupied' O si existe una sesión de estacionamiento activa,
  * pagada y cuyo end_time > NOW().
  */
-const SQL_OCCUPIED_EXISTS = `
+export const SQL_OCCUPIED_EXISTS = `
   (ps.status = 'occupied' OR EXISTS (
     SELECT 1 FROM parking_sessions s 
     WHERE s.space_id = ps.id 
@@ -129,5 +129,24 @@ export async function getActiveSessions(userId) {
     spaceId: r.spaceId,
     startTime: r.startTime,
     endTime: r.endTime
+  }));
+}
+
+/**
+ * Obtiene los vehículos registrados del conductor (HU-004).
+ */
+export async function getUserVehicles(userId) {
+  const rows = await db.query(
+    `SELECT id, plate, brand_model AS brandModel
+     FROM vehicles
+     WHERE user_id = :userId
+     ORDER BY plate ASC`,
+    { replacements: { userId }, type: QueryTypes.SELECT }
+  );
+
+  return rows.map(r => ({
+    id: r.id,
+    plate: r.plate,
+    brandModel: r.brandModel || ''
   }));
 }

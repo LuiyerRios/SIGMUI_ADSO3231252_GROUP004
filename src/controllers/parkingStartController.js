@@ -1,67 +1,59 @@
-import { getZoneByCode, getAvailableSpacesByZone } from '../services/parkingStartService.js';
-import { getZonesOverview } from '../services/driverParkingService.js';
+import { getZonesOverview, getUserVehicles, getActiveSessions } from '../services/driverParkingService.js';
 import { formatCOP } from '../utils/paymentFormat.js';
 
 /**
- * Renderiza la vista de inicio de estacionamiento (HU-004).
- * GET /parking/start?zone=A&space=A1
+ * HU-004 · Start parking
+ * GET /parking/start?zone=A
+ * Muestra las zonas con espacios libres, los vehículos del conductor y sus sesiones activas.
+ * El espacio NO se elige aquí: lo asigna el servidor al pagar (primer espacio libre de la zona).
  */
 export async function renderStartParking(req, res) {
+  const userId = req.session.user.id;
+  const baseLocals = {
+    title: 'Start parking | SIGMUI',
+    activeMenu: 'start_parking',
+    pageTitle: 'Start parking',
+    pageSubtitle: 'Pick a zone, your vehicle and the time'
+  };
+
   try {
-    const zones = await getZonesOverview();
-    
-    // Determinar zona seleccionada
-    let zoneCode = req.query.zone;
-    let selectedZone = zones.find(z => z.code === zoneCode);
-
-    if (!selectedZone) {
-      selectedZone = zones.find(z => z.free > 0) || zones[0];
-      zoneCode = selectedZone ? selectedZone.code : 'A';
-    }
-
-    // Obtener información de la zona y espacios libres
-    const [zoneInfo, availableSpaces] = await Promise.all([
-      getZoneByCode(zoneCode),
-      getAvailableSpacesByZone(zoneCode)
+    const [zones, vehicles, activeSessions] = await Promise.all([
+      getZonesOverview(),
+      getUserVehicles(userId),
+      getActiveSessions(userId)
     ]);
 
-    // Espacio preseleccionado (si viene por query y está en la lista de libres)
-    const requestedSpace = req.query.space || '';
-    const selectedSpace = availableSpaces.find(s => s.id === requestedSpace) 
-      ? requestedSpace 
-      : (availableSpaces.length > 0 ? availableSpaces[0].id : '');
+    // Zona preseleccionada: la de ?zone= si tiene espacios libres; si no, la primera con espacios libres
+    const requested = String(req.query.zone || '').toUpperCase();
+    const selectedZone =
+      zones.find(z => z.code === requested && z.free > 0) ||
+      zones.find(z => z.free > 0) ||
+      null;
 
-    const ratePerHour = zoneInfo ? zoneInfo.ratePerHour : 2000;
+    // Tarifas ya formateadas para que la vista y el JS no repitan el formato
+    const zonesView = zones.map(z => ({
+      ...z,
+      rateHourText: formatCOP(z.ratePerHour),
+      rateDayText: formatCOP(z.ratePerDay)
+    }));
 
     res.render('HU-004', {
-      title: 'Start Parking | Tech Parking',
-      activeMenu: 'home',
-      pageTitle: 'Start parking',
-      pageSubtitle: 'Select a space and duration to park',
-      zones,
-      selectedZoneCode: zoneCode,
-      selectedZone,
-      selectedSpaceId: selectedSpace,
-      availableSpaces,
-      ratePerHour,
-      formattedRate: `${formatCOP(ratePerHour)} / hour`,
+      ...baseLocals,
+      zones: zonesView,
+      vehicles,
+      activeSessions,
+      selectedZoneCode: selectedZone ? selectedZone.code : null,
       errorMessage: null
     });
   } catch (error) {
     console.error('Error rendering start parking (HU-004):', error);
     res.status(500).render('HU-004', {
-      title: 'Start Parking | Tech Parking',
-      activeMenu: 'home',
-      pageTitle: 'Start parking',
-      pageSubtitle: 'Select a space and duration to park',
+      ...baseLocals,
       zones: [],
-      selectedZoneCode: 'A',
-      selectedZone: null,
-      selectedSpaceId: '',
-      availableSpaces: [],
-      ratePerHour: 2000,
-      formattedRate: '$2,000 COP / hour',
-      errorMessage: 'The parking initialization service is temporarily unavailable.'
+      vehicles: [],
+      activeSessions: [],
+      selectedZoneCode: null,
+      errorMessage: 'The parking information is temporarily unavailable.'
     });
   }
 }
