@@ -8,6 +8,9 @@ export const renderPaymentHistory = async (req, res) => {
   if (filterError) {
     return res.render('HU-017', {
       title: 'Payment History | SIGMUI Admin',
+      activeMenu: 'payments',
+      pageTitle: 'Payment history',
+      pageSubtitle: 'Audit every payment of the system',
       filters: req.query,
       rows: [],
       pagination: { total: 0, page: 1, totalPages: 1, fromItem: 0, toItem: 0 },
@@ -45,6 +48,9 @@ export const renderPaymentHistory = async (req, res) => {
 
     res.render('HU-017', {
       title: 'Payment History | SIGMUI Admin',
+      activeMenu: 'payments',
+      pageTitle: 'Payment history',
+      pageSubtitle: 'Audit every payment of the system',
       filters,
       rows: formattedRows,
       pagination: {
@@ -67,6 +73,9 @@ export const renderPaymentHistory = async (req, res) => {
     console.error('Error in renderPaymentHistory:', error);
     res.status(500).render('HU-017', {
       title: 'Payment History | SIGMUI Admin',
+      activeMenu: 'payments',
+      pageTitle: 'Payment history',
+      pageSubtitle: 'Audit every payment of the system',
       filters,
       rows: [],
       pagination: { total: 0, page: 1, totalPages: 1, fromItem: 0, toItem: 0 },
