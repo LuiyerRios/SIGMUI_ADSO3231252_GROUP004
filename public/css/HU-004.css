@@ -120,3 +120,7 @@ td {
 
 @import "tailwindcss";
 
+.payment-msg { margin-top: 12px; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 500; }
+.payment-msg.info { background: #EAF2FB; color: #1C4D87; }
+.payment-msg.success { background: #E8F7EE; color: #15803D; }
+.payment-msg.error { background: #FDECEC; color: #B91C1C; }

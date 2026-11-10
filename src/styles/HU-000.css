@@ -1,0 +1,123 @@
+/* HU-000 · Home / landing page de Tech Parking
+   Compilar: npm run build:css:HU-000  →  public/css/HU-000.css
+   Solo escanea la vista y el JS de la HU-000 para no mezclar clases con otras HU. */
+@import "tailwindcss" source(none);
+@source "../views/HU-000.pug";
+@source "../../public/js/HU-000.js";
+
+@theme {
+  --font-poppins: "Poppins", system-ui, sans-serif;
+
+  /* El mockup usa el interlineado normal de Poppins (1.5) en todos los tamaños */
+  --text-xs--line-height: 1.5;
+  --text-sm--line-height: 1.5;
+  --text-base--line-height: 1.5;
+  --text-lg--line-height: 1.5;
+  --text-xl--line-height: 1.5;
+  --text-2xl--line-height: 1.5;
+  --text-4xl--line-height: 1.5;
+
+  --color-tp-navy: #0f2a5c;
+  --color-tp-blue: #1d5fd1;
+  --color-tp-blue-2: #1d6fe0;
+  --color-tp-deep: #1e4fae;
+  --color-tp-sky: #0ea5e9;
+  --color-tp-violet: #6d5cf6;
+  --color-tp-teal: #0b7fc1;
+  --color-tp-indigo: #5b4ce0;
+  --color-tp-bg: #eef2f7;
+  --color-tp-line: #dbe3ef;
+  --color-tp-border: #b9c7e0;
+  --color-tp-muted: #4a5b78;
+  --color-tp-soft: #5b6b85;
+  --color-tp-tile: #f3f6fb;
+  --color-tp-pale: #e3edfd;
+  --color-tp-ice: #c9d6ee;
+  --color-tp-eyebrow: #8fc4ff;
+  --color-tp-cloud: #dbeafe;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-poppins);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  /* Degradado de marca (logo y botones primarios) */
+  .tp-grad {
+    background-image: linear-gradient(to bottom right, #1d5fd1 15%, #0ea5e9 85%);
+  }
+
+  /* Fondo del mapa en vivo (móvil) */
+  .tp-map-grad {
+    background-image: linear-gradient(142.4deg, #1e4fae 10.97%, #1d6fe0 37.01%, #0ea5e9 63.06%, #6d5cf6 89.09%);
+  }
+
+  /* Tarjeta "With Tech Parking" */
+  .tp-card-grad {
+    background-image: linear-gradient(to bottom right, #1e4fae 15%, #1d6fe0 50%, #0ea5e9 85%);
+  }
+
+  /* Línea de tiempo del día de Laura */
+  .tp-line-grad {
+    background-image: linear-gradient(90deg, #1d5fd1 0%, #0ea5e9 50%, #6d5cf6 100%);
+  }
+
+  /* Carrusel móvil sin barra de scroll */
+  .tp-noscroll {
+    scrollbar-width: none;
+  }
+
+  .tp-noscroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Pulso del marcador de zona seleccionada */
+  .tp-pulse {
+    animation: tp-pulse 1.6s ease-out infinite;
+  }
+
+  /* Anillo del simulador */
+  .tp-ring {
+    transition: stroke-dashoffset 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .tp-fade {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tp-map-grad {
+    background-image: linear-gradient(to bottom right, #1e4fae 15%, #1d6fe0 38.33%, #0ea5e9 61.67%, #6d5cf6 85%);
+  }
+}
+
+@keyframes tp-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+  }
+
+  100% {
+    box-shadow: 0 0 0 14px rgba(255, 255, 255, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .tp-pulse,
+  .tp-ring,
+  .tp-fade {
+    animation: none;
+    transition: none;
+  }
+}

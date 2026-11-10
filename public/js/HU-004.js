@@ -28,52 +28,78 @@ function calculate(){
     total.toLocaleString("es-US");
 }
 
-// CONFIRMAR
+// CONFIRMAR (CONECTADO A BD VÍA FETCH)
 
-function confirmReservation(){
-    const plate =
-    document.getElementById("plate")
-    .value
-    .trim();
-    const location =
-    document.getElementById("zone")
-    .value;
-    const type =
-    document.getElementById("type")
-    .value;
-    const quantity =
-    Number(
-        document.getElementById("quantity")
-        .value
-    );
+async function confirmReservation(){
+    const plate = document.getElementById("plate").value.trim();
+    const zoneValue = document.getElementById("zone").value; // ej: "A1"
+    const type = document.getElementById("type").value;
+    const quantity = Number(document.getElementById("quantity").value);
+    const paymentMessage = document.getElementById("paymentMessage");
 
-    const total =
-    document.getElementById("total")
-    .textContent;
-    if(!plate || !location || quantity<=0){
-        alert("Please fill in all required fields");
+    if(!plate || !zoneValue || quantity <= 0){
+        if (paymentMessage) {
+            paymentMessage.style.display = 'block';
+            paymentMessage.className = 'payment-msg error';
+            paymentMessage.textContent = 'Please fill in all required fields';
+        }
         return;
     }
 
-    const reservation = {
-        plate:
-        plate.toUpperCase(),
-        location:location,
-        time:
-        type==="hour"
-        ?
-        quantity+" Hour(s)"
-        :
-        quantity+" Day(s)",
-        total:total,
-        status:"Confirmed"
-    };
+    if (paymentMessage) {
+        paymentMessage.style.display = 'block';
+        paymentMessage.className = 'payment-msg info';
+        paymentMessage.textContent = 'Processing payment...';
+    }
 
-    reservations.push(reservation);
-    alert(
-        "✅ Your reservation has been confirmed successfully"
-    );
-    cleanForm();
+    try {
+        const response = await fetch('/api/payments/parking', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                plate: plate,
+                zone: zoneValue ? zoneValue.charAt(0) : '',
+                spaceId: zoneValue,
+                rateType: type,
+                quantity: quantity
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            if (paymentMessage) {
+                paymentMessage.className = 'payment-msg error';
+                paymentMessage.textContent = data.error || 'The payment could not be processed. Please try again.';
+            }
+            return;
+        }
+
+        // Agregar a la tabla de reservas en memoria utilizando los datos reales del servidor
+        const reservation = {
+            plate: plate.toUpperCase(),
+            location: zoneValue,
+            time: type === "hour" ? quantity + " Hour(s)" : quantity + " Day(s)",
+            total: data.amount,
+            receipt: data.receiptNumber,
+            status: "Confirmed"
+        };
+        reservations.push(reservation);
+
+        if (paymentMessage) {
+            paymentMessage.className = 'payment-msg success';
+            paymentMessage.textContent = `Payment completed. Receipt ${data.receiptNumber}`;
+        }
+
+        cleanForm();
+
+    } catch (err) {
+        console.error('Error confirming reservation:', err);
+        if (paymentMessage) {
+            paymentMessage.className = 'payment-msg error';
+            paymentMessage.textContent = 'The payment could not be processed. Please try again.';
+        }
+    }
 }
 
 // MOSTRAR RESERVAS
