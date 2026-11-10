@@ -1,5 +1,7 @@
-import express from 'express';
+import { Router } from 'express';
+import { renderAdminHome } from '../controllers/adminHomeController.js';
 import { body } from 'express-validator';
+
 import { 
   listHelpReports, 
   renderHelpReport, 
@@ -10,10 +12,12 @@ import {
   exportPayments 
 } from '../controllers/paymentHistoryController.js';
 
-const router = express.Router();
+const router = Router();
 
-router.get('/', (req, res) => res.render('HU-010', { title: 'Admin | SIGMUI' }));                          // HU-010
-router.get('/dashboard', (req, res) => res.render('HU-008', { title: 'Administrative dashboard | SIGMUI' }));  // HU-008
+// HU-010 Admin Parking Zones
+router.get('/', renderAdminHome);
+
+router.get('/dashboard', (req, res) => res.render('HU-008', { title: 'Administrative dashboard | SIGMUI' }));  // HU-008 (se actualizará en Parte C)
 
 // HU-017 Admin Payment History Routes
 router.get('/payments', renderPaymentHistory);

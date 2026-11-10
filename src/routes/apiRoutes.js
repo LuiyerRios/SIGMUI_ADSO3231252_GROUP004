@@ -1,103 +1,110 @@
-import express from 'express';
+import { Router } from 'express';
+import { getAdminSpaces, getAdminStats } from '../services/adminParkingService.js';
 import db from '../config/db.js';
-import { requireRole } from '../middlewares/auth.js';
+import { QueryTypes } from 'sequelize';
 
-const router = express.Router();
-const adminOnly = requireRole('admin');
-const VALID_STATUS = ['available', 'occupied'];
+const router = Router();
 
-// HU-010 / HU-008: listar espacios
-router.get('/parking-spaces', adminOnly, async (req, res) => {
+// GET /api/parking-spaces
+router.get('/parking-spaces', async (req, res) => {
   try {
-    const [rows] = await db.query(`
-      SELECT p.id, p.zone, p.status, p.description, p.vehicle_id,
-             COALESCE(v.plate, '---')     AS vehicle,
-             COALESCE(u.full_name, '---') AS owner,
-             DATE_FORMAT(p.entry_time, '%h:%i %p') AS entry
-      FROM parking_spaces p
-      LEFT JOIN vehicles v ON p.vehicle_id = v.id
-      LEFT JOIN users u    ON v.user_id = u.id
-      ORDER BY p.zone ASC, CAST(SUBSTRING(p.id, 2) AS UNSIGNED) ASC
-    `);
-    res.json(rows);
-  } catch (error) {
-    console.error('GET /api/parking-spaces:', error.message);
-    res.status(500).json({ error: 'The system cannot retrieve parking data.' });
+    const spaces = await getAdminSpaces();
+    const stats = await getAdminStats();
+    res.json({ spaces, stats });
+  } catch (err) {
+    console.error('Error fetching parking spaces API:', err);
+    res.status(500).json({ error: 'Failed to fetch parking spaces.' });
   }
 });
 
-// HU-010: configuración actual
-router.get('/parking-config', adminOnly, async (req, res) => {
+// PUT /api/parking-spaces/:id
+router.put('/parking-spaces/:id', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT spaces_per_zone, zones_list FROM parking_config WHERE id = 1');
-    res.json(rows[0] || { spaces_per_zone: 10, zones_list: 'A,B,C,D' });
-  } catch (error) {
-    res.status(500).json({ error: 'The system cannot retrieve parking data.' });
-  }
-});
+    const spaceId = req.params.id;
+    const { status } = req.body;
 
-// HU-010: redimensionar el mapa
-router.post('/parking-config', adminOnly, async (req, res) => {
-  const body = req.body ?? {};
-  const spacesPerZone = Number.parseInt(body.spacesPerZone, 10);
-  const rawZones = Array.isArray(body.zones) ? body.zones : String(body.zones || '').split(',');
-  const zones = [...new Set(rawZones.map((z) => String(z).trim().toUpperCase()).filter((z) => /^[A-F]$/.test(z)))];
-
-  if (!Number.isInteger(spacesPerZone) || spacesPerZone < 1 || spacesPerZone > 50 || zones.length === 0) {
-    return res.status(400).json({ error: 'Invalid configuration: 1-50 spaces and zones A-F.' });
-  }
-
-  const t = await db.transaction();
-  try {
-    await db.query(
-      `INSERT INTO parking_config (id, spaces_per_zone, zones_list) VALUES (1, :spacesPerZone, :zonesList)
-       ON DUPLICATE KEY UPDATE spaces_per_zone = :spacesPerZone, zones_list = :zonesList`,
-      { replacements: { spacesPerZone, zonesList: zones.join(',') }, transaction: t }
-    );
-    await db.query('DELETE FROM parking_spaces', { transaction: t });
-
-    const placeholders = [];
-    const values = [];
-    zones.forEach((zone) => {
-      for (let n = 1; n <= spacesPerZone; n++) {
-        placeholders.push('(?, ?)');
-        values.push(`${zone}${n}`, zone);
-      }
+    // Verificar si el espacio tiene una sesión activa pagada
+    const [activeSession] = await db.query(`
+      SELECT id FROM parking_sessions
+      WHERE space_id = :spaceId
+        AND status = 'active'
+        AND payment_status = 'paid'
+        AND end_time > NOW()
+      LIMIT 1
+    `, {
+      replacements: { spaceId },
+      type: QueryTypes.SELECT
     });
-    await db.query(`INSERT INTO parking_spaces (id, zone) VALUES ${placeholders.join(', ')}`, { replacements: values, transaction: t });
 
-    await t.commit();
-    res.json({ message: 'Parking capacity and layout successfully reconfigured.' });
-  } catch (error) {
-    await t.rollback();
-    console.error('POST /api/parking-config:', error.message);
-    res.status(500).json({ error: 'Changes cannot be saved due to system failure.' });
+    if (activeSession) {
+      return res.status(409).json({ error: 'This space has an active parking session.' });
+    }
+
+    await db.query(`
+      UPDATE parking_spaces 
+      SET status = :status 
+      WHERE id = :spaceId
+    `, {
+      replacements: { status: status === 'occupied' ? 'occupied' : 'available', spaceId },
+      type: QueryTypes.UPDATE
+    });
+
+    res.json({ success: true, message: 'Space status updated.' });
+  } catch (err) {
+    console.error('Error updating space status:', err);
+    res.status(500).json({ error: 'Failed to update space status.' });
   }
 });
 
-// HU-010: cambiar estado de un espacio
-router.put('/parking-spaces/:id', adminOnly, async (req, res) => {
-  const { id } = req.params;
-  const status = req.body?.status;
-
-  if (!/^[A-F]\d{1,2}$/.test(id) || !VALID_STATUS.includes(status)) {
-    return res.status(400).json({ error: 'Invalid space or status.' });
-  }
-
+// POST /api/parking-config
+router.post('/parking-config', async (req, res) => {
   try {
-    await db.query(
-      `UPDATE parking_spaces
-       SET status = :status,
-           description = :description,
-           entry_time = IF(:status = 'occupied', COALESCE(entry_time, NOW()), NULL),
-           vehicle_id = IF(:status = 'occupied', vehicle_id, NULL)
-       WHERE id = :id`,
-      { replacements: { id, status, description: status === 'occupied' ? 'Vehicle parked' : 'Space available' } }
-    );
-    res.json({ message: `Space ${id} updated successfully.` });
-  } catch (error) {
-    console.error('PUT /api/parking-spaces:', error.message);
-    res.status(500).json({ error: 'Changes cannot be saved due to system failure.' });
+    const { spacesPerZone, zones } = req.body;
+
+    // Verificar si existe CUALQUIER sesión activa pagada antes de redimensionar
+    const [activeSessions] = await db.query(`
+      SELECT COUNT(*) AS total FROM parking_sessions
+      WHERE status = 'active'
+        AND payment_status = 'paid'
+        AND end_time > NOW()
+    `, { type: QueryTypes.SELECT });
+
+    if (activeSessions && Number(activeSessions.total) > 0) {
+      return res.status(409).json({ error: 'You cannot resize the map while there are active parking sessions.' });
+    }
+
+    // Proceder con la reconfiguración si no hay sesiones activas
+    const zonesList = JSON.stringify(zones || ['A', 'B', 'C', 'D']);
+    await db.query(`
+      UPDATE parking_config 
+      SET spaces_per_zone = :spacesPerZone, zones_list = :zonesList
+    `, {
+      replacements: { spacesPerZone: Number(spacesPerZone) || 32, zonesList },
+      type: QueryTypes.UPDATE
+    });
+
+    // Reconstruir tabla parking_spaces
+    await db.query(`DELETE FROM parking_spaces`);
+
+    const parsedZones = Array.isArray(zones) ? zones : JSON.parse(zonesList);
+    const count = Number(spacesPerZone) || 32;
+
+    for (const z of parsedZones) {
+      for (let i = 1; i <= count; i++) {
+        await db.query(`
+          INSERT INTO parking_spaces (id, zone, status) 
+          VALUES (:id, :zone, 'available')
+        `, {
+          replacements: { id: `${z}${i}`, zone: z },
+          type: QueryTypes.INSERT
+        });
+      }
+    }
+
+    res.json({ success: true, message: 'Parking map resized successfully.' });
+  } catch (err) {
+    console.error('Error updating parking config:', err);
+    res.status(500).json({ error: 'Failed to update parking configuration.' });
   }
 });
 
