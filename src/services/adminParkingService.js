@@ -24,10 +24,15 @@ export async function getAdminSpaces() {
       s.end_time AS endTime,
       s.receipt_number AS receiptNumber
     FROM parking_spaces ps
-    LEFT JOIN parking_sessions s ON s.space_id = ps.id 
-      AND s.status = 'active' 
-      AND s.payment_status = 'paid' 
-      AND s.end_time > NOW()
+    LEFT JOIN parking_sessions s ON s.id = (
+      SELECT s2.id FROM parking_sessions s2
+      WHERE s2.space_id = ps.id
+        AND s2.status = 'active'
+        AND s2.payment_status = 'paid'
+        AND s2.end_time > NOW()
+      ORDER BY s2.end_time DESC
+      LIMIT 1
+    )
     LEFT JOIN users u ON s.user_id = u.id
     ORDER BY ps.zone ASC, CHAR_LENGTH(ps.id) ASC, ps.id ASC
   `;
@@ -101,20 +106,27 @@ export async function getAdminStats() {
 
 /**
  * Obtiene la configuración actual del mapa de parqueo.
+ * zones_list se guarda como texto separado por comas ('A,B,C,D').
  */
 export async function getConfig() {
-  const [config] = await db.query(`
-    SELECT spaces_per_zone AS spacesPerZone, zones_list AS zonesList
-    FROM parking_config
-    LIMIT 1
-  `, { type: QueryTypes.SELECT });
+  const [config] = await db.query(
+    `SELECT spaces_per_zone AS spacesPerZone, zones_list AS zonesList
+     FROM parking_config
+     WHERE id = 1`,
+    { type: QueryTypes.SELECT }
+  );
 
   if (!config) {
-    return { spacesPerZone: 32, zones: ['A', 'B', 'C', 'D'] };
+    return { spacesPerZone: 10, zones: ['A', 'B', 'C', 'D'] };
   }
 
+  const zones = String(config.zonesList || '')
+    .split(',')
+    .map(z => z.trim().toUpperCase())
+    .filter(z => /^[A-F]$/.test(z));
+
   return {
-    spacesPerZone: config.spacesPerZone,
-    zones: typeof config.zonesList === 'string' ? JSON.parse(config.zonesList) : config.zonesList
+    spacesPerZone: Number(config.spacesPerZone),
+    zones: zones.length > 0 ? zones : ['A', 'B', 'C', 'D']
   };
 }
