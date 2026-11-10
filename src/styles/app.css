@@ -51,7 +51,6 @@
 }
 
 @layer components {
-  @reference "tailwindcss";
 
   /* Layout Base */
   .app-layout {

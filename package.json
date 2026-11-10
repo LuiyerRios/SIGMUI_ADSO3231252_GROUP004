@@ -7,8 +7,9 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
-    "build:css": "tailwindcss -i ./src/styles/app.css -o ./public/css/app.css --minify",
-    "watch:css": "tailwindcss -i ./src/styles/app.css -o ./public/css/app.css --watch",
+    "build:css": "tailwindcss -i ./src/styles/input.css -o ./public/css/HU-001.css --watch",
+    "build:css:HU-000": "tailwindcss -i ./src/styles/HU-000.css -o ./public/css/HU-000.css --minify",
+    "build:css:HU-002": "tailwindcss -i ./src/styles/HU-002.css -o ./public/css/HU-002.css --minify",
     "build:css:app": "tailwindcss -i ./src/styles/app.css -o ./public/css/app.css --minify",
     "watch:css:app": "tailwindcss -i ./src/styles/app.css -o ./public/css/app.css --watch",
     "test": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --detectOpenHandles --testPathIgnorePatterns=/integration/",
