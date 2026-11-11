@@ -1,121 +1,140 @@
-doctype html
-html
+extends layouts/app
 
-  head
+block content
+  - const currentZone = zones.find(z => z.code === selectedZoneCode) || null
+  - const activeSession = (activeSessions && activeSessions.length > 0) ? activeSessions[0] : null
+  - const firstPlate = (vehicles && vehicles.length > 0) ? vehicles[0].plate : ''
 
-    meta(charset="UTF-8")
-    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+  div(class="flex flex-col gap-6", id="startParkingContainer")
+    if errorMessage
+      .alert.alert-error
+        i.fas.fa-exclamation-circle
+        span= errorMessage
 
-    title My Reservations
+    if activeSession
+      .alert.alert-info
+        i.fas.fa-circle-info
+        span
+          | You already have an active session in #{activeSession.spaceId || activeSession.zone} · #{activeSession.plate}.
+          |
+          a(href="/parking/extend", class="font-semibold underline") Extend time
 
-    link(rel="stylesheet", href="/css/HU-004.css")
+    div(class="grid grid-cols-12 gap-6 items-start")
 
+      //- Columna izquierda: los 3 pasos
+      div(class="card col-span-12 lg:col-span-8")
+        .card-header
+          h2.card-title Start a parking session
+          p.card-subtitle Three quick steps. You can extend your time later from your phone.
 
-  body
+        div(class="flex flex-col gap-6 mt-4")
 
+          //- Paso 1: zona
+          div(class="flex flex-col gap-3")
+            div(class="flex items-center gap-3")
+              div(class="w-7 h-7 rounded-full bg-primary text-white font-bold text-xs flex items-center justify-center shrink-0") 1
+              div
+                h3(class="text-sm font-bold text-ink") Choose a zone
+                p(class="text-xs text-muted") We assign the first free space in that zone
 
-    .main-container
+            div(id="zoneSelectGroup", class="flex items-center gap-2 flex-wrap sm:pl-10")
+              if zones.length === 0
+                span(class="text-xs text-muted") No zones are configured yet.
+              each z in zones
+                button(
+                  type="button",
+                  class="chip zone-chip" + (z.code === selectedZoneCode ? ' active' : '') + (z.free === 0 ? ' opacity-50' : ''),
+                  data-zone=z.code,
+                  data-rate-hour=z.ratePerHour,
+                  data-rate-day=z.ratePerDay,
+                  disabled=(z.free === 0)
+                )= 'Zone ' + z.code + ' · ' + z.free + ' free'
 
+          div(class="border-t border-line")
 
-      .header
+          //- Paso 2: vehículo
+          div(class="flex flex-col gap-3")
+            div(class="flex items-center gap-3")
+              div(class="w-7 h-7 rounded-full bg-primary text-white font-bold text-xs flex items-center justify-center shrink-0") 2
+              div
+                h3(class="text-sm font-bold text-ink") Select your vehicle
+                p(class="text-xs text-muted") Choose a registered vehicle or type another plate
 
+            div(id="vehicleSelectGroup", class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:pl-10")
+              each v, i in vehicles
+                button(type="button", class="vehicle-card" + (i === 0 ? ' selected' : ''), data-plate=v.plate)
+                  div(class="flex items-center gap-3 min-w-0")
+                    i(class="fas fa-car text-base text-muted")
+                    div(class="flex flex-col text-left min-w-0")
+                      strong(class="text-sm font-bold text-ink")= v.plate
+                      span(class="text-[11px] text-muted truncate")= v.brandModel || 'Registered vehicle'
 
-        .header-left
+              button(type="button", id="otherPlateCard", class="vehicle-card-add" + (vehicles.length === 0 ? ' selected' : ''))
+                i(class="fas fa-plus text-xs")
+                span Other plate
 
-          img(
-            src="/img/calendario.png"
-            alt="Calendar"
-          )
+            div(id="otherPlateBox", class="sm:pl-10" + (vehicles.length === 0 ? '' : ' hidden'))
+              label(for="otherPlate", class="text-xs font-semibold text-muted") Plate
+              input(type="text", id="otherPlate", class="input mt-1 max-w-[220px] uppercase", maxlength="7", placeholder="ABC123", autocomplete="off")
 
-          h2 My Reservations
+          div(class="border-t border-line")
 
+          //- Paso 3: duración
+          div(class="flex flex-col gap-3")
+            div(class="flex items-center gap-3")
+              div(class="w-7 h-7 rounded-full bg-primary text-white font-bold text-xs flex items-center justify-center shrink-0") 3
+              div
+                h3(class="text-sm font-bold text-ink") How long will you stay?
+                p(class="text-xs text-muted") Up to 4 hours, or a full day
 
+            div(id="durationSelectGroup", class="flex items-center gap-2 flex-wrap sm:pl-10")
+              button(type="button", class="chip duration-chip active", data-rate-type="hour", data-quantity="1") 1 h
+              button(type="button", class="chip duration-chip", data-rate-type="hour", data-quantity="2") 2 h
+              button(type="button", class="chip duration-chip", data-rate-type="hour", data-quantity="3") 3 h
+              button(type="button", class="chip duration-chip", data-rate-type="hour", data-quantity="4") 4 h
+              button(type="button", class="chip duration-chip", data-rate-type="day", data-quantity="1") 1 day
 
-        .header-right(onclick="goBack()")
+      //- Columna derecha: resumen
+      div(class="card col-span-12 lg:col-span-4", id="parkingSummaryPanel")
+        span(class="text-xs font-bold tracking-wider text-muted uppercase") Summary
 
-          img(
-            src="/img/flecha.png"
-            alt="Back"
-          )
+        div(class="rounded-2xl bg-gradient-to-br from-primary to-tech p-5 text-white my-4 shadow-md")
+          span(class="text-xs text-white/80 font-medium") Your space
+          h2(id="summarySpaceCode", class="text-3xl font-extrabold mt-1") Auto
+          p(id="summaryZonePlate", class="text-xs text-white/90 mt-1")
+            | Assigned when you start
 
-      .content
+        .data-list
+          .data-list-item
+            span.data-list-label Starts
+            span.data-list-value#summaryStartsVal Now
+          .data-list-item
+            span.data-list-label Ends
+            span.data-list-value#summaryEndsVal —
+          .data-list-item
+            span.data-list-label Duration
+            span.data-list-value#summaryDurationVal 1 h
+          .data-list-item
+            span.data-list-label Rate
+            span.data-list-value#summaryRateVal= currentZone ? currentZone.rateHourText + ' / hour' : '—'
 
-        .form
+        div(class="flex items-center justify-between pt-4 mt-2 border-t border-line")
+          strong(class="text-sm text-ink") Total
+          strong(id="summaryTotalAmount", class="text-2xl font-extrabold text-ink")= currentZone ? currentZone.rateHourText : '—'
 
-          input#plate(
-            type="text"
-            placeholder="Plate (required)"
-          )
+        div(id="paymentError", class="alert alert-error mt-4 hidden", role="alert")
+          i.fas.fa-exclamation-circle
+          span(id="paymentErrorText")
 
-          select#zone
+        button(type="button", id="startParkingBtn", class="btn btn-primary btn-block mt-4", disabled=!currentZone, data-first-plate=firstPlate)
+          span(class="btn-label") Start parking
+          i(class="fas fa-arrow-right")
 
-            option(value="") Select Zone
+        div(id="afterPayment", class="hidden mt-4 grid grid-cols-2 gap-3")
+          a(href="/zones", class="btn btn-secondary") Go to home
+          a(href="/parking/extend", class="btn btn-primary") Extend time
 
-            option(value="A1") A1
+        p(class="text-[11px] text-muted text-center mt-4") The final amount is calculated by the server.
 
-            option(value="A2") A2
-
-            option(value="B1") B1
-
-          select#type
-
-            option(value="hour") Per Hour ($2.000)
-
-            option(value="day") Per Day ($20.000)
-
-          input#quantity(
-            type="number"
-            placeholder="Hours or Days"
-          )
-
-          p
-
-            | Total: $
-
-            span#total 0
-
-          button(
-            onclick="calculate()"
-          )
-
-            | Calculate
-
-          button(
-            onclick="confirmReservation()"
-          )
-
-            | Confirm
-
-        .top-bar
-
-          h3 List of reservations
-
-          button.btn(
-            onclick="showReservations()"
-          )
-
-            | View reservation
-
-        .table-container#reservationTable(
-          style="display:none"
-        )
-
-          table
-
-            thead
-
-              tr
-
-                th Nro
-
-                th Plate
-
-                th Location
-
-                th Time
-
-                th Status
-
-            tbody#tableBody
-
-    script(src="/js/HU-004.js")
+block scripts
+  script(src="/js/HU-004.js")

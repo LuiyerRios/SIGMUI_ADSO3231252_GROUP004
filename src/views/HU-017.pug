@@ -1,0 +1,139 @@
+extends layouts/app
+
+block scripts
+  script(src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js")
+  script(src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js")
+  script(src="/js/HU-017.js")
+
+block content
+  -
+    const f = filters || {};
+    const s = summary || {};
+    const pInfo = pagination || { page: 1, totalPages: 1, total: 0, fromItem: 0, toItem: 0 };
+    const rRows = rows || [];
+
+    function pageUrl(params) {
+      const q = Object.assign({
+        from: f.from || '',
+        to: f.to || '',
+        zone: f.zone || 'all',
+        plate: f.plate || '',
+        page: 1
+      }, params);
+      return '/admin/payments?' + Object.keys(q).map(k => k + '=' + encodeURIComponent(q[k])).join('&');
+    }
+
+  .flex.flex-col.gap-5
+    //- Banner de Alerta / Error
+    if errorMessage
+      .alert.alert-error
+        i.fas.fa-exclamation-circle
+        span= errorMessage
+
+    //- Formulario de Filtros
+    form.card.p-4#filtersForm(action="/admin/payments", method="GET")
+      input(type="hidden", name="page", value="1")
+      
+      .flex.items-center.justify-between.gap-4.flex-wrap
+        div(class="flex items-center gap-2 bg-white border border-line px-3 py-[6px] rounded-control")
+          i.far.fa-calendar.text-muted.text-sm
+          input.input-date.border-none.bg-transparent.text-xs.text-ink.outline-none(type="date", name="from", value=f.from || '')
+          span.text-muted.text-xs →
+          input.input-date.border-none.bg-transparent.text-xs.text-ink.outline-none(type="date", name="to", value=f.to || '')
+
+        div(class="flex items-center gap-[6px]")
+          input#zoneInput(type="hidden", name="zone", value=f.zone || 'all')
+          a.chip(href=pageUrl({ zone: 'all', page: 1 }), data-zone="all", class=(!f.zone || f.zone === 'all') ? 'active' : '') All zones
+          each z in ['A', 'B', 'C', 'D', 'E', 'F']
+            a.chip(href=pageUrl({ zone: z, page: 1 }), data-zone=z, class=f.zone === z ? 'active' : '')= z
+
+        div(class="flex items-center gap-2 bg-white border border-line px-3 py-[6px] rounded-control")
+          i.fas.fa-search.text-muted.text-sm
+          input.input-plate.border-none.bg-transparent.text-xs.text-ink.outline-none.w-20(type="text", name="plate", value=f.plate || '', placeholder="Plate...", maxlength="10")
+
+        .flex.items-center.gap-2
+          button.btn.btn-primary(type="submit") Apply
+          button.btn.btn-success#exportExcelBtn(type="button")
+            i.fas.fa-file-excel
+            span Excel
+          button.btn.btn-danger#exportPdfBtn(type="button")
+            i.fas.fa-file-pdf
+            span PDF
+
+    //- Tarjetas de Resumen
+    .stat-grid
+      .stat-card
+        span.card-label Total revenue (filtered)
+        strong.card-value.primary= s.revenue || '$0 COP'
+      .stat-card
+        span.card-label Payments
+        strong.card-value= s.count || 0
+      .stat-card
+        span.card-label Parking / extensions
+        strong.card-value #{s.parkingCount || 0} / #{s.extensionCount || 0}
+      .stat-card
+        span.card-label Average ticket
+        strong.card-value= s.averageTicket || '$0 COP'
+
+    //- Tabla de Resultados
+    .card.p-0.overflow-hidden
+      if rRows.length === 0
+        .empty-state
+          i.far.fa-folder-open
+          p No payments found for the selected filters.
+      else
+        .table-responsive
+          table.table
+            thead
+              tr
+                th DATE
+                th RECEIPT
+                th PLATE
+                th DRIVER
+                th ZONE
+                th TYPE
+                th AMOUNT
+            tbody
+              each row in rRows
+                tr
+                  td(data-label="Date")= row.formattedDate
+                  td.font-bold(data-label="Receipt")= row.receipt_number
+                  td.font-bold(data-label="Plate")= row.plate
+                  td(data-label="Driver")= row.driver_name
+                  td(data-label="Zone")
+                    span.pill.pill-muted= row.zone
+                  td(data-label="Type")
+                    if row.type === 'parking'
+                      span.pill.pill-info Parking
+                    else
+                      span.pill.pill-accent Extension
+                  td.font-bold(data-label="Amount")= row.formattedAmount
+
+        //- Paginación
+        footer.flex.items-center.justify-between.p-4.border-t.border-line
+          .text-xs.text-muted
+            | Showing #{pInfo.fromItem}–#{pInfo.toItem} of #{pInfo.total}
+          div(class="flex items-center gap-[6px]")
+            if pInfo.page > 1
+              a(href=pageUrl({ page: pInfo.page - 1 }), class="w-8 h-8 rounded-full border border-line bg-white text-ink flex items-center justify-center text-xs font-semibold no-underline hover:bg-surface-soft")
+                i.fas.fa-chevron-left
+            else
+              span.w-8.h-8.rounded-full.border.border-line.bg-white.text-ink.flex.items-center.justify-center.text-xs.font-semibold.opacity-40.cursor-not-allowed
+                i.fas.fa-chevron-left
+
+            - let p = 1
+            while p <= pInfo.totalPages
+              if p === pInfo.page
+                span.w-8.h-8.rounded-full.bg-accent.text-white.flex.items-center.justify-center.text-xs.font-semibold= p
+              else if p <= 3 || p >= pInfo.totalPages - 2 || Math.abs(p - pInfo.page) <= 1
+                a(href=pageUrl({ page: p }), class="w-8 h-8 rounded-full border border-line bg-white text-ink flex items-center justify-center text-xs font-semibold no-underline hover:bg-surface-soft")= p
+              else if p === 4 && pInfo.page > 5
+                span.text-muted.text-xs.px-1 ...
+              - p++
+
+            if pInfo.page < pInfo.totalPages
+              a(href=pageUrl({ page: pInfo.page + 1 }), class="w-8 h-8 rounded-full border border-line bg-white text-ink flex items-center justify-center text-xs font-semibold no-underline hover:bg-surface-soft")
+                i.fas.fa-chevron-right
+            else
+              span.w-8.h-8.rounded-full.border.border-line.bg-white.text-ink.flex.items-center.justify-center.text-xs.font-semibold.opacity-40.cursor-not-allowed
+                i.fas.fa-chevron-right

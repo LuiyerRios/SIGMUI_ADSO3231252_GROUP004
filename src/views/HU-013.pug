@@ -1,0 +1,213 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Tech Parking | Manage Users
+    link(rel="stylesheet", href="/css/HU-013.css")
+    script(src="https://cdn.tailwindcss.com")
+  body
+    .app-shell
+      aside.sidebar
+        .brand
+          .brand-mark P
+          span tech parking
+          button.sidebar-collapse(type="button" aria-label="Collapse sidebar") «
+        p.menu-label MENU
+        nav.side-nav(aria-label="Main navigation")
+          a.nav-item(href="#")
+            span.nav-icon ▦
+            span Parking zones
+          a.nav-item(href="#")
+            span.nav-icon ↗
+            span Dashboard
+          a.nav-item.active(href="#")
+            span.nav-icon ♙
+            span Manage users
+          a.nav-item(href="#")
+            span.nav-icon ▤
+            span Payment history
+          a.nav-item(href="#")
+            span.nav-icon ⚙
+            span Settings
+        .sidebar-profile
+          .profile-avatar AS
+          .profile-copy
+            strong Admin SIGMUI
+            small Administrator
+          button.logout(type="button") ⇥ &nbsp; Logout
+
+      main.main-area
+        header.topbar
+          .page-heading
+            h1 Manage users
+            p Roles and access of the system users
+          .topbar-right
+            label.global-search
+              span.search-symbol ⌕
+              input#globalSearch(type="search" placeholder="Search space or plate..." aria-label="Search space or plate")
+            button.icon-button(type="button" aria-label="Toggle theme") ☾
+            button.icon-button(type="button" aria-label="Messages") ✉
+            button.icon-button.notification(type="button" aria-label="Notifications") ♧
+            .admin-greeting
+              small Hello,
+              strong Admin
+
+        section.content
+          .filter-row
+            label.search-field
+              span.search-symbol ⌕
+              input#userSearch(type="search" placeholder="Search by name or email..." aria-label="Search by name or email")
+            .filter-group#roleFilters(aria-label="Filter by role")
+              button.filter-chip.selected(type="button" data-role="all") All roles
+              button.filter-chip(type="button" data-role="Client") Client
+              button.filter-chip(type="button" data-role="Traffic Agent") Agent
+              button.filter-chip(type="button" data-role="Admin") Admin
+            .filter-divider
+            .filter-group#statusFilters(aria-label="Filter by status")
+              button.filter-chip.selected(type="button" data-status="all") All
+              button.filter-chip(type="button" data-status="Active") Active
+              button.filter-chip(type="button" data-status="Suspended") Inactive
+            .result-count#resultCount 9 of 9 users
+
+          .table-card
+            .table-scroll
+              table.user-table
+                thead
+                  tr
+                    th(scope="col") Name
+                    th(scope="col") Email
+                    th(scope="col") Role
+                    th(scope="col") Verified
+                    th(scope="col") Status
+                    th(scope="col") Joined
+                    th.actions-heading(scope="col") Actions
+                tbody#usersTableBody
+                  //- Rows are rendered from the sample data in the script below.
+            .empty-state#emptyState(hidden)
+              strong No users found
+              p Try changing your search or filters.
+
+    //- Edit user drawer
+    .overlay#editOverlay(hidden)
+      section.drawer(role="dialog" aria-modal="true" aria-labelledby="editTitle")
+        header.drawer-header
+          .drawer-title-icon ✎
+          .drawer-title-copy
+            h2#editTitle Edit user
+            p Update the user information and associated vehicles
+          button.close-button#closeEdit(type="button" aria-label="Close edit panel") ×
+        form#editUserForm
+          .drawer-scroll
+            section.form-section
+              h3 User information
+              .form-grid
+                label.form-field
+                  span Full name
+                  input#editName(name="name" required maxlength="100")
+                label.form-field
+                  span Email
+                  input#editEmail(name="email" type="email" required maxlength="150")
+                label.form-field
+                  span Phone number
+                  input#editPhone(name="phone" type="tel" maxlength="30")
+                label.form-field
+                  span Role
+                  select#editRole(name="role" required)
+                    option(value="") Select a role
+                    option(value="Admin") Administrator
+                    option(value="Client") Client
+                    option(value="Traffic Agent") Traffic Agent
+                label.form-field
+                  span Status
+                  select#editStatus(name="status" required)
+                    option(value="Active") Active
+                    option(value="Suspended") Suspended
+                label.form-field
+                  span Password (optional)
+                  input#editPassword(name="password" type="password" autocomplete="new-password" placeholder="Leave blank to keep current password")
+              p.form-hint Password changes are not stored in this demo. Connect this form to your backend to update credentials securely.
+
+            section.form-section
+              .section-title-row
+                h3 Linked vehicles
+                button.primary-button.small-button#addVehicle(type="button") + Add vehicle
+              #vehicleList.vehicle-list
+              p.form-hint Edit vehicle details or remove a vehicle from this user's account.
+
+          footer.drawer-footer
+            button.secondary-button#cancelEdit(type="button") Cancel
+            button.primary-button(type="submit") Save changes
+
+    //- Add/edit vehicle modal
+    .overlay#vehicleOverlay(hidden)
+      section.dialog.vehicle-dialog(role="dialog" aria-modal="true" aria-labelledby="vehicleDialogTitle")
+        header.dialog-header
+          .dialog-icon.blue-icon ✎
+          .dialog-heading
+            h2#vehicleDialogTitle Add vehicle
+            p Enter the vehicle details below
+          button.close-button#closeVehicle(type="button" aria-label="Close vehicle form") ×
+        form#vehicleForm
+          .dialog-body
+            .form-grid
+              label.form-field
+                span License plate
+                input#vehiclePlate(name="plate" required maxlength="15")
+              label.form-field
+                span Vehicle type
+                select#vehicleType(name="type" required)
+                  option(value="") Select type
+                  option(value="Car") Car
+                  option(value="Motorcycle") Motorcycle
+                  option(value="SUV") SUV
+                  option(value="Truck") Truck
+                  option(value="Van") Van
+                  option(value="Other") Other
+              label.form-field
+                span Make
+                input#vehicleMake(name="make" maxlength="60")
+              label.form-field
+                span Model
+                input#vehicleModel(name="model" maxlength="60")
+              label.form-field
+                span Color
+                input#vehicleColor(name="color" maxlength="40")
+              label.form-field
+                span Assigned user
+                select#vehicleOwner(name="owner" required)
+            label.form-field.full-field
+              span Description
+              textarea#vehicleDescription(name="description" rows="3" maxlength="300")
+          footer.dialog-footer
+            button.secondary-button#cancelVehicle(type="button") Cancel
+            button.primary-button(type="submit") Save vehicle
+
+    //- Delete confirmation modal
+    .overlay#deleteOverlay(hidden)
+      section.dialog.confirm-dialog(role="alertdialog" aria-modal="true" aria-labelledby="deleteTitle" aria-describedby="deleteDescription")
+        header.dialog-header
+          .dialog-icon.danger-icon ♜
+          .dialog-heading
+            h2#deleteTitle Delete user?
+            p#deleteDescription Are you sure you want to delete this user? This action cannot be undone.
+          button.close-button#closeDelete(type="button" aria-label="Close confirmation") ×
+        .dialog-footer
+          button.secondary-button#cancelDelete(type="button") Cancel
+          button.danger-button#confirmDelete(type="button") Delete user
+
+    //- Vehicle deletion confirmation
+    .overlay#deleteVehicleOverlay(hidden)
+      section.dialog.confirm-dialog(role="alertdialog" aria-modal="true" aria-labelledby="deleteVehicleTitle")
+        header.dialog-header
+          .dialog-icon.danger-icon ♜
+          .dialog-heading
+            h2#deleteVehicleTitle Delete vehicle?
+            p Are you sure you want to remove this vehicle? This action cannot be undone.
+          button.close-button#closeDeleteVehicle(type="button" aria-label="Close confirmation") ×
+        .dialog-footer
+          button.secondary-button#cancelDeleteVehicle(type="button") Cancel
+          button.danger-button#confirmDeleteVehicle(type="button") Delete vehicle
+
+    .toast#toast(role="status" aria-live="polite")
+    script(src="/js/HU-013.js" defer)

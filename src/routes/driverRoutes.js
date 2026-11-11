@@ -1,11 +1,17 @@
 import express from 'express';
 import { requireRole } from '../middlewares/auth.js';
+ HEAD
 import { renderAvailableAreas } from '../controllers/zone-controller.js';
 import db from '../config/db.js'; // <--- 1. Importa tu conexión a MySQL
+import { renderHome, homeData } from '../controllers/driverController.js';
+import { renderStartParking } from '../controllers/parkingStartController.js';
+import { renderExtendTime } from '../controllers/extendTimeController.js';
+ origin/develop
 
 const router = express.Router();
 const driverOnly = requireRole('driver');
 
+ HEAD
 router.get('/zones', driverOnly, renderAvailableAreas); // HU-003
 
 router.get('/parking/start', driverOnly, (req, res) => {
@@ -61,4 +67,10 @@ router.post('/settings/profile', driverOnly, async (req, res) => {
     }
 });
 
+router.get('/zones', driverOnly, renderHome);                                                                       // HU-003
+router.get('/zones/data', driverOnly, homeData);                                                                    // HU-003 (auto-refresco)
+router.get('/parking/start', driverOnly, renderStartParking);                                                       // HU-004
+router.get('/parking/extend', driverOnly, renderExtendTime);                                                       // HU-005
+
+ origin/develop
 export default router;

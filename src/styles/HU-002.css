@@ -1,0 +1,27 @@
+/* HU-002 · Registro de Tech Parking
+   Compilar: npm run build:css:HU-002  →  public/css/HU-002.css
+   Solo escanea la vista y el JS de la HU-002 para no mezclar clases con otras HU. */
+@import "tailwindcss" source(none);
+@source "../views/HU-002.pug";
+@source "../../public/js/HU-002.js";
+
+@theme {
+  --font-poppins: "Poppins", system-ui, sans-serif;
+
+  --color-brand-primary: #2565AE;      /* Azul de enlaces y botón */
+  --color-brand-tech: #06ACFF;         /* Barras de contraseña cumplidas */
+  --color-brand-tech-soft: #CDEFFF;    /* Azul claro para 'tech' */
+  --color-surface: #EDF2F7;            /* Fondo de la página */
+  --color-ink: #172033;                /* Títulos y texto escrito */
+  --color-ink-soft: #33445C;           /* Texto de aceptación */
+  --color-muted: #5B6B82;              /* Texto secundario */
+  --color-line: #D4DCE7;               /* Bordes de campos */
+  --color-track: #E2E8F0;              /* Barras de contraseña sin cumplir */
+  --color-success: #16A34A;            /* Requisitos cumplidos */
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-poppins);
+}
