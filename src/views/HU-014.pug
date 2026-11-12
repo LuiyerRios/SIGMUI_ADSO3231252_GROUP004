@@ -1,136 +1,159 @@
-doctype html
-html(lang="es")
-  head
-    meta(charset="UTF-8")
-    meta(name="viewport" content="width=device-width, initial-scale=1.0")
-    title Tech Parking - Settings
-    script(src="https://cdn.tailwindcss.com")
-  body(class="bg-[#F8FAFC] font-sans h-screen flex overflow-hidden")
+//- HU-014 · Settings del conductor (diseño de Sebastián Montoya, conectado al layout y a los datos reales)
+extends layouts/app
 
-    //- Barra lateral
-    aside(class="hidden md:flex w-64 flex-col bg-gradient-to-b from-[#15385F] to-[#071B35] text-white shrink-0")
-      div(class="flex items-center gap-3 px-6 py-7 border-b border-white/10")
-        div(class="w-11 h-11 rounded-xl bg-sky-500 flex items-center justify-center text-xl font-bold") P
-        div
-          h1(class="text-lg font-bold tracking-wide") tech parking
-          
-      nav(class="flex-1 p-4 space-y-1")
-        p(class="px-3 py-3 text-[10px] uppercase tracking-widest text-blue-300 font-semibold") MENU
-        a(href="/home" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-blue-200 hover:bg-white/10 hover:text-white transition") 
-          span ⌂
-          span Home
-        a(href="/start-parking" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-blue-200 hover:bg-white/10 hover:text-white transition") 
-          span ▣
-          span Start parking
-        a(href="/extend-time" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-blue-200 hover:bg-white/10 hover:text-white transition") 
-          span ◷
-          span Extend time
-        a(href="/payments" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-blue-200 hover:bg-white/10 hover:text-white transition") 
-          span $
-          span Payments
-        a(href="/settings" class="flex items-center gap-3 rounded-xl bg-sky-500 px-4 py-3 text-sm font-semibold text-white shadow-lg") 
-          span ⚙
-          span Settings
-        a(href="/help" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-blue-200 hover:bg-white/10 hover:text-white transition") 
-          span ?
-          span Help
+block content
+  div(class="max-w-5xl")
 
-      div(class="p-4")
-        div(class="flex items-center justify-between rounded-2xl bg-white/5 p-3 border border-white/5")
-          div(class="flex items-center gap-3")
-            div(class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 font-bold text-white text-sm") LR
+    if successMessage
+      .alert.alert-success(class="mb-6")
+        i.fas.fa-circle-check
+        span= successMessage
+    if errorMessage
+      .alert.alert-error(class="mb-6")
+        i.fas.fa-exclamation-circle
+        span= errorMessage
+
+    //- Pestañas de navegación interna (Profile / Password / Vehicles)
+    -
+      const tabs = [
+        { key: 'profile', label: 'Profile', hint: 'Name and phone' },
+        { key: 'password', label: 'Password', hint: 'Change your password' },
+        { key: 'vehicles', label: 'Vehicles', hint: `${vehicleCount} registered` }
+      ]
+    div(class="flex gap-6 sm:gap-8 border-b border-gray-200 mb-8")
+      each t in tabs
+        if t.key === tab
+          a(href=`/settings?tab=${t.key}`, class="pb-3 text-sm font-semibold text-blue-600 border-b-2 border-blue-600", aria-current="page")
+            | #{t.label}
+            span(class="block text-[11px] font-normal text-gray-400")= t.hint
+        else
+          a(href=`/settings?tab=${t.key}`, class="pb-3 text-sm font-medium text-gray-400 hover:text-gray-600")
+            | #{t.label}
+            span(class="block text-[11px] font-normal text-gray-300")= t.hint
+
+    if tab === 'profile'
+      //- Tarjeta del formulario
+      div(id="profile", class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8")
+
+        //- Cabecera del perfil
+        div(class="flex items-center gap-4 pb-8 border-b border-gray-100 mb-8")
+          div(class="relative")
+            div(class="w-16 h-16 rounded-full bg-sky-500 text-white flex items-center justify-center text-xl font-bold shadow-inner")= user.avatar_initials
+          div
+            h3(class="text-lg font-bold text-gray-900")= user.full_name
+            p(class="text-xs text-gray-500") Driver • member since #{memberSince}
+
+        //- Formulario de edición
+        form(action="/settings/profile", method="POST")
+
+          div(class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6")
+            //- Full name
             div
-              p(class="text-sm font-semibold text-white") Luiyer Rios
-              p(class="text-xs text-blue-200") Driver
+              label(class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2", for="full_name") Full name
+              div(class="relative flex items-center")
+                span(class="absolute left-3 text-gray-400") 👤
+                input(type="text", id="full_name", name="full_name", value=user.full_name, required, minlength="3", maxlength="100", class="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition")
 
-        //- Botón para cerrar sesión con imagen
-        a(href="/logout" class="flex items-center gap-3 px-3.5 py-3 mt-2 text-sm text-blue-200 hover:text-white transition")
-          img(src="/images/logout.png" alt="Log Out" class="h-5 w-5 object-contain opacity-70 hover:opacity-100")
-          span Log Out
+            //- Phone
+            div
+              label(class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2", for="phone") Phone
+              div(class="relative flex items-center")
+                span(class="absolute left-3 text-gray-400") 📱
+                input(type="tel", id="phone", name="phone", value=user.phone || '', maxlength="20", placeholder="+57 300 000 0000", class="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition")
 
-    //- Contenido principal
-    div(class="flex-1 flex flex-col h-full overflow-hidden")
-      
-      //- Header superior
-      header(class="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-8 shrink-0")
-        div(class="w-96 relative")
-          span(class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 text-sm") 🔍
-          input(type="text" placeholder="Search space or plate..." class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500")
-        
-        div(class="flex items-center gap-4 text-gray-600")
-          button(class="p-2 hover:bg-gray-100 rounded-full transition") 🌙
-          button(class="p-2 hover:bg-gray-100 rounded-full transition") ✉️
-          button(class="p-2 hover:bg-gray-100 rounded-full transition relative") 
-            span(class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full")
-            | 🔔
-          div(class="flex items-center gap-2 pl-4 border-l border-gray-200")
-            span(class="text-sm font-medium text-gray-700") Hello, 
-            span(class="text-sm font-bold text-gray-900") Luiyer
+          //- Email (solo lectura)
+          div(class="mb-8 relative")
+            label(class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2", for="email") Email
+            div(class="relative flex items-center")
+              span(class="absolute left-3 text-gray-400") ✉️
+              input(type="email", id="email", value=user.email, disabled, class="w-full pl-10 pr-24 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-500 cursor-not-allowed")
+              if user.email_verified_at
+                span(class="absolute right-3 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md") Verified
+              else
+                span(class="absolute right-3 text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md") Not verified
+            p(class="text-[11px] text-gray-400 mt-1.5") The email cannot be changed.
 
-      //- (Área de trabajo)
-      main(class="flex-1 p-8 overflow-y-auto")
-        div(class="max-w-5xl")
-          
-          //- Título de la sección
-          div(class="mb-6")
-            h2(class="text-2xl font-bold text-gray-900") Settings
-            p(class="text-sm text-gray-500") Your account, password and vehicles
+          //- Línea divisoria y botones
+          div(class="border-t border-gray-100 pt-6 flex items-center justify-end gap-3")
+            a(href="/settings", class="px-6 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition") Cancel
+            button(type="submit", class="px-6 py-2.5 rounded-xl bg-sky-500 text-sm font-semibold text-white hover:bg-sky-600 shadow-lg shadow-sky-500/20 transition") Save changes
 
-          //- Pestañas de Navegación interna (Profile / Password / Vehicles)
-          div(class="flex gap-8 border-b border-gray-200 mb-8")
-            a(href="#profile" class="pb-3 text-sm font-semibold text-blue-600 border-b-2 border-blue-600") 
-              | Profile
-              span(class="block text-[11px] font-normal text-gray-400") Name and phone
-            a(href="#password" class="pb-3 text-sm font-medium text-gray-400 hover:text-gray-600") 
-              | Password
-              span(class="block text-[11px] font-normal text-gray-300") Change your password
-            a(href="#vehicles" class="pb-3 text-sm font-medium text-gray-400 hover:text-gray-600") 
-              | Vehicles
-              span(class="block text-[11px] font-normal text-gray-300") 2 registered
+    //- Cambio de contraseña (misma regla de HU-002)
+    if tab === 'password'
+      div(id="password", class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8")
+        div(class="pb-6 border-b border-gray-100 mb-8")
+          h3(class="text-lg font-bold text-gray-900") Change your password
+          p(class="text-xs text-gray-500") You will use the new password the next time you sign in.
 
-          //- Tarjeta del Formulario 
-          div(class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8")
-            
-            //- Cabecera del Perfil 
-            div(class="flex items-center gap-4 pb-8 border-b border-gray-100 mb-8")
-              div(class="relative")
-                div(class="w-16 h-16 rounded-full bg-sky-500 text-white flex items-center justify-center text-xl font-bold shadow-inner") LR
-              <div>
-                h3(class="text-lg font-bold text-gray-900") Luiyer Rios
-                p(class="text-xs text-gray-500") Driver • member since Sep 2026[cite: 1]
-              </div>
+        form(action="/settings/password", method="POST", id="passwordForm")
+          div(class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6")
+            div(class="md:col-span-2")
+              label(class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2", for="currentPassword") Current password
+              div(class="relative flex items-center")
+                span(class="absolute left-3 text-gray-400") 🔒
+                input(type="password", id="currentPassword", name="currentPassword", required, autocomplete="current-password", class="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition")
+            div
+              label(class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2", for="newPassword") New password
+              div(class="relative flex items-center")
+                span(class="absolute left-3 text-gray-400") 🔑
+                input(type="password", id="newPassword", name="newPassword", required, minlength="8", autocomplete="new-password", class="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition")
+            div
+              label(class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2", for="confirmPassword") Confirm new password
+              div(class="relative flex items-center")
+                span(class="absolute left-3 text-gray-400") 🔑
+                input(type="password", id="confirmPassword", name="confirmPassword", required, autocomplete="new-password", class="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition")
 
-            //- Formulario de edición
-            form(action="/settings/profile" method="POST")
-              
-              div(class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6")
-                //- Full name
-                <div>
-                  label(class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2" for="full_name") Full name
-                  div(class="relative flex items-center")
-                    span(class="absolute left-3 text-gray-400") 👤
-                    input(type="text" id="full_name" name="full_name" value="Luiyer Rios Blanco" class="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition")
-                </div>
+          ul(id="passwordRules", class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-8 text-xs text-gray-400")
+            li(data-rule="length", class="flex items-center gap-2")
+              span(class="rule-dot w-2 h-2 rounded-full bg-gray-300")
+              | At least 8 characters
+            li(data-rule="upper", class="flex items-center gap-2")
+              span(class="rule-dot w-2 h-2 rounded-full bg-gray-300")
+              | One uppercase letter
+            li(data-rule="number", class="flex items-center gap-2")
+              span(class="rule-dot w-2 h-2 rounded-full bg-gray-300")
+              | One number
 
-                //- Phone
-                <div>
-                  label(class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2" for="phone") Phone
-                  div(class="relative flex items-center")
-                    span(class="absolute left-3 text-gray-400") 📱
-                    input(type="text" id="phone" name="phone" value="+57 300 123 4567" class="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition")
-                </div>
-              </div>
+          div(class="border-t border-gray-100 pt-6 flex items-center justify-end gap-3")
+            a(href="/settings?tab=password", class="px-6 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition") Cancel
+            button(type="submit", class="px-6 py-2.5 rounded-xl bg-sky-500 text-sm font-semibold text-white hover:bg-sky-600 shadow-lg shadow-sky-500/20 transition") Change password
 
-              //- Email 
-              div(class="mb-8 relative")
-                label(class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2" for="email") Email
-                div(class="relative flex items-center")
-                  span(class="absolute left-3 text-gray-400") ✉️
-                  input(type="email" id="email" value="luiyer@example.com" disabled class="w-full pl-10 pr-20 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-500 cursor-not-allowed")
-                  span(class="absolute right-3 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md") Verified
-                p(class="text-[11px] text-gray-400 mt-1.5") The email cannot be changed.[cite: 1]
+    //- Vehículos del conductor (los usa HU-004 para iniciar el parqueo)
+    if tab === 'vehicles'
+      div(id="vehicles", class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8")
+        div(class="pb-6 border-b border-gray-100 mb-6")
+          h3(class="text-lg font-bold text-gray-900") Your vehicles
+          p(class="text-xs text-gray-500") These plates appear when you start a parking session.
 
-              //- Línea divisoria inferior de los inputs
-              div(class="border-t border-gray-100 pt-6 flex items-center justify-end gap-3")
-                button(type="button" class="px-6 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition") Cancel
-                button(type="submit" class="px-6 py-2.5 rounded-xl bg-sky-500 text-sm font-semibold text-white hover:bg-sky-600 shadow-lg shadow-sky-500/20 transition") Save changes
+        if vehicles.length
+          ul(class="divide-y divide-gray-100 mb-8")
+            each v in vehicles
+              li(class="flex items-center justify-between gap-4 py-4")
+                div(class="flex items-center gap-4 min-w-0")
+                  div(class="w-11 h-11 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0") 🚗
+                  div(class="min-w-0")
+                    p(class="text-sm font-bold text-gray-900 tracking-wider")= v.plate
+                    p(class="text-xs text-gray-500 truncate")= v.brand_model || 'No brand / model'
+                if v.has_active_session
+                  span(class="text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md shrink-0") Parked now
+                else
+                  form(action=`/settings/vehicles/${v.id}/delete`, method="POST", class="shrink-0")
+                    button(type="submit", class="px-4 py-2 rounded-xl border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50 transition") Remove
+        else
+          div(class="text-center py-8 mb-8 rounded-xl bg-gray-50 border border-dashed border-gray-200")
+            p(class="text-sm font-semibold text-gray-700") You have no vehicles yet
+            p(class="text-xs text-gray-500") Add your first plate below.
+
+        form(action="/settings/vehicles", method="POST", class="border-t border-gray-100 pt-6")
+          p(class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4") Add a vehicle
+          div(class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end")
+            div
+              label(class="block text-xs font-semibold text-gray-500 mb-2", for="plate") Plate
+              input(type="text", id="plate", name="plate", required, maxlength="7", placeholder="ABC123", autocomplete="off", class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm font-bold tracking-wider uppercase text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition")
+            div
+              label(class="block text-xs font-semibold text-gray-500 mb-2", for="brand_model") Brand / model
+              input(type="text", id="brand_model", name="brand_model", maxlength="60", placeholder="Mazda 3", class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition")
+            button(type="submit", class="px-6 py-3 rounded-xl bg-sky-500 text-sm font-semibold text-white hover:bg-sky-600 shadow-lg shadow-sky-500/20 transition") Add vehicle
+
+block scripts
+  script(src="/js/HU-014.js")
