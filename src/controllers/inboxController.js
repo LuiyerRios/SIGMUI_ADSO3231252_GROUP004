@@ -117,9 +117,13 @@ export const renderInbox = async (req, res) => {
 
     res.render('HU-015', {
       title: 'Inbox | SIGMUI',
+      activeMenu: 'inbox',
+      pageTitle: 'Inbox',
+      pageSubtitle: 'Parking alerts and replies from support',
       notifications,
       selectedNotification,
       activeFilter,
+      openedFromList: Boolean(req.query.id), // en celular: con ?id= se muestra el detalle; sin él, la lista
       errorMessage: null
     });
 
@@ -127,6 +131,9 @@ export const renderInbox = async (req, res) => {
     console.error('Error loading inbox:', error);
     res.status(500).render('HU-015', {
       title: 'Inbox | SIGMUI',
+      activeMenu: 'inbox',
+      pageTitle: 'Inbox',
+      pageSubtitle: 'Parking alerts and replies from support',
       notifications: [],
       selectedNotification: null,
       activeFilter,
