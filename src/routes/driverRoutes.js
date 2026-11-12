@@ -17,20 +17,31 @@ router.get('/parking/extend', driverOnly, renderExtendTime);                    
 // HU-014 · Configuración del perfil del conductor (siempre del usuario en sesión)
 router.get('/settings', driverOnly, async (req, res) => {
   try {
-    const [user] = await db.query(
-      'SELECT id, full_name, email, phone FROM users WHERE id = :id LIMIT 1',
-      { replacements: { id: req.session.user.id }, type: QueryTypes.SELECT }
-    );
+    const [[user], [vehicles]] = await Promise.all([
+      db.query(
+        'SELECT id, full_name, email, phone, email_verified_at, created_at FROM users WHERE id = :id LIMIT 1',
+        { replacements: { id: req.session.user.id }, type: QueryTypes.SELECT }
+      ),
+      db.query(
+        'SELECT COUNT(*) AS total FROM vehicles WHERE user_id = :id',
+        { replacements: { id: req.session.user.id }, type: QueryTypes.SELECT }
+      )
+    ]);
     if (!user) return res.redirect('/logout');
 
     user.avatar_initials = user.full_name
       .split(' ').filter(Boolean).slice(0, 2).map(n => n[0]).join('').toUpperCase();
 
     res.render('HU-014', {
-      title: 'Profile settings | SIGMUI',
+      title: 'Settings | SIGMUI',
+      activeMenu: 'settings',
+      pageTitle: 'Settings',
+      pageSubtitle: 'Your account, password and vehicles',
       user,
+      vehicleCount: Number(vehicles?.total) || 0,
+      memberSince: new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
       success: req.query.success === '1',
-      errorMessage: null
+      errorMessage: req.query.error === '1' ? 'Please check your name and phone.' : null
     });
   } catch (error) {
     console.error('Error loading profile settings (HU-014):', error);
