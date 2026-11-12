@@ -28,7 +28,6 @@ block content
         ) Last 30 days
 
       div(class="flex items-center gap-3")
-        span(class="text-xs text-muted hidden sm:inline") Demo data · real values come from parking_sessions and fines
         a(
           href=`/admin/dashboard/export?range=${currentRange}`,
           class="btn btn-secondary py-1.5 px-3 text-xs"
@@ -45,9 +44,7 @@ block content
           div(class="flex flex-col")
             span(class="card-label") Revenue
             strong(class="card-value")= formattedRevenue || '$0 COP'
-        span(class="text-xs text-success flex items-center gap-1")
-          i(class="fas fa-arrow-up text-[10px]")
-          span 8% vs. previous period
+        span(class="text-xs text-muted") Parking + extensions
 
       div(class="stat-card")
         div(class="flex items-center gap-3 mb-2")
@@ -56,9 +53,7 @@ block content
           div(class="flex flex-col")
             span(class="card-label") Sessions
             strong(class="card-value")= data ? data.sessions : 0
-        span(class="text-xs text-success flex items-center gap-1")
-          i(class="fas fa-arrow-up text-[10px]")
-          span 5% vs. previous period
+        span(class="text-xs text-muted") Paid parking sessions
 
       div(class="stat-card")
         div(class="flex items-center gap-3 mb-2")
@@ -76,7 +71,7 @@ block content
           div(class="flex flex-col")
             span(class="card-label") Fines issued
             strong(class="card-value")= data ? data.finesIssued : 0
-        span(class="text-xs text-muted") Most common: expired time
+        span(class="text-xs text-muted") Issued by traffic agents
 
     //- 3. Layout de Gráficos y Tablas
     div(class="grid grid-cols-12 gap-6 items-start")
@@ -91,14 +86,14 @@ block content
         if data && data.occupancyByHour && data.occupancyByHour.length > 0
           div(class="flex items-end justify-between gap-1.5 h-48 pt-6 pb-2 border-b border-line px-2")
             each item in data.occupancyByHour
-              - const isPeak = data.peakHourText.includes(item.hour)
+              - const isPeak = data.peakHour !== null && item.hour === data.peakHour
               div(class="flex flex-col items-center gap-1 flex-1 h-full justify-end")
                 span(class="text-[10px] font-bold text-muted") #{item.percent}%
                 div(
                   class=isPeak ? "w-full bg-accent rounded-t-md transition-all" : "w-full bg-tech/40 rounded-t-md transition-all hover:bg-tech",
                   style=`height: ${Math.max(item.percent, 4)}%`
                 )
-                span(class="text-[10px] text-muted font-medium mt-1")= item.hour
+                span(class="text-[10px] text-muted font-medium mt-1")= item.label
         else
           div(class="empty-state")
             i(class="fas fa-chart-bar")
@@ -116,7 +111,7 @@ block content
               div(class="flex flex-col gap-1.5")
                 div(class="flex justify-between items-center text-xs")
                   span(class="font-bold text-ink") Zone #{z.zone}
-                  span(class="font-semibold text-muted") $#{z.amount.toLocaleString()} COP
+                  span(class="font-semibold text-muted")= z.amountText
                 div(class="w-full bg-surface-soft h-2.5 rounded-full overflow-hidden")
                   div(
                     class="bg-gradient-to-r from-primary to-tech h-full rounded-full",
@@ -148,7 +143,7 @@ block content
                     td(data-label="PLATE", class="font-bold text-ink")= sess.plate
                     td(data-label="SPACE")= sess.spaceId
                     td(data-label="TIME")= sess.durationText
-                    td(data-label="AMOUNT", class="font-semibold text-ink") $#{sess.amount.toLocaleString()} COP
+                    td(data-label="AMOUNT", class="font-semibold text-ink")= sess.amountText
         else
           div(class="empty-state")
             i(class="fas fa-car-side")
