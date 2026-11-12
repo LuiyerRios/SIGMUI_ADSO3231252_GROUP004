@@ -6,6 +6,7 @@ import { requireRole } from '../middlewares/auth.js';
 import { renderHome, homeData } from '../controllers/driverController.js';
 import { renderStartParking } from '../controllers/parkingStartController.js';
 import { renderExtendTime } from '../controllers/extendTimeController.js';
+import { renderPaymentSimulation, renderMyPayments, renderReceipt } from '../controllers/paymentSimulationController.js';
 import {
   validateProfile,
   validatePasswordChange,
@@ -21,6 +22,9 @@ router.get('/zones', driverOnly, renderHome);                                   
 router.get('/zones/data', driverOnly, homeData);                                                                    // HU-003 (auto-refresco)
 router.get('/parking/start', driverOnly, renderStartParking);                                                       // HU-004
 router.get('/parking/extend', driverOnly, renderExtendTime);                                                       // HU-005
+router.get('/payments', driverOnly, renderMyPayments);                                                             // HU-013 (mis pagos)
+router.get('/payments/simulate', driverOnly, renderPaymentSimulation);                                             // HU-013
+router.get('/payments/:id/receipt', driverOnly, renderReceipt);                                                    // HU-013 (recibo)
 
 // ===================== HU-014 · Settings (perfil, contraseña y vehículos del usuario en sesión) =====================
 

@@ -6,6 +6,11 @@
 @source "../views/HU-003.pug";
 @source "../views/HU-004.pug";
 @source "../views/HU-005.pug";
+@source "../views/HU-013.pug";
+@source "../views/HU-013-payments.pug";
+@source "../views/HU-014.pug";
+@source "../../public/js/HU-014.js";
+@source "../../public/js/HU-013.js";
 @source "../views/HU-010.pug";
 @source "../views/HU-008.pug";
 @source "../../public/js/app.js";
