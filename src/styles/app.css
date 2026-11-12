@@ -9,6 +9,8 @@
 @source "../views/HU-013.pug";
 @source "../views/HU-013-payments.pug";
 @source "../views/HU-015.pug";
+@source "../views/HU-015-admin-list.pug";
+@source "../views/HU-015-admin-detail.pug";
 @source "../views/HU-014.pug";
 @source "../../public/js/HU-014.js";
 @source "../../public/js/HU-013.js";
