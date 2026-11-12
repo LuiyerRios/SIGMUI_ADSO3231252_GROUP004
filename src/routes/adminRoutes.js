@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { renderAdminHome } from '../controllers/adminHomeController.js';
+import { renderDashboard, exportDashboardCsv } from '../controllers/dashboardController.js';
 import { body } from 'express-validator';
 
 import { 
@@ -17,7 +18,9 @@ const router = Router();
 // HU-010 Admin Parking Zones
 router.get('/', renderAdminHome);
 
-router.get('/dashboard', (req, res) => res.render('HU-008', { title: 'Administrative dashboard | SIGMUI' }));  // HU-008 (se actualizará en Parte C)
+// HU-008 Admin Dashboard
+router.get('/dashboard', renderDashboard);
+router.get('/dashboard/export', exportDashboardCsv);
 
 // HU-017 Admin Payment History Routes
 router.get('/payments', renderPaymentHistory);

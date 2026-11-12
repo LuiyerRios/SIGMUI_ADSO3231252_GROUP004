@@ -1,68 +1,155 @@
-doctype html
-html(lang="en" class="h-full")
-  head
-    meta(charset="UTF-8")
-    meta(name="viewport" content="width=device-width, initial-scale=1.0")
-    title HU-008 - Municipal Administrative Dashboard
-    script(src="https://cdn.tailwindcss.com")
-    // Chart.js
-    script(src="https://cdn.jsdelivr.net/npm/chart.js")
-    // Librerías de exportación
-    script(src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js")
-    script(src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js")
+extends layouts/app
 
-  body(class="bg-[#eaf4fc] min-h-screen font-sans flex flex-col items-center overflow-x-hidden")
+block content
+  - const currentRange = range || 'today'
 
-    //- HEADER AZUL
-    header(class="w-full bg-[#2565ae] py-3 px-6 flex items-center justify-between shadow-sm mb-6 shrink-0")
-      a(href="/admin" class="text-white hover:opacity-80 transition flex items-center")
-        svg(xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor")
-          path(stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18")
-      
-      div(class="text-center font-bold text-2xl tracking-wide flex items-center justify-center gap-1.5 mx-auto")
-        span(class="text-[#64b5f6] font-semibold") tech 
-        span(class="text-white font-extrabold") parking
-      
-      div(class="w-7")
+  div(class="flex flex-col gap-6", id="dashboardContainer")
+    if errorMessage
+      div(class="alert alert-error")
+        i(class="fas fa-exclamation-circle")
+        span= errorMessage
 
-    //- TARJETA CENTRAL DE REPORTES
-    main#reportArea(class="w-full max-w-xl bg-white border border-gray-400 rounded-lg p-5 shadow-sm mx-4 mb-6 flex flex-col justify-between")
-      
-      //- Filtro y Exportación
-      header(class="flex flex-wrap items-center justify-between gap-3 mb-4")
-        div(class="flex items-center gap-2 border border-gray-400 rounded px-2.5 py-1 bg-white shadow-sm")
-          span(class="text-base") 📅
-          label(for="filterDate" class="font-bold text-black text-xs sm:text-sm") Filter by date:
-          input#filterDate(
-            type="date" 
-            class="outline-none text-gray-800 font-semibold cursor-pointer text-xs sm:text-sm"
-          )
+    //- 1. Barra de Filtros y Exportación
+    div(class="flex items-center justify-between flex-wrap gap-4")
+      div(class="flex items-center gap-2 flex-wrap")
+        a(
+          href="/admin/dashboard?range=today",
+          class=currentRange === 'today' ? 'chip active' : 'chip'
+        ) Today
 
-        div(class="flex items-center gap-2")
-          button#btnExportPDF(
-            type="button" 
-            class="border border-gray-400 px-3 py-1 rounded bg-white hover:bg-gray-50 font-bold text-black text-xs sm:text-sm shadow-sm transition cursor-pointer"
-          ) Export PDF
+        a(
+          href="/admin/dashboard?range=7d",
+          class=currentRange === '7d' ? 'chip active' : 'chip'
+        ) Last 7 days
 
-          button#btnExportExcel(
-            type="button" 
-            class="border border-gray-400 px-3 py-1 rounded bg-white hover:bg-gray-50 font-bold text-black text-xs sm:text-sm shadow-sm transition cursor-pointer"
-          ) Export Excel
+        a(
+          href="/admin/dashboard?range=30d",
+          class=currentRange === '30d' ? 'chip active' : 'chip'
+        ) Last 30 days
 
-      //- Gráfico de Ocupación con Dimensiones Controladas
-      section(class="flex flex-col items-center justify-center my-2")
-        div(class="w-full max-w-[320px] border border-gray-300 p-4 rounded flex flex-col items-center justify-center bg-white shadow-inner")
-          h3(class="text-sm font-bold text-gray-800 mb-3 text-center") Ocupación por Zona
-          
-          // Contenedor estricto para evitar desbordamiento del Canvas
-          div(class="relative w-52 h-52 flex items-center justify-center")
-            canvas#occupancyChart
+      div(class="flex items-center gap-3")
+        span(class="text-xs text-muted hidden sm:inline") Demo data · real values come from parking_sessions and fines
+        a(
+          href=`/admin/dashboard/export?range=${currentRange}`,
+          class="btn btn-secondary py-1.5 px-3 text-xs"
+        )
+          i(class="fas fa-download text-xs")
+          span Export CSV
 
-      //- Alerta de Datos
-      footer(class="mt-4 flex justify-start")
-        div#alertBox(class="hidden items-center gap-2 border border-gray-400 bg-white text-red-600 font-bold px-3 py-1 rounded text-xs sm:text-sm w-fit shadow-sm")
-          span(class="text-red-600 text-sm") ⚠️
-          span#alertText No data available
+    //- 2. Tarjetas de Estadísticas Principales
+    div(class="stat-grid")
+      div(class="stat-card")
+        div(class="flex items-center gap-3 mb-2")
+          div(class="w-10 h-10 rounded-xl bg-accent/10 text-accent flex items-center justify-center shrink-0")
+            i(class="fas fa-dollar-sign")
+          div(class="flex flex-col")
+            span(class="card-label") Revenue
+            strong(class="card-value")= formattedRevenue || '$0 COP'
+        span(class="text-xs text-success flex items-center gap-1")
+          i(class="fas fa-arrow-up text-[10px]")
+          span 8% vs. previous period
 
-    //- Lógica JavaScript modular en archivo externo
-    script(src="/js/HU-008.js")
+      div(class="stat-card")
+        div(class="flex items-center gap-3 mb-2")
+          div(class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0")
+            i(class="fas fa-calendar-check")
+          div(class="flex flex-col")
+            span(class="card-label") Sessions
+            strong(class="card-value")= data ? data.sessions : 0
+        span(class="text-xs text-success flex items-center gap-1")
+          i(class="fas fa-arrow-up text-[10px]")
+          span 5% vs. previous period
+
+      div(class="stat-card")
+        div(class="flex items-center gap-3 mb-2")
+          div(class="w-10 h-10 rounded-xl bg-warning/10 text-warning flex items-center justify-center shrink-0")
+            i(class="fas fa-clock")
+          div(class="flex flex-col")
+            span(class="card-label") Avg. duration
+            strong(class="card-value")= formattedAvgDuration || '0m'
+        span(class="text-xs text-muted") Max allowed 4 h
+
+      div(class="stat-card")
+        div(class="flex items-center gap-3 mb-2")
+          div(class="w-10 h-10 rounded-xl bg-danger/10 text-danger flex items-center justify-center shrink-0")
+            i(class="fas fa-file-invoice")
+          div(class="flex flex-col")
+            span(class="card-label") Fines issued
+            strong(class="card-value")= data ? data.finesIssued : 0
+        span(class="text-xs text-muted") Most common: expired time
+
+    //- 3. Layout de Gráficos y Tablas
+    div(class="grid grid-cols-12 gap-6 items-start")
+      //- Ocupación por Hora (CSS Bars Chart)
+      div(class="card col-span-12 xl:col-span-5")
+        div(class="card-header flex items-center justify-between")
+          div
+            h2(class="card-title") Occupancy by hour
+            p(class="card-subtitle") Today's hourly usage percentage
+          span(class="text-xs font-semibold text-accent") Peak #{data ? data.peakHourText : '—'}
+
+        if data && data.occupancyByHour && data.occupancyByHour.length > 0
+          div(class="flex items-end justify-between gap-1.5 h-48 pt-6 pb-2 border-b border-line px-2")
+            each item in data.occupancyByHour
+              - const isPeak = data.peakHourText.includes(item.hour)
+              div(class="flex flex-col items-center gap-1 flex-1 h-full justify-end")
+                span(class="text-[10px] font-bold text-muted") #{item.percent}%
+                div(
+                  class=isPeak ? "w-full bg-accent rounded-t-md transition-all" : "w-full bg-tech/40 rounded-t-md transition-all hover:bg-tech",
+                  style=`height: ${Math.max(item.percent, 4)}%`
+                )
+                span(class="text-[10px] text-muted font-medium mt-1")= item.hour
+        else
+          div(class="empty-state")
+            i(class="fas fa-chart-bar")
+            p No hourly occupancy data available for today.
+
+      //- Ingresos por Zona (Horizontal Progress Bars)
+      div(class="card col-span-12 md:col-span-6 xl:col-span-3")
+        div(class="card-header")
+          h2(class="card-title") Revenue by zone
+          p(class="card-subtitle") Distribution across blue zones
+
+        if data && data.revenueByZone && data.revenueByZone.length > 0
+          div(class="flex flex-col gap-4 py-2")
+            each z in data.revenueByZone
+              div(class="flex flex-col gap-1.5")
+                div(class="flex justify-between items-center text-xs")
+                  span(class="font-bold text-ink") Zone #{z.zone}
+                  span(class="font-semibold text-muted") $#{z.amount.toLocaleString()} COP
+                div(class="w-full bg-surface-soft h-2.5 rounded-full overflow-hidden")
+                  div(
+                    class="bg-gradient-to-r from-primary to-tech h-full rounded-full",
+                    style=`width: ${z.percent}%`
+                  )
+        else
+          div(class="empty-state")
+            i(class="fas fa-coins")
+            p No revenue data by zone.
+
+      //- Últimas Sesiones (Tabla Responsive)
+      div(class="card col-span-12 md:col-span-6 xl:col-span-4")
+        div(class="card-header")
+          h2(class="card-title") Latest sessions
+          p(class="card-subtitle") Recent activity in system
+
+        if data && data.latestSessions && data.latestSessions.length > 0
+          div(class="table-responsive")
+            table(class="table")
+              thead
+                tr
+                  th PLATE
+                  th SPACE
+                  th TIME
+                  th AMOUNT
+              tbody
+                each sess in data.latestSessions
+                  tr
+                    td(data-label="PLATE", class="font-bold text-ink")= sess.plate
+                    td(data-label="SPACE")= sess.spaceId
+                    td(data-label="TIME")= sess.durationText
+                    td(data-label="AMOUNT", class="font-semibold text-ink") $#{sess.amount.toLocaleString()} COP
+        else
+          div(class="empty-state")
+            i(class="fas fa-car-side")
+            p No recent sessions recorded.
