@@ -4,6 +4,7 @@ import path from 'path';
 import session from 'express-session';
 import { fileURLToPath } from 'url';
 
+import db from './config/db.js';
 import { exposeUser, requireRole } from './middlewares/auth.js';
 import { exposeUnreadCount } from './middlewares/notifications.js';
 import { createParkingAlerts } from './services/notificationService.js';
@@ -26,35 +27,26 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
-// Archivos estáticos
+// Archivos estáticos: SOLO la carpeta public/ de la raíz
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'sigmui-hu014-clave-local-2026',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  rolling: true,
-  cookie: {
-    httpOnly: true,
-    maxAge: 30 * 60 * 1000
-  }
+  rolling: true, // HU-001: la sesión se mantiene mientras haya uso continuo
+  cookie: { httpOnly: true, maxAge: 30 * 60 * 1000 } // expira tras 30 min sin actividad
 }));
-
 app.use(exposeUser);
 app.use(exposeUnreadCount);
 
 // Rutas
 app.use('/', authRoutes);                              // HU-001, HU-002, HU-009
- HEAD
-app.use('/api', apiRoutes);                            // APIs
-
 app.use('/api/payments', paymentRoutes);               // HU-017 (Pagos simulados)
 app.use('/api', apiRoutes);                            // APIs (protegidas adentro)
- origin/develop
 app.use('/help', requireRole(), helpRoutes);           // HU-011
 app.use('/inbox', requireRole(), inboxRoutes);         // HU-015
 app.use('/agent', requireRole('agent'), agentRoutes);  // HU-006, HU-007
@@ -63,17 +55,7 @@ app.use('/', driverRoutes);                            // HU-003, HU-004, HU-005
 
 // 404
 app.use((req, res) => {
-  res.status(404).render('errors/error', {
-    title: 'Not found',
-    code: 404,
-    message: 'The page you are looking for does not exist.'
-  });
-});
-
- HEAD
-// Arranque sin conexión a MySQL
-app.listen(PORT, () => {
-  console.log(`SIGMUI running at http://localhost:${PORT}`);
+  res.status(404).render('errors/error', { title: 'Not found', code: 404, message: 'The page you are looking for does not exist.' });
 });
 
 // Arranque: primero verifica MySQL
@@ -97,4 +79,3 @@ try {
   console.error('Cannot connect to MySQL. Check your .env file:', error.message);
   process.exit(1);
 }
- origin/develop

@@ -1,76 +1,63 @@
 import express from 'express';
+import { QueryTypes } from 'sequelize';
+import db from '../config/db.js';
 import { requireRole } from '../middlewares/auth.js';
- HEAD
-import { renderAvailableAreas } from '../controllers/zone-controller.js';
-import db from '../config/db.js'; // <--- 1. Importa tu conexión a MySQL
 import { renderHome, homeData } from '../controllers/driverController.js';
 import { renderStartParking } from '../controllers/parkingStartController.js';
 import { renderExtendTime } from '../controllers/extendTimeController.js';
- origin/develop
 
 const router = express.Router();
 const driverOnly = requireRole('driver');
-
- HEAD
-router.get('/zones', driverOnly, renderAvailableAreas); // HU-003
-
-router.get('/parking/start', driverOnly, (req, res) => {
-  res.render('HU-004', { title: 'Start parking | SIGMUI' });
-}); // HU-004
-
-router.get('/parking/extend', driverOnly, (req, res) => {
-  res.render('HU-005', { title: 'Extend time | SIGMUI' });
-}); // HU-005
-
-router.get('/settings', driverOnly, async (req, res) => {
-    try {
-        const userId = req.session.userId || 1; 
-
-        const [rows] = await db.query('SELECT * FROM users WHERE id = ?', [userId]);
-
-        if (rows.length === 0) {
-            return res.status(404).send('Usuario no encontrado');
-        }
-
-        const user = rows[0];
-
-        // Generar iniciales automáticas 
-        user.avatar_initials = user.full_name
-            ? user.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
-            : 'LR';
-
-        res.render('HU-014', { 
-            title: 'Profile Settings | SIGMUI', 
-            user 
-        });
-    } catch (error) {
-        console.error('Error al cargar la vista de settings:', error);
-        res.status(500).send('Error interno del servidor');
-    }
-}); // HU-014
-
-//  RUTA POST PARA MySQL)
-router.post('/settings/profile', driverOnly, async (req, res) => {
-    try {
-        const userId = req.session.userId || 1;
-        const { full_name, phone } = req.body;
-
-        await db.query(
-            'UPDATE users SET full_name = ?, phone = ? WHERE id = ?',
-            [full_name, phone, userId]
-        );
-
-        res.redirect('/settings?success=true');
-    } catch (error) {
-        console.error('Error al actualizar el perfil:', error);
-        res.status(500).send('Error al actualizar los datos');
-    }
-});
 
 router.get('/zones', driverOnly, renderHome);                                                                       // HU-003
 router.get('/zones/data', driverOnly, homeData);                                                                    // HU-003 (auto-refresco)
 router.get('/parking/start', driverOnly, renderStartParking);                                                       // HU-004
 router.get('/parking/extend', driverOnly, renderExtendTime);                                                       // HU-005
 
- origin/develop
+// HU-014 · Configuración del perfil del conductor (siempre del usuario en sesión)
+router.get('/settings', driverOnly, async (req, res) => {
+  try {
+    const [user] = await db.query(
+      'SELECT id, full_name, email, phone FROM users WHERE id = :id LIMIT 1',
+      { replacements: { id: req.session.user.id }, type: QueryTypes.SELECT }
+    );
+    if (!user) return res.redirect('/logout');
+
+    user.avatar_initials = user.full_name
+      .split(' ').filter(Boolean).slice(0, 2).map(n => n[0]).join('').toUpperCase();
+
+    res.render('HU-014', {
+      title: 'Profile settings | SIGMUI',
+      user,
+      success: req.query.success === '1',
+      errorMessage: null
+    });
+  } catch (error) {
+    console.error('Error loading profile settings (HU-014):', error);
+    res.status(500).render('errors/error', { title: 'Error', code: 500, message: 'The profile is temporarily unavailable.' });
+  }
+});
+
+router.post('/settings/profile', driverOnly, async (req, res) => {
+  const fullName = String(req.body.full_name ?? '').trim();
+  const phone = String(req.body.phone ?? '').trim();
+
+  // Validación básica: nombre 3-100 caracteres; teléfono opcional con dígitos, espacios, + y -
+  if (fullName.length < 3 || fullName.length > 100 || (phone && !/^[+\d][\d\s-]{6,19}$/.test(phone))) {
+    return res.redirect('/settings?error=1');
+  }
+
+  try {
+    await db.query(
+      'UPDATE users SET full_name = :fullName, phone = :phone WHERE id = :id',
+      { replacements: { fullName, phone: phone || null, id: req.session.user.id } }
+    );
+    req.session.user.name = fullName; // el sidebar y el saludo muestran el nombre nuevo
+    res.redirect('/settings?success=1');
+  } catch (error) {
+    console.error('Error updating profile (HU-014):', error);
+    res.redirect('/settings?error=1');
+  }
+});
+
 export default router;
