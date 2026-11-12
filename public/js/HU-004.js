@@ -1,4 +1,4 @@
-// HU-004 · Start parking: zona, vehículo y duración; el pago se guarda con POST /api/payments/parking
+// HU-004 · Start parking: zona, vehículo y duración; el pago se revisa y confirma en HU-013 (POST /api/payments/parking)
 document.addEventListener('DOMContentLoaded', () => {
   const zoneGroup = document.getElementById('zoneSelectGroup');
   const vehicleGroup = document.getElementById('vehicleSelectGroup');
@@ -151,45 +151,27 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      // HU-013: antes de pagar se revisa el resumen en la simulación de pago; allí se confirma y se guarda
       const label = startBtn.querySelector('.btn-label');
       startBtn.disabled = true;
-      if (label) label.textContent = 'Processing…';
-
-      try {
-        const response = await fetch('/api/payments/parking', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ plate, zone: state.zone, rateType: state.rateType, quantity: state.quantity })
-        });
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-          showError(data.error || 'The payment could not be processed. Please try again.');
-          startBtn.disabled = false;
-          if (label) label.textContent = 'Start parking';
-          return;
-        }
-
-        // Éxito: mostrar el espacio asignado y el recibo
-        state.paid = true;
-        const end = new Date(data.endTime);
-        if (summarySpaceCode) summarySpaceCode.textContent = data.spaceId || data.zone;
-        if (summaryZonePlate) summaryZonePlate.textContent = `Zone ${data.zone} · ${plate} · Receipt ${data.receiptNumber}`;
-        if (summaryEnds && !Number.isNaN(end.getTime())) summaryEnds.textContent = formatTime(end);
-        if (summaryTotal) summaryTotal.textContent = formatCOP(data.amount);
-
-        startBtn.classList.add('hidden');
-        if (afterPayment) afterPayment.classList.remove('hidden');
-        if (typeof window.showToast === 'function') {
-          window.showToast(`Payment completed. Receipt ${data.receiptNumber}`, 'success');
-        }
-      } catch (err) {
-        showError('The payment could not be processed. Please try again.');
-        startBtn.disabled = false;
-        if (label) label.textContent = 'Start parking';
-      }
+      if (label) label.textContent = 'Loading…';
+      const params = new URLSearchParams({
+        plate,
+        zone: state.zone,
+        rateType: state.rateType,
+        quantity: String(state.quantity)
+      });
+      window.location.href = `/payments/simulate?${params.toString()}`;
     });
   }
+
+  // Al volver con "Back" desde HU-013 el navegador puede restaurar la página con el botón bloqueado
+  window.addEventListener('pageshow', () => {
+    if (!startBtn || state.paid) return;
+    startBtn.disabled = !state.zone;
+    const label = startBtn.querySelector('.btn-label');
+    if (label) label.textContent = 'Start parking';
+  });
 
   updateSummary();
   // Mantener la hora de inicio y fin al día mientras no se haya pagado
