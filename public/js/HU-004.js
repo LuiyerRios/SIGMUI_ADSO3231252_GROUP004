@@ -1,164 +1,197 @@
-console.log("HU-004.js cargado");
-let reservations = [];
+// HU-004 · Start parking: zona, vehículo y duración; el pago se guarda con POST /api/payments/parking
+document.addEventListener('DOMContentLoaded', () => {
+  const zoneGroup = document.getElementById('zoneSelectGroup');
+  const vehicleGroup = document.getElementById('vehicleSelectGroup');
+  const durationGroup = document.getElementById('durationSelectGroup');
+  const otherPlateCard = document.getElementById('otherPlateCard');
+  const otherPlateBox = document.getElementById('otherPlateBox');
+  const otherPlateInput = document.getElementById('otherPlate');
 
-// CALCULAR
+  const summarySpaceCode = document.getElementById('summarySpaceCode');
+  const summaryZonePlate = document.getElementById('summaryZonePlate');
+  const summaryStarts = document.getElementById('summaryStartsVal');
+  const summaryEnds = document.getElementById('summaryEndsVal');
+  const summaryDuration = document.getElementById('summaryDurationVal');
+  const summaryRate = document.getElementById('summaryRateVal');
+  const summaryTotal = document.getElementById('summaryTotalAmount');
 
-function calculate(){
-    const type =
-    document.getElementById("type").value;
-    const quantity =
-    Number(
-        document.getElementById("quantity").value
-    );
+  const startBtn = document.getElementById('startParkingBtn');
+  const errorBox = document.getElementById('paymentError');
+  const errorText = document.getElementById('paymentErrorText');
+  const afterPayment = document.getElementById('afterPayment');
 
-    if(quantity <= 0){
-        alert("Please enter a valid quantity");
+  const activeZoneChip = zoneGroup ? zoneGroup.querySelector('.zone-chip.active') : null;
+
+  // Estado de la selección
+  const state = {
+    zone: activeZoneChip ? activeZoneChip.dataset.zone : null,
+    rateHour: activeZoneChip ? Number(activeZoneChip.dataset.rateHour) : 0,
+    rateDay: activeZoneChip ? Number(activeZoneChip.dataset.rateDay) : 0,
+    plate: startBtn ? startBtn.dataset.firstPlate || '' : '',
+    useOtherPlate: !(startBtn && startBtn.dataset.firstPlate),
+    rateType: 'hour',
+    quantity: 1,
+    paid: false
+  };
+
+  const pad = (n) => String(n).padStart(2, '0');
+  const formatCOP = (n) => `$${new Intl.NumberFormat('en-US').format(Math.round(n))} COP`;
+  const formatTime = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const normalizePlate = (value) => String(value || '').toUpperCase().replace(/[\s-]/g, '');
+
+  function currentPlate() {
+    return state.useOtherPlate ? normalizePlate(otherPlateInput ? otherPlateInput.value : '') : state.plate;
+  }
+
+  function showError(message) {
+    if (!errorBox || !errorText) return;
+    errorText.textContent = message;
+    errorBox.classList.remove('hidden');
+  }
+
+  function hideError() {
+    if (errorBox) errorBox.classList.add('hidden');
+  }
+
+  // Actualiza el resumen (solo para mostrar; el monto real lo calcula el servidor)
+  function updateSummary() {
+    if (state.paid) return;
+
+    const now = new Date();
+    const end = new Date(now);
+    if (state.rateType === 'day') end.setDate(end.getDate() + state.quantity);
+    else end.setHours(end.getHours() + state.quantity);
+
+    const isDay = state.rateType === 'day';
+    const rate = isDay ? state.rateDay : state.rateHour;
+    const plate = currentPlate();
+
+    if (summaryStarts) summaryStarts.textContent = `Now · ${formatTime(now)}`;
+    if (summaryEnds) summaryEnds.textContent = isDay ? `Tomorrow · ${formatTime(end)}` : formatTime(end);
+    if (summaryDuration) summaryDuration.textContent = isDay ? `${state.quantity} day` : `${state.quantity} h`;
+    if (summaryRate) summaryRate.textContent = state.zone ? `${formatCOP(rate)} / ${isDay ? 'day' : 'hour'}` : '—';
+    if (summaryTotal) summaryTotal.textContent = state.zone ? formatCOP(rate * state.quantity) : '—';
+    if (summaryZonePlate) {
+      summaryZonePlate.textContent = state.zone
+        ? `Zone ${state.zone} · ${plate || 'No plate yet'} · Assigned when you start`
+        : 'Choose a zone';
+    }
+  }
+
+  // 1. Zona
+  if (zoneGroup) {
+    zoneGroup.addEventListener('click', (e) => {
+      const chip = e.target.closest('.zone-chip');
+      if (!chip || chip.disabled || state.paid) return;
+      zoneGroup.querySelectorAll('.zone-chip').forEach((c) => c.classList.remove('active'));
+      chip.classList.add('active');
+      state.zone = chip.dataset.zone;
+      state.rateHour = Number(chip.dataset.rateHour);
+      state.rateDay = Number(chip.dataset.rateDay);
+      if (startBtn) startBtn.disabled = false;
+      hideError();
+      updateSummary();
+    });
+  }
+
+  // 2. Vehículo u otra placa
+  if (vehicleGroup) {
+    vehicleGroup.addEventListener('click', (e) => {
+      const card = e.target.closest('.vehicle-card, .vehicle-card-add');
+      if (!card || state.paid) return;
+      vehicleGroup.querySelectorAll('.vehicle-card, .vehicle-card-add').forEach((c) => c.classList.remove('selected'));
+      card.classList.add('selected');
+
+      if (card === otherPlateCard) {
+        state.useOtherPlate = true;
+        if (otherPlateBox) otherPlateBox.classList.remove('hidden');
+        if (otherPlateInput) otherPlateInput.focus();
+      } else {
+        state.useOtherPlate = false;
+        state.plate = card.dataset.plate;
+        if (otherPlateBox) otherPlateBox.classList.add('hidden');
+      }
+      hideError();
+      updateSummary();
+    });
+  }
+
+  if (otherPlateInput) {
+    otherPlateInput.addEventListener('input', () => {
+      otherPlateInput.value = normalizePlate(otherPlateInput.value);
+      updateSummary();
+    });
+  }
+
+  // 3. Duración
+  if (durationGroup) {
+    durationGroup.addEventListener('click', (e) => {
+      const chip = e.target.closest('.duration-chip');
+      if (!chip || state.paid) return;
+      durationGroup.querySelectorAll('.duration-chip').forEach((c) => c.classList.remove('active'));
+      chip.classList.add('active');
+      state.rateType = chip.dataset.rateType;
+      state.quantity = Number(chip.dataset.quantity);
+      updateSummary();
+    });
+  }
+
+  // 4. Pagar e iniciar el parqueo
+  if (startBtn) {
+    startBtn.addEventListener('click', async () => {
+      hideError();
+      const plate = currentPlate();
+
+      if (!state.zone) {
+        showError('Please select a valid zone.');
         return;
-    }
-
-    let total;
-    if(type === "hour"){
-        total = quantity * 2000;
-    }else{
-        total = quantity * 20000;
-    }
-
-    document.getElementById("total")
-    .textContent =
-    total.toLocaleString("es-US");
-}
-
-// CONFIRMAR (CONECTADO A BD VÍA FETCH)
-
-async function confirmReservation(){
-    const plate = document.getElementById("plate").value.trim();
-    const zoneValue = document.getElementById("zone").value; // ej: "A1"
-    const type = document.getElementById("type").value;
-    const quantity = Number(document.getElementById("quantity").value);
-    const paymentMessage = document.getElementById("paymentMessage");
-
-    if(!plate || !zoneValue || quantity <= 0){
-        if (paymentMessage) {
-            paymentMessage.style.display = 'block';
-            paymentMessage.className = 'payment-msg error';
-            paymentMessage.textContent = 'Please fill in all required fields';
-        }
+      }
+      if (!plate) {
+        showError('Please enter a valid plate.');
         return;
-    }
+      }
 
-    if (paymentMessage) {
-        paymentMessage.style.display = 'block';
-        paymentMessage.className = 'payment-msg info';
-        paymentMessage.textContent = 'Processing payment...';
-    }
+      const label = startBtn.querySelector('.btn-label');
+      startBtn.disabled = true;
+      if (label) label.textContent = 'Processing…';
 
-    try {
+      try {
         const response = await fetch('/api/payments/parking', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                plate: plate,
-                zone: zoneValue ? zoneValue.charAt(0) : '',
-                spaceId: zoneValue,
-                rateType: type,
-                quantity: quantity
-            })
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plate, zone: state.zone, rateType: state.rateType, quantity: state.quantity })
         });
-
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-            if (paymentMessage) {
-                paymentMessage.className = 'payment-msg error';
-                paymentMessage.textContent = data.error || 'The payment could not be processed. Please try again.';
-            }
-            return;
+          showError(data.error || 'The payment could not be processed. Please try again.');
+          startBtn.disabled = false;
+          if (label) label.textContent = 'Start parking';
+          return;
         }
 
-        // Agregar a la tabla de reservas en memoria utilizando los datos reales del servidor
-        const reservation = {
-            plate: plate.toUpperCase(),
-            location: zoneValue,
-            time: type === "hour" ? quantity + " Hour(s)" : quantity + " Day(s)",
-            total: data.amount,
-            receipt: data.receiptNumber,
-            status: "Confirmed"
-        };
-        reservations.push(reservation);
+        // Éxito: mostrar el espacio asignado y el recibo
+        state.paid = true;
+        const end = new Date(data.endTime);
+        if (summarySpaceCode) summarySpaceCode.textContent = data.spaceId || data.zone;
+        if (summaryZonePlate) summaryZonePlate.textContent = `Zone ${data.zone} · ${plate} · Receipt ${data.receiptNumber}`;
+        if (summaryEnds && !Number.isNaN(end.getTime())) summaryEnds.textContent = formatTime(end);
+        if (summaryTotal) summaryTotal.textContent = formatCOP(data.amount);
 
-        if (paymentMessage) {
-            paymentMessage.className = 'payment-msg success';
-            paymentMessage.textContent = `Payment completed. Receipt ${data.receiptNumber}`;
+        startBtn.classList.add('hidden');
+        if (afterPayment) afterPayment.classList.remove('hidden');
+        if (typeof window.showToast === 'function') {
+          window.showToast(`Payment completed. Receipt ${data.receiptNumber}`, 'success');
         }
-
-        cleanForm();
-
-    } catch (err) {
-        console.error('Error confirming reservation:', err);
-        if (paymentMessage) {
-            paymentMessage.className = 'payment-msg error';
-            paymentMessage.textContent = 'The payment could not be processed. Please try again.';
-        }
-    }
-}
-
-// MOSTRAR RESERVAS
-
-function showReservations(){
-    const table =
-    document.getElementById(
-        "reservationTable"
-    );
-
-    table.style.display="block";
-    const body =
-    document.getElementById(
-        "tableBody"
-    );
-
-    body.innerHTML="";
-    if(reservations.length===0){
-        body.innerHTML=`
-        <tr>
-        <td colspan="5">
-        No reservations found
-        </td>
-        </tr>
-        `;
-        return;
-    }
-
-    reservations.forEach(
-        (reservation,index)=>{
-        body.innerHTML += `
-        <tr>
-        <td>${index+1}</td>
-        <td>${reservation.plate}</td>
-        <td>${reservation.location}</td>
-        <td>${reservation.time}</td>
-        <td>
-        <span class="status status-active">
-        ${reservation.status}
-        </span>
-        </td>
-        </tr>
-        `;
+      } catch (err) {
+        showError('The payment could not be processed. Please try again.');
+        startBtn.disabled = false;
+        if (label) label.textContent = 'Start parking';
+      }
     });
-}
+  }
 
-// LIMPIAR
-
-function cleanForm(){
-
-document.getElementById("plate").value="";
-document.getElementById("zone").value="";
-document.getElementById("quantity").value="";
-document.getElementById("total").textContent="0";
-
-}
-
-// VOLVER
-
-function goBack() {
-    window.location.href = '/zones';
-}
+  updateSummary();
+  // Mantener la hora de inicio y fin al día mientras no se haya pagado
+  setInterval(updateSummary, 30000);
+});

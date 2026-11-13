@@ -1,0 +1,215 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Parking payment simulation - Tech Parking
+    link(rel="preconnect", href="https://fonts.googleapis.com")
+    link(rel="preconnect", href="https://fonts.gstatic.com", crossorigin)
+    link(href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap", rel="stylesheet")
+    //- Iconos FontAwesome
+    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css")
+    //- Conexión con el archivo CSS de la vista
+    link(rel="stylesheet", href="/css/HU-017-02.css")
+
+  body
+    .app-layout
+      aside.sidebar
+        .sidebar-top
+          .brand-header
+            .brand-logo
+              .logo-icon P
+              .logo-text
+                span.text-tech tech
+                span.text-parking  parking
+            button.collapse-btn(type="button" aria-label="Collapse menu")
+              i.fas.fa-angle-double-left
+
+          p.menu-label MENÚ
+
+          nav.sidebar-nav
+            a.nav-item(href="#")
+              i.fas.fa-home
+              span Home
+            a.nav-item(href="#")
+              i.far.fa-play-circle
+              span Start parking
+            a.nav-item(href="#")
+              i.far.fa-clock
+              span Extend time
+            a.nav-item.active(href="#")
+              span.active-indicator
+              i.far.fa-credit-card
+              span Payment
+            a.nav-item(href="#")
+              i.fas.fa-cog
+              span Settings
+            a.nav-item(href="#")
+              i.far.fa-question-circle
+              span Help
+
+        .user-card
+          .user-info
+            .user-avatar LR
+            .user-details
+              p.user-name Luiyer Rios
+              p.user-role Driver
+          button.logout-btn(type="button")
+            i.fas.fa-sign-out-alt
+            span Logout
+
+      //- ==================== ÁREA PRINCIPAL ====================
+      .main-wrapper
+        //- Barra Superior (Topbar)
+        header.topbar
+          .topbar-title
+            h2 My payments
+            p Your parking payments and receipts
+
+          .topbar-actions
+            .search-box
+              i.fas.fa-search
+              input(type="text" placeholder="Look for a space or a sign...")
+
+            button.icon-btn(type="button" aria-label="Dark mode")
+              i.fas.fa-moon
+            button.icon-btn(type="button" aria-label="Messages")
+              i.far.fa-envelope
+            button.icon-btn.notification-btn(type="button" aria-label="Notifications")
+              i.far.fa-bell
+              span.notification-dot
+
+            .user-greeting
+              span.greeting-label Hello,
+              span.greeting-name Luiyer
+
+        //- Contenido Principal
+        main.content-area
+          .content-container
+            //- Encabezado de página
+            .page-header
+              .page-header-left
+                p.step-label YOUR PAYMENT, STEP BY STEP
+                h1.page-title Parking payment simulation
+                p.page-subtitle All the details in one place. Review, confirm, and practice with peace of mind.
+              .page-header-right
+                span.badge-simulated Simulated payment
+
+            //- Banner Verde
+            .simulation-alert
+              i.fas.fa-flask
+              p
+                strong Simulation · No real money
+                span You are practicing; no charge will be made.
+
+            //- Grilla Principal
+            .simulation-grid
+              //- COLUMNA IZQUIERDA
+              .left-column
+                //- Fila Superior (Payment details + Your time)
+                .top-cards-row
+                  //- Tarjeta: Payment details
+                  .card.payment-details-card
+                    .card-header-row
+                      span.card-title Payment details
+                      span.zone-pill Zone B · B14
+                    .vehicle-main
+                      h3.plate-number KJT-482
+                      p.vehicle-desc Mazda 3 · White
+                    p.parking-zone-footer Parking · Zone B
+
+                  //- Tarjeta: Your time
+                  .card.your-time-card
+                    .card-header-row
+                      span.time-title Your time
+                      i.far.fa-clock.time-icon
+                    h3.duration-value 2 h
+                    .rate-info
+                      p.rate-label Hourly rate
+                      p.rate-value $1,200 COP/h
+
+                //- Fila Media (Start -> End)
+                .card.time-range-card
+                  .time-block
+                    p.time-label Start
+                    p.time-stamp 20 oct · 09:12
+                  .time-arrow
+                    i.fas.fa-arrow-right
+                  .time-block.end-block
+                    p.time-label End
+                    p.time-stamp 20 oct · 11:12
+
+                //- Fila Inferior (Simulation summary)
+                .card.summary-card
+                  .summary-header
+                    h3 Simulation summary
+                    span 2 h × $2,400 COP/h
+
+                  .summary-breakdown
+                    .breakdown-item
+                      p.breakdown-label Subtotal
+                      p.breakdown-value $5,000 COP
+                    .breakdown-item
+                      p.breakdown-label Simulated load
+                      p.breakdown-value $1,000 COP
+
+                  .summary-footer
+                    .summary-total-label
+                      p.total-title Simulated total
+                      p.total-subtitle No real money will be moved.
+                    .summary-total-amount
+                      p.total-Big $6,000
+                      p.total-currency Colombian Pesos · COP
+
+              //- COLUMNA DERECHA (Recibo)
+              .right-column
+                .receipt-card
+                  .receipt-header
+                    .receipt-brand
+                      .receipt-logo-icon P
+                      .receipt-logo-text
+                        span.text-tech tech
+                        span.text-parking  parking
+                    span.receipt-tag SIMULATED
+
+                  .receipt-body
+                    p.receipt-label Simulated receipt
+                    h3.receipt-code TP-0318
+
+                    .receipt-list
+                      .receipt-row
+                        span.row-label Vehicle
+                        span.row-value KJT-482
+                      .receipt-row
+                        span.row-label Zone · space
+                        span.row-value B · B14
+                      .receipt-row
+                        span.row-label Duration
+                        span.row-value 2 h
+                      .receipt-row
+                        span.row-label Fee
+                        span.row-value $2,400 COP/h
+                      .receipt-row
+                        span.row-label Total
+                        span.row-value $6,000 COP
+
+                    .receipt-detail-box
+                      p.detail-box-title DETAIL
+                      p.detail-box-text Simulated parking charge for zone B · B14. Does not result in any actual account activity.
+
+                    .receipt-date-row
+                      span.row-label Date
+                      span.row-value 20 oct · 09:12
+
+                .legal-notice
+                  h4 No valid for banking purposes
+                  p This receipt is merely a simulation for practice purposes. It does not represent an actual charge and should not be used as a valid proof of payment.
+
+            //- Pie de confirmación
+            .confirmation-bar
+              .confirmation-text
+                h4 Is everything in order?
+                p You are just practicing. No real money will be moved.
+              button.confirm-btn(type="button")
+                span Confirm simulation
+                i.fas.fa-arrow-right

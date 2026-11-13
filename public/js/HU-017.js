@@ -10,52 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/'/g, '&#39;');
   }
 
-  // 1. Manejo de Sidebar (Plegado / Desplegado + Mobile)
-  const sidebar = document.getElementById('adminSidebar');
-  const toggleBtn = document.getElementById('toggleSidebar');
-  const mobileToggleBtn = document.getElementById('mobileToggle');
-  const overlay = document.getElementById('sidebarOverlay');
-
-  // Recuperar estado previo del sidebar
-  try {
-    const isCollapsed = localStorage.getItem('sigmui_sidebar_collapsed') === 'true';
-    if (isCollapsed && sidebar) {
-      sidebar.classList.add('collapsed');
-    }
-  } catch (e) {
-    console.warn('LocalStorage not available:', e);
-  }
-
-  if (toggleBtn && sidebar) {
-    toggleBtn.addEventListener('click', () => {
-      sidebar.classList.toggle('collapsed');
-      try {
-        localStorage.setItem(
-          'sigmui_sidebar_collapsed',
-          sidebar.classList.contains('collapsed')
-        );
-      } catch (e) {
-        console.warn('Cannot save sidebar state:', e);
-      }
-    });
-  }
-
-  if (mobileToggleBtn && sidebar && overlay) {
-    mobileToggleBtn.addEventListener('click', () => {
-      sidebar.classList.add('mobile-open');
-      overlay.classList.add('show');
-    });
-
-    overlay.addEventListener('click', () => {
-      sidebar.classList.remove('mobile-open');
-      overlay.classList.remove('show');
-    });
-  }
-
-  // 2. Manejo de Filtros (Chips de Zona, Fechas y Placa con Debounce)
+  // 1. Manejo de Filtros (Chips de Zona, Fechas y Placa con Debounce)
   const filtersForm = document.getElementById('filtersForm');
   const zoneInput = document.getElementById('zoneInput');
-  const chipItems = document.querySelectorAll('.chip-item');
+  const chipItems = document.querySelectorAll('.chip');
 
   chipItems.forEach(chip => {
     chip.addEventListener('click', (e) => {
@@ -94,25 +52,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Toast Notification Helper
-  function showToast(message) {
-    const toast = document.getElementById('toastNotification');
-    if (!toast) return;
-    toast.textContent = message;
-    toast.classList.add('show');
-    setTimeout(() => {
-      toast.classList.remove('show');
-    }, 4000);
-  }
-
-  // 3. Obtener Parámetros de Exportación
+  // Helper para obtener parámetros de exportación
   function getExportParams() {
     if (!filtersForm) return new URLSearchParams();
     const formData = new FormData(filtersForm);
     return new URLSearchParams(formData);
   }
 
-  // 4. Exportar a Excel (SheetJS)
+  // 2. Exportar a Excel (SheetJS)
   const exportExcelBtn = document.getElementById('exportExcelBtn');
   if (exportExcelBtn) {
     exportExcelBtn.addEventListener('click', async () => {
@@ -126,16 +73,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const result = await response.json();
 
         if (!response.ok) {
-          showToast(result.error || 'Failed to export Excel.');
+          window.showToast(result.error || 'Failed to export Excel.', 'error');
           return;
         }
 
         if (!result.rows || result.rows.length === 0) {
-          showToast('No payments found for the selected filters.');
+          window.showToast('No payments found for the selected filters.', 'info');
           return;
         }
 
-        // Construir datos de hoja de cálculo
         const worksheetData = [
           ['DATE', 'RECEIPT', 'PLATE', 'DRIVER', 'ZONE', 'TYPE', 'AMOUNT']
         ];
@@ -152,7 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
           ]);
         });
 
-        // Filas de resumen al final
         worksheetData.push([]);
         worksheetData.push(['Total Revenue:', result.summary.revenue]);
         worksheetData.push(['Total Payments:', result.summary.count]);
@@ -167,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       } catch (err) {
         console.error('Excel Export Error:', err);
-        showToast('The payment history is temporarily unavailable.');
+        window.showToast('The payment history is temporarily unavailable.', 'error');
       } finally {
         exportExcelBtn.disabled = false;
         exportExcelBtn.innerHTML = originalText;
@@ -175,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 5. Exportar a PDF (html2pdf con sanitización HTML)
+  // 3. Exportar a PDF (html2pdf con sanitización HTML)
   const exportPdfBtn = document.getElementById('exportPdfBtn');
   if (exportPdfBtn) {
     exportPdfBtn.addEventListener('click', async () => {
@@ -189,12 +134,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const result = await response.json();
 
         if (!response.ok) {
-          showToast(result.error || 'Failed to export PDF.');
+          window.showToast(result.error || 'Failed to export PDF.', 'error');
           return;
         }
 
         if (!result.rows || result.rows.length === 0) {
-          showToast('No payments found for the selected filters.');
+          window.showToast('No payments found for the selected filters.', 'info');
           return;
         }
 
@@ -202,14 +147,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const to = escapeHtml(params.get('to') || 'N/A');
         const zone = escapeHtml(params.get('zone') || 'all');
 
-        // Escapar resumen de datos
         const summaryRevenue = escapeHtml(result.summary.revenue);
         const summaryCount = escapeHtml(result.summary.count);
         const summaryParkingCount = escapeHtml(result.summary.parkingCount);
         const summaryExtensionCount = escapeHtml(result.summary.extensionCount);
         const summaryAverageTicket = escapeHtml(result.summary.averageTicket);
 
-        // Construir plantilla HTML temporal sanitizando todos los campos
         const container = document.createElement('div');
         container.style.padding = '20px';
         container.style.fontFamily = 'sans-serif';
@@ -270,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       } catch (err) {
         console.error('PDF Export Error:', err);
-        showToast('The payment history is temporarily unavailable.');
+        window.showToast('The payment history is temporarily unavailable.', 'error');
       } finally {
         exportPdfBtn.disabled = false;
         exportPdfBtn.innerHTML = originalText;

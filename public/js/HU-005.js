@@ -1,220 +1,181 @@
-/*CONFIGURACIÓN*/
-const PRICE_PER_HOUR = 2000;
+// HU-005 · Extend time: anillo de tiempo restante, opciones de extensión y pago con POST /api/payments/extension
+document.addEventListener('DOMContentLoaded', () => {
+  const dataEl = document.getElementById('sessionData');
+  if (!dataEl) return; // Sin sesión activa: no hay nada que animar
 
-/*VARIABLES*/
-let hours = 0;
-let expirationTime = new Date();
-let selectedReservation = null;
-let selectedRow = null;
-let countdownInterval = null;
+  const ring = document.getElementById('timeRing');
+  const timeLeftEl = document.getElementById('timeLeft');
+  const endsAtEl = document.getElementById('endsAt');
+  const optionsEl = document.getElementById('extendOptions');
+  const newEndEl = document.getElementById('newEndTime');
+  const extraCostEl = document.getElementById('extraCost');
+  const totalTodayEl = document.getElementById('totalToday');
+  const extendBtn = document.getElementById('extendBtn');
+  const errorBox = document.getElementById('extendError');
+  const errorText = document.getElementById('extendErrorText');
+  const historyList = document.getElementById('historyList');
 
-/*NAVEGACIÓN*/
-function goBack() {
-    window.location.href = "/HU-003";
-}
+  const RING_LENGTH = 2 * Math.PI * 84; // circunferencia del círculo (r = 84)
 
-/*RESERVAS*/
-function selectRow(location, vehicle, plate, status, button) {
+  const state = {
+    sessionId: Number(dataEl.dataset.sessionId),
+    start: new Date(dataEl.dataset.start),
+    end: new Date(dataEl.dataset.end),
+    space: dataEl.dataset.space,
+    totalToday: Number(dataEl.dataset.totalToday) || 0,
+    hours: 1,
+    amount: 0,
+    busy: false,
+    expired: false
+  };
 
-    if (status !== "Active") {
-        alert("Solo las reservas activas pueden extenderse.");
-        return;
+  const pad = (n) => String(n).padStart(2, '0');
+  const formatTime = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const formatCOP = (n) => `$${new Intl.NumberFormat('en-US').format(Math.round(n))} COP`;
+
+  // Horas de la lista de historial en hora local del navegador
+  document.querySelectorAll('.history-time').forEach((el) => {
+    const t = new Date(el.dataset.time);
+    if (!Number.isNaN(t.getTime())) el.textContent = `${formatTime(t)} · ${el.textContent}`;
+  });
+
+  const firstOption = optionsEl ? optionsEl.querySelector('.extend-option.selected') : null;
+  if (firstOption) state.amount = Number(firstOption.dataset.amount);
+
+  function showError(message) {
+    if (!errorBox || !errorText) return;
+    errorText.textContent = message;
+    errorBox.classList.remove('hidden');
+  }
+
+  function hideError() {
+    if (errorBox) errorBox.classList.add('hidden');
+  }
+
+  // Panel "New end time / Extra cost / Total today" y texto del botón
+  function updatePanel() {
+    const newEnd = new Date(state.end.getTime() + state.hours * 3600000);
+    if (newEndEl) newEndEl.textContent = formatTime(newEnd);
+    if (extraCostEl) extraCostEl.textContent = formatCOP(state.amount);
+    if (totalTodayEl) totalTodayEl.textContent = formatCOP(state.totalToday + state.amount);
+    const label = extendBtn ? extendBtn.querySelector('.btn-label') : null;
+    if (label && !state.busy) label.textContent = `Extend ${state.hours} h`;
+  }
+
+  // Anillo y cuenta regresiva (cada segundo)
+  function tick() {
+    const now = Date.now();
+    const total = Math.max(state.end.getTime() - state.start.getTime(), 1);
+    const left = state.end.getTime() - now;
+
+    if (left <= 0) {
+      if (timeLeftEl) timeLeftEl.textContent = '0h 00m';
+      if (endsAtEl) endsAtEl.textContent = 'Session ended';
+      if (ring) ring.setAttribute('stroke-dashoffset', String(RING_LENGTH));
+      if (!state.expired) {
+        state.expired = true;
+        if (extendBtn) extendBtn.disabled = true;
+        showError('This parking session can no longer be extended.');
+      }
+      return;
     }
 
-    selectedRow = button.closest("tr");
-
-    selectedReservation = {
-        location,
-        vehicle,
-        plate,
-        status
-    };
-
-    document.getElementById("location").value = "Ubicación: " + location;
-    document.getElementById("vehicle").value = "Vehículo: " + vehicle;
-    document.getElementById("plate").value = "Placa: " + plate;
-
-    document.querySelector(".submit").style.display = "block";
-
-    hours = 0;
-
-    updateHours();
-    updatePrice();
-}
-
-/*TIEMPO*/
-function changeTime(value) {
-
-    hours += value;
-
-    if (hours < 0) {
-        hours = 0;
-    }
-
-    updateHours();
-    updatePrice();
-}
-
-/*ACTUALIZAR HORAS*/
-function updateHours() {
-
-    if (hours === 0) {
-
-        document.getElementById("hours").textContent = "0 horas";
-
-    } else if (hours === 1) {
-
-        document.getElementById("hours").textContent = "1 hora";
-
-    } else {
-
-        document.getElementById("hours").textContent = hours + " horas";
-    }
-}
-
-/*PRECIO*/
-function updatePrice() {
-
-    const total = hours * PRICE_PER_HOUR;
-
-    document.getElementById("price").textContent =
-        "$" + total.toLocaleString();
-}
-
-/*CRONÓMETRO*/
-function updateTimer(timer, seconds) {
-
-    const horas = Math.floor(seconds / 3600);
-    const minutos = Math.floor((seconds % 3600) / 60);
-    const segundos = seconds % 60;
-
-    timer.textContent =
-        `${String(horas).padStart(2, "0")}:${String(minutos).padStart(2, "0")}:${String(segundos).padStart(2, "0")}`;
-}
-
-/*PAGO*/
-function confirmExtension() {
-
-    if (selectedReservation === null) {
-        alert("Seleccione una reserva primero.");
-        return;
-    }
-
-    if (hours === 0) {
-        alert("Seleccione mínimo una hora.");
-        return;
-    }
-
-    const confirmation = confirm("¿Desea extender la reserva?");
-
-    if (!confirmation) {
-        return;
-    }
-
-    updateExpirationTime();
-
-    const status = selectedRow.querySelector(".status");
-    const plus = selectedRow.querySelector(".plus");
-    const countdown = selectedRow.querySelector(".countdown");
-    const timer = selectedRow.querySelector(".timer");
-
-    status.textContent = "Active";
-    status.classList.remove("pending");
-    status.classList.add("active");
-
-    plus.style.display = "inline-block";
-    countdown.style.display = "flex";
-
-    let remainingSeconds = hours * 3600;
-
-    updateTimer(timer, remainingSeconds);
-
-    clearInterval(countdownInterval);
-
-    countdownInterval = setInterval(() => {
-
-        remainingSeconds--;
-
-        updateTimer(timer, remainingSeconds);
-
-        if (remainingSeconds <= 0) {
-
-            clearInterval(countdownInterval);
-
-            status.textContent = "Finish";
-
-            status.classList.remove("active");
-            status.classList.add("pending");
-
-            plus.style.display = "none";
-            countdown.style.display = "none";
-        }
-
-    }, 1000);
-
-    alert("Pago realizado correctamente.");
-
-    resetForm();
-}
-
-/*FINALIZACIÓN DE TIEMPO*/
-function updateExpirationTime() {
-
-    expirationTime.setHours(
-        expirationTime.getHours() + hours
-    );
-
-    alert(
-        "Nueva hora de finalización:\n\n" +
-        expirationTime.toLocaleTimeString()
-    );
-}
-
-/*RESTABLECER FORMULARIO*/
-function resetForm() {
-
-    selectedReservation = null;
-    selectedRow = null;
-
-    hours = 0;
-
-    document.getElementById("location").value = "";
-    document.getElementById("vehicle").value = "";
-    document.getElementById("plate").value = "";
-
-    updateHours();
-    updatePrice();
-
-    document.querySelector(".submit").style.display = "none";
-}
-
-/*INICIALIZACIÓN*/
-window.onload = function () {
-
-    updateHours();
-    updatePrice();
-
-    document.querySelectorAll("tbody tr").forEach(row => {
-
-        const status = row.querySelector(".status");
-        const plus = row.querySelector(".plus");
-        const countdown = row.querySelector(".countdown");
-
-        if (!status || !plus) return;
-
-        if (status.textContent.trim() !== "Active") {
-
-            plus.style.display = "none";
-
-            if (countdown) {
-                countdown.style.display = "none";
-            }
-
-        } else {
-
-            plus.style.display = "inline-block";
-        }
-
+    const hours = Math.floor(left / 3600000);
+    const minutes = Math.floor((left % 3600000) / 60000);
+    if (timeLeftEl) timeLeftEl.textContent = `${hours}h ${pad(minutes)}m`;
+    if (endsAtEl) endsAtEl.textContent = `ends ${formatTime(state.end)}`;
+
+    const progress = Math.min(Math.max(left / total, 0), 1); // fracción de tiempo que queda
+    if (ring) ring.setAttribute('stroke-dashoffset', String(RING_LENGTH * (1 - progress)));
+  }
+
+  // Elegir +1 h ... +4 h
+  if (optionsEl) {
+    optionsEl.addEventListener('click', (e) => {
+      const option = e.target.closest('.extend-option');
+      if (!option || state.busy) return;
+      optionsEl.querySelectorAll('.extend-option').forEach((o) => o.classList.remove('selected'));
+      option.classList.add('selected');
+      state.hours = Number(option.dataset.hours);
+      state.amount = Number(option.dataset.amount);
+      hideError();
+      updatePanel();
     });
+  }
 
-};
+  // Agregar una fila al historial sin recargar
+  function addHistoryRow(hours, amount) {
+    const empty = document.getElementById('historyEmpty');
+    if (empty) empty.remove();
+
+    const li = document.createElement('li');
+    li.className = 'flex items-start gap-3';
+
+    const dot = document.createElement('span');
+    dot.className = 'w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 bg-accent';
+
+    const body = document.createElement('div');
+    body.className = 'flex-1 min-w-0';
+    const title = document.createElement('p');
+    title.className = 'text-sm font-semibold text-ink';
+    title.textContent = `Extended · ${state.space}`;
+    const sub = document.createElement('p');
+    sub.className = 'text-xs text-muted';
+    sub.textContent = `${formatTime(new Date())} · ${hours} h`;
+    body.append(title, sub);
+
+    const price = document.createElement('span');
+    price.className = 'text-sm font-bold text-ink';
+    price.textContent = formatCOP(amount);
+
+    li.append(dot, body, price);
+    historyList.appendChild(li);
+  }
+
+  // Pagar la extensión
+  if (extendBtn) {
+    extendBtn.addEventListener('click', async () => {
+      if (state.busy || state.expired) return;
+      hideError();
+      state.busy = true;
+      extendBtn.disabled = true;
+      const label = extendBtn.querySelector('.btn-label');
+      if (label) label.textContent = 'Processing…';
+
+      try {
+        const response = await fetch('/api/payments/extension', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId: state.sessionId, hours: state.hours })
+        });
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          showError(data.error || 'The payment could not be processed. Please try again.');
+        } else {
+          const paidHours = state.hours;
+          state.end = new Date(data.newEndTime);
+          state.totalToday += Number(data.amount) || 0;
+          addHistoryRow(paidHours, Number(data.amount) || 0);
+          if (typeof window.showToast === 'function') {
+            window.showToast(`Time extended until ${formatTime(state.end)}`, 'success');
+          }
+          tick();
+        }
+      } catch (err) {
+        showError('The payment could not be processed. Please try again.');
+      } finally {
+        state.busy = false;
+        extendBtn.disabled = state.expired;
+        updatePanel();
+      }
+    });
+  }
+
+  updatePanel();
+  tick();
+  setInterval(() => {
+    tick();
+    if (!state.busy) updatePanel(); // la nueva hora de fin se mantiene al día
+  }, 1000);
+});

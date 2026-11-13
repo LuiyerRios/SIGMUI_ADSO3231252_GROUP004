@@ -1,0 +1,71 @@
+- const role = (currentUser && currentUser.role) ? currentUser.role : 'driver'
+- const userName = (currentUser && currentUser.name) ? currentUser.name : 'User'
+- const nameParts = userName.trim().split(/\s+/)
+- const initials = nameParts.length >= 2 ? (nameParts[0].charAt(0) + nameParts[1].charAt(0)).toUpperCase() : userName.substring(0, 2).toUpperCase()
+
+-
+  const roleTitles = {
+    driver: 'Driver',
+    agent: 'Traffic agent',
+    admin: 'Administrator'
+  }
+
+  const menuConfig = {
+    driver: [
+      { key: 'home', label: 'Home', icon: 'fa-house', href: '/zones' },
+      { key: 'start_parking', label: 'Start parking', icon: 'fa-circle-play', href: '/parking/start' },
+      { key: 'extend_time', label: 'Extend time', icon: 'fa-clock', href: '/parking/extend' },
+      { key: 'inbox', label: 'Inbox', icon: 'fa-envelope', href: '/inbox' },
+      { key: 'payments', label: 'Payments', icon: 'fa-credit-card', href: '#', soon: true },
+      { key: 'settings', label: 'Settings', icon: 'fa-gear', href: '#', soon: true },
+      { key: 'help', label: 'Help', icon: 'fa-circle-question', href: '/help' }
+    ],
+    agent: [
+      { key: 'verify_plate', label: 'Verify plate', icon: 'fa-magnifying-glass', href: '/agent/verify' },
+      { key: 'new_fine', label: 'New fine', icon: 'fa-file-invoice', href: '/agent/fines/new' },
+      { key: 'inbox', label: 'Inbox', icon: 'fa-envelope', href: '/inbox' },
+      { key: 'help', label: 'Help', icon: 'fa-circle-question', href: '/help' }
+    ],
+    admin: [
+      { key: 'zones', label: 'Parking zones', icon: 'fa-table-cells-large', href: '/admin' },
+      { key: 'dashboard', label: 'Dashboard', icon: 'fa-chart-line', href: '/admin/dashboard' },
+      { key: 'users', label: 'Manage users', icon: 'fa-users', href: '#', soon: true },
+      { key: 'payments', label: 'Payment history', icon: 'fa-receipt', href: '/admin/payments' },
+      { key: 'help_reports', label: 'Help reports', icon: 'fa-headset', href: '/admin/help-reports' },
+      { key: 'settings', label: 'Settings', icon: 'fa-gear', href: '#', soon: true }
+    ]
+  }
+
+  const currentMenu = menuConfig[role] || menuConfig.driver
+
+aside.sidebar#sidebar
+  .sidebar-header
+    .logo-group
+      .logo-icon P
+      .logo-text
+        span.logo-tech tech
+        span.logo-parking parking
+    button.btn-toggle-sidebar#sidebarToggle(type="button", title="Toggle Sidebar") «
+
+  nav.sidebar-menu
+    .menu-label MENU
+    each item in currentMenu
+      if item.soon
+        span.menu-item.disabled(aria-disabled="true")
+          i.fa-solid(class=item.icon)
+          span.menu-text= item.label
+          span.badge-soon SOON
+      else
+        a.menu-item(href=item.href, class=(activeMenu === item.key ? 'active' : ''))
+          i.fa-solid(class=item.icon)
+          span.menu-text= item.label
+
+  .sidebar-footer
+    .user-profile-card
+      .avatar-circle= initials
+      .user-info
+        strong.user-name= userName
+        span.user-role= roleTitles[role] || 'User'
+    a.btn-sidebar-logout(href="/logout", title="Logout")
+      i.fa-solid.fa-arrow-right-from-bracket
+      span.menu-text Logout

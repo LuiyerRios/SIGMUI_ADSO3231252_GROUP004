@@ -1,0 +1,24 @@
+header.topbar
+  .topbar-title-group
+    button.btn-mobile-toggle#mobileMenuBtn(type="button", title="Open Menu")
+      i.fa-solid.fa-bars
+    div
+      h1= pageTitle || 'Tech Parking'
+      if pageSubtitle
+        p= pageSubtitle
+
+  .topbar-actions
+    - const isAdmin = currentUser && currentUser.role === 'admin'
+    - const messageHref = isAdmin ? '/admin/help-reports' : '/inbox?filter=support'
+    
+    a.topbar-icon-btn(href=messageHref, title="Messages")
+      i.fa-regular.fa-envelope
+    
+    a.topbar-icon-btn.relative(href="/inbox?filter=alerts", title="Notifications", aria-label=`${unreadCount || 0} unread notifications`)
+      i.fa-regular.fa-bell
+      if unreadCount && unreadCount > 0
+        span.notification-badge-dot
+
+    .topbar-user-greeting
+      span Hello, 
+      strong= (currentUser && currentUser.name) ? currentUser.name.trim().split(/\s+/)[0] : 'User'
