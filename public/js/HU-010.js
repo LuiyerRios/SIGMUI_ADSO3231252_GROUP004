@@ -1,143 +1,213 @@
-// Estado global de la aplicación
-const state = {
-  currentUser: null,
-  selectedSpaceId: 'A7',
-  spaces: []
-};
+document.addEventListener("DOMContentLoaded", () => {
+    let spaces = [];
+    let selectedSpace = null;
+    let pendingStatus = 'available';
 
-// Inicializar espacios (32 espacios para Zona A)
-function initSpaces() {
-  const occupiedList = ['A9', 'A14', 'A18', 'A21', 'A27', 'A28', 'A7'];
-  
-  for (let i = 1; i <= 32; i++) {
-    const id = `A${i}`;
-    const isOccupied = occupiedList.includes(id);
-    state.spaces.push({
-      id: id,
-      zone: 'Zone A',
-      status: isOccupied ? 'occupied' : 'available',
-      vehicle: isOccupied ? (id === 'A7' ? 'TYU-029' : 'ABC-' + Math.floor(100 + Math.random() * 900)) : '-',
-      owner: isOccupied ? (id === 'A7' ? 'Mateo Díaz' : 'Cliente Registrado') : '-',
-      entryTime: isOccupied ? '09:49' : '-',
-      timeLeft: isOccupied ? '1h 17m' : '-'
-    });
-  }
-}
+    const parkingMap = document.getElementById("parkingMap");
+    const occupancyEl = document.getElementById("occupancy");
+    const availableCountEl = document.getElementById("availableCount");
+    const spaceNameEl = document.getElementById("spaceName");
+    const spaceStatusEl = document.getElementById("spaceStatus");
+    const vehicleNumberEl = document.getElementById("vehicleNumber");
+    const ownerNameEl = document.getElementById("ownerName");
+    const entryTimeEl = document.getElementById("entryTime");
+    const descriptionEl = document.getElementById("description");
+    const zoneNameEl = document.getElementById("zoneName");
+    const messageEl = document.getElementById("message");
 
-// Renderizar la cuadrícula de espacios
-function renderGrid() {
-  const gridContainer = document.getElementById('spaces-grid');
-  gridContainer.innerHTML = '';
+    const availableBtn = document.querySelector(".available-button, .btn-status-available");
+    const occupiedBtn = document.querySelector(".occupied-button, .btn-status-occupied");
+    const confirmBtn = document.getElementById("confirmChanges");
+    const resizeBtn = document.getElementById("resizeBtn");
 
-  state.spaces.forEach(space => {
-    const spaceEl = document.createElement('div');
-    spaceEl.className = `space-item ${space.status} ${space.id === state.selectedSpaceId ? 'selected' : ''}`;
-    spaceEl.innerHTML = `<span class="status-dot"></span> ${space.id}`;
-    
-    spaceEl.addEventListener('click', () => {
-      selectSpace(space.id);
-    });
+    // ==========================================
+    // LÓGICA MODO OSCURO (DARK MODE)
+    // ==========================================
+    const darkModeBtn = Array.from(document.querySelectorAll('.top-buttons button'))
+        .find(btn => btn.textContent.toLowerCase().includes('dark mode')) || document.getElementById("darkModeBtn");
 
-    gridContainer.appendChild(spaceEl);
-  });
-
-  updateKPIs();
-}
-
-// Seleccionar un espacio y cargar sus detalles en el panel derecho
-function selectSpace(id) {
-  state.selectedSpaceId = id;
-  const space = state.spaces.find(s => s.id === id);
-
-  document.getElementById('selected-badge').innerText = space.id;
-  document.getElementById('selected-title').innerText = `Space ${space.id}`;
-  
-  const pill = document.getElementById('selected-status-pill');
-  pill.innerText = space.status.charAt(0).toUpperCase() + space.status.slice(1);
-  pill.className = `status-pill ${space.status}`;
-
-  document.getElementById('info-zone').innerText = space.zone;
-  document.getElementById('info-vehicle').innerText = space.vehicle;
-  document.getElementById('info-owner').innerText = space.owner;
-  document.getElementById('info-time').innerText = space.entryTime;
-  document.getElementById('info-timeleft').innerText = space.timeLeft;
-
-  // Actualizar estados de botones de acción
-  const btnAvail = document.getElementById('btn-available');
-  const btnOcc = document.getElementById('btn-occupied');
-
-  if (space.status === 'available') {
-    btnAvail.className = 'btn-status active-available';
-    btnOcc.className = 'btn-status';
-  } else {
-    btnAvail.className = 'btn-status';
-    btnOcc.className = 'btn-status active-occupied';
-  }
-
-  renderGrid();
-}
-
-// Cambiar el estado (Available / Occupied) del espacio seleccionado
-function updateSpaceStatus(newStatus) {
-  const space = state.spaces.find(s => s.id === state.selectedSpaceId);
-  if (!space) return;
-
-  space.status = newStatus;
-  if (newStatus === 'available') {
-    space.vehicle = '-';
-    space.owner = '-';
-    space.entryTime = '-';
-    space.timeLeft = '-';
-  } else {
-    space.vehicle = 'NEW-123';
-    space.owner = 'Nuevo Ingreso';
-    space.entryTime = 'Ahora';
-    space.timeLeft = '2h 00m';
-  }
-
-  selectSpace(space.id);
-}
-
-// Recalcular métricas principales (KPIs)
-function updateKPIs() {
-  const total = state.spaces.length;
-  const occupiedCount = state.spaces.filter(s => s.status === 'occupied').length;
-  const availableCount = total - occupiedCount;
-  const occupancyPercentage = Math.round((occupiedCount / total) * 100);
-
-  document.getElementById('kpi-occupancy').innerText = `${occupancyPercentage}%`;
-  document.getElementById('kpi-occupancy-sub').innerText = `${occupiedCount} of ${total} spaces in use`;
-  document.getElementById('kpi-available').innerText = availableCount;
-}
-
-// Enrutamiento de inicio de sesión
-document.addEventListener('DOMContentLoaded', () => {
-  initSpaces();
-
-  const loginView = document.getElementById('login-view');
-  const adminView = document.getElementById('admin-view');
-  const btnLogin = document.getElementById('btn-login');
-  const btnLogout = document.getElementById('btn-logout');
-
-  // Evento de Login
-  btnLogin.addEventListener('click', () => {
-    const role = document.getElementById('role-select').value;
-    
-    if (role === 'admin') {
-      state.currentUser = 'Admin SIGMUI';
-      loginView.classList.remove('active-view');
-      adminView.classList.add('active-view');
-      renderGrid();
-      selectSpace('A7'); // Selecciona A7 por defecto como en la imagen
-    } else {
-      alert('Vista no disponible para rol estándar');
+    // Restaurar tema guardado en localStorage
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
     }
-  });
 
-  // Evento de Logout
-  btnLogout.addEventListener('click', () => {
-    state.currentUser = null;
-    adminView.classList.remove('active-view');
-    loginView.classList.add('active-view');
-  });
+    if (darkModeBtn) {
+        darkModeBtn.onclick = () => {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        };
+    }
+
+    // 1. Fetch data from backend
+    async function fetchParkingSpaces() {
+        try {
+            const response = await fetch('/api/parking-spaces');
+            if (!response.ok) throw new Error('Error fetching spaces');
+
+            spaces = await response.json();
+            renderParking();
+            updateStatistics();
+
+            if (selectedSpace) {
+                const updated = spaces.find(s => s.id === selectedSpace.id);
+                if (updated) selectSpace(updated);
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            showMessage("Server connection error.", "error");
+        }
+    }
+
+    // 2. Render map grid
+    function renderParking() {
+        if (!parkingMap) return;
+        parkingMap.innerHTML = "";
+
+        spaces.forEach(space => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = `space-btn ${space.status}`;
+            if (selectedSpace && selectedSpace.id === space.id) {
+                btn.classList.add("selected");
+            }
+            btn.innerHTML = `<span>${space.id}</span>`;
+            btn.onclick = () => selectSpace(space);
+            parkingMap.appendChild(btn);
+        });
+    }
+
+    // 3. Select space
+    function selectSpace(space) {
+        selectedSpace = space;
+        pendingStatus = space.status;
+
+        if (spaceNameEl) spaceNameEl.textContent = space.id;
+        if (spaceStatusEl) {
+            spaceStatusEl.textContent = space.status.toUpperCase();
+            spaceStatusEl.className = `badge-status ${space.status}`;
+        }
+
+        if (vehicleNumberEl) vehicleNumberEl.textContent = space.vehicle || "---";
+        if (ownerNameEl) ownerNameEl.textContent = space.owner || "---";
+        if (entryTimeEl) entryTimeEl.textContent = space.entry || "---";
+        if (descriptionEl) descriptionEl.textContent = space.description || "---";
+        if (zoneNameEl) zoneNameEl.textContent = `Zone ${space.zone || 'A'}`;
+
+        updateStatusButtonsUI(pendingStatus);
+        renderParking();
+    }
+
+    // 4. Update status toggle UI
+    function updateStatusButtonsUI(status) {
+        if (availableBtn) {
+            if (status === 'available') availableBtn.classList.add('active');
+            else availableBtn.classList.remove('active');
+        }
+        if (occupiedBtn) {
+            if (status === 'occupied') occupiedBtn.classList.add('active');
+            else occupiedBtn.classList.remove('active');
+        }
+    }
+
+    if (availableBtn) {
+        availableBtn.onclick = () => {
+            pendingStatus = 'available';
+            updateStatusButtonsUI('available');
+        };
+    }
+
+    if (occupiedBtn) {
+        occupiedBtn.onclick = () => {
+            pendingStatus = 'occupied';
+            updateStatusButtonsUI('occupied');
+        };
+    }
+
+    // 5. Confirm Status Changes
+    if (confirmBtn) {
+        confirmBtn.onclick = async () => {
+            if (!selectedSpace) {
+                showMessage("Please select a space first", "error");
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/parking-spaces/${selectedSpace.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        status: pendingStatus,
+                        description: pendingStatus === 'available' ? 'Space available' : 'Vehicle parked'
+                    })
+                });
+
+                if (response.ok) {
+                    await fetchParkingSpaces();
+                    showMessage(`Space ${selectedSpace.id} updated successfully!`, "success");
+                } else {
+                    showMessage("Failed to update space", "error");
+                }
+            } catch (err) {
+                console.error(err);
+                showMessage("API connection error", "error");
+            }
+        };
+    }
+
+    // 6. Resize layout
+    if (resizeBtn) {
+        resizeBtn.onclick = async () => {
+            const spacesPerZoneInput = document.getElementById("spacesPerZone");
+            const zonesListInput = document.getElementById("zonesList");
+
+            if (!spacesPerZoneInput || !zonesListInput) return;
+
+            const spacesPerZone = parseInt(spacesPerZoneInput.value);
+            const zones = zonesListInput.value.split(",");
+
+            try {
+                const response = await fetch('/api/parking-config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ spacesPerZone, zones })
+                });
+
+                if (response.ok) {
+                    selectedSpace = null;
+                    if (spaceNameEl) spaceNameEl.textContent = "None";
+                    await fetchParkingSpaces();
+                    showMessage("Parking layout reconfigured", "success");
+                }
+            } catch (err) {
+                console.error(err);
+                showMessage("Error reconfiguring layout", "error");
+            }
+        };
+    }
+
+    // Stats calculation
+    function updateStatistics() {
+        const total = spaces.length;
+        if (total === 0) return;
+
+        const occupied = spaces.filter(s => s.status === 'occupied').length;
+        const available = total - occupied;
+        const percentage = Math.round((occupied / total) * 100);
+
+        if (occupancyEl) occupancyEl.textContent = `${percentage}%`;
+        if (availableCountEl) availableCountEl.textContent = available;
+    }
+
+    function showMessage(msg, type) {
+        if (!messageEl) return;
+        messageEl.textContent = msg;
+        messageEl.className = `message ${type}`;
+        messageEl.style.display = 'block';
+        setTimeout(() => {
+            messageEl.style.display = 'none';
+        }, 3500);
+    }
+
+    fetchParkingSpaces();
 });
