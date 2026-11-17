@@ -13,6 +13,10 @@
 @source "../views/HU-015-admin-detail.pug";
 @source "../views/HU-016.pug";
 @source "../../public/js/HU-016.js";
+@source "../views/HU-006.pug";
+@source "../views/HU-007.pug";
+@source "../../public/js/HU-006.js";
+@source "../../public/js/HU-007.js";
 @source "../views/HU-014.pug";
 @source "../../public/js/HU-014.js";
 @source "../../public/js/HU-013.js";

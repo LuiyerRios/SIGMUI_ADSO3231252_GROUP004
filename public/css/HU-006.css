@@ -1,86 +1,17 @@
+/* HU-006 · Verificación de placa (diseño del equipo del agente). Estilos limitados a .hu006 para convivir con el layout del equipo. */
+.hu006 [hidden] { display: none !important; }
+.hu006 .plate-input__field { min-width: 0; width: 100%; } /* evita que el input desborde en 360 px */
+.hu006 .error-message:empty { display: none; }
+.hu006 .inspection-agent { display: flex; flex-direction: column; align-items: center; text-align: center; }
 @import "tailwindcss";
 
 /* RESET */
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
-body{
-    font-family:'Poppins',sans-serif;
-    background:#E6F2F8;
-    min-height:100vh;
-}
-
 /* HEADER */
-
-.header{
-
-    background:#2565AE;
-
-    color:#fff;
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    position:relative;
-
-    padding:18px;
-
-    box-shadow:0 4px 15px rgba(0,0,0,.15);
-
-}
-
-.header__title{
-
-    font-size:28px;
-
-    font-weight:700;
-
-    letter-spacing:1px;
-
-}
-
-.header__title span{
-
-    color:#7BD3C7;
-
-}
-
-.header__back{
-
-    position:absolute;
-
-    left:20px;
-
-    border:none;
-
-    background:none;
-
-    color:white;
-
-    cursor:pointer;
-
-    font-size:22px;
-
-    transition:.3s;
-
-}
-
-.header__back:hover{
-
-    transform:translateX(-4px);
-
-}
 
 /* CONTENEDOR */
 
-.container{
+.hu006 .container{
 
     width:95%;
 
@@ -92,7 +23,7 @@ body{
 
 /* AGENTE */
 
-.inspection-agent{
+.hu006 .inspection-agent{
 
     text-align:center;
 
@@ -100,7 +31,7 @@ body{
 
 }
 
-.inspection-agent__icon{
+.hu006 .inspection-agent__icon{
 
     width:85px;
 
@@ -108,7 +39,7 @@ body{
 
 }
 
-.inspection-agent__title{
+.hu006 .inspection-agent__title{
 
     color:#2340FE;
 
@@ -120,7 +51,7 @@ body{
 
 /* FORMULARIO */
 
-.inspection-form{
+.hu006 .inspection-form{
 
     background:white;
 
@@ -132,7 +63,7 @@ body{
 
 }
 
-.inspection-form__label{
+.hu006 .inspection-form__label{
 
     display:block;
 
@@ -144,7 +75,7 @@ body{
 
 }
 
-.plate-input{
+.hu006 .plate-input{
 
     display:flex;
 
@@ -160,7 +91,7 @@ body{
 
 }
 
-.plate-input:focus-within{
+.hu006 .plate-input:focus-within{
 
     border-color:#2340FE;
 
@@ -168,7 +99,7 @@ body{
 
 }
 
-.plate-input__flag{
+.hu006 .plate-input__flag{
 
     width:34px;
 
@@ -176,7 +107,7 @@ body{
 
 }
 
-.plate-input__field{
+.hu006 .plate-input__field{
 
     flex:1;
 
@@ -194,7 +125,7 @@ body{
 
 /* BOTÓN */
 
-.btn-check{
+.hu006 .btn-check{
 
     width:100%;
 
@@ -220,7 +151,7 @@ body{
 
 }
 
-.btn-check:hover{
+.hu006 .btn-check:hover{
 
     background:#1028d7;
 
@@ -228,7 +159,7 @@ body{
 
 }
 
-.btn-check:active{
+.hu006 .btn-check:active{
 
     transform:scale(.97);
 
@@ -236,7 +167,7 @@ body{
 
 /* TARJETAS */
 
-.card{
+.hu006 .card{
 
     display:flex;
 
@@ -256,7 +187,7 @@ body{
 
 }
 
-.card__icon{
+.hu006 .card__icon{
 
     width:55px;
 
@@ -278,13 +209,13 @@ body{
 
 }
 
-.card__info{
+.hu006 .card__info{
 
     flex:1;
 
 }
 
-.card__info h3{
+.hu006 .card__info h3{
 
     font-size:17px;
 
@@ -292,7 +223,7 @@ body{
 
 }
 
-.card__info p{
+.hu006 .card__info p{
 
     color:#555;
 
@@ -304,37 +235,37 @@ body{
 
 /* ESTADOS */
 
-.card--success{
+.hu006 .card--success{
 
     background:#EAF9EF;
 
 }
 
-.card--success .card__icon{
+.hu006 .card--success .card__icon{
 
     color:#1F9D55;
 
 }
 
-.card--error{
+.hu006 .card--error{
 
     background:#FCECEC;
 
 }
 
-.card--error .card__icon{
+.hu006 .card--error .card__icon{
 
     color:#DC3545;
 
 }
 
-.card--neutral{
+.hu006 .card--neutral{
 
     background:#F2F4F7;
 
 }
 
-.card--neutral .card__icon{
+.hu006 .card--neutral .card__icon{
 
     color:#6B7280;
 
@@ -342,7 +273,7 @@ body{
 
 /* BADGES */
 
-.badge{
+.hu006 .badge{
 
     padding:6px 12px;
 
@@ -356,13 +287,13 @@ body{
 
 }
 
-.badge--success{
+.hu006 .badge--success{
 
     background:#1F9D55;
 
 }
 
-.badge--error{
+.hu006 .badge--error{
 
     background:#DC3545;
 
@@ -370,7 +301,7 @@ body{
 
 /* MENSAJES */
 
-.results-area__subtitle{
+.hu006 .results-area__subtitle{
 
     margin-top:25px;
 
@@ -380,7 +311,7 @@ body{
 
 }
 
-.error-message{
+.hu006 .error-message{
 
     margin-top:20px;
 
@@ -424,7 +355,7 @@ body{
 
 @media(max-width:500px){
 
-    .card{
+    .hu006 .card{
 
         flex-direction:column;
 
@@ -432,7 +363,7 @@ body{
 
     }
 
-    .badge{
+    .hu006 .badge{
 
         margin-top:10px;
 

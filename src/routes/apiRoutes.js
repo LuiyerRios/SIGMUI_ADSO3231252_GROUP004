@@ -7,6 +7,8 @@ import {
   listUsers, saveUser, changeUserStatus, removeUser, saveVehicle, removeVehicle
 } from '../controllers/userAdminController.js';
 
+import { plateStatus, createFine } from '../controllers/agentController.js';
+
 const router = express.Router();
 const adminOnly = requireRole('admin');   // Todas estas rutas son solo del admin
 const VALID_STATUS = ['available', 'occupied'];
@@ -126,6 +128,11 @@ router.post('/parking-config', adminOnly, async (req, res) => {
     res.status(500).json({ error: 'Changes cannot be saved due to system failure.' });
   }
 });
+
+// HU-006 / HU-007: agente de tránsito
+const agentOnly = requireRole('agent');
+router.get('/plates/:plate/status', agentOnly, plateStatus);
+router.post('/fines', agentOnly, createFine);
 
 // HU-016: gestión de usuarios y vehículos (admin)
 router.get('/admin/users', adminOnly, listUsers);

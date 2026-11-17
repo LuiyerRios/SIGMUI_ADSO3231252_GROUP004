@@ -1,76 +1,86 @@
-doctype html
-html(lang="en")
-  head
-    meta(charset="UTF-8")
-    meta(name="viewport" content="width=device-width, initial-scale=1.0")
-    title Fine details
-    link(rel="stylesheet" href="/css/HU-007.css")
+//- HU-007 · Multa digital (diseño del equipo, conectado a POST /api/fines). Se llega desde el resultado de HU-006.
+extends layouts/app
 
-  body
-    .app
+block styles
+  link(rel="stylesheet", href="/css/HU-007.css")
 
-      .header
-        a.back(href="/agent/verify")
-          img.back-arrow(src="/img/flecha.png" alt="back-arrow")
+block content
+  .hu007
+    main.content
+      if error
+        .alert.alert-error(class="mb-4")
+          i.fas.fa-exclamation-circle
+          span= error
 
-        img.logo(src="/img/Header.png" alt="Logo")
+      if !info
+        //- Sin placa: el agente primero verifica una placa vencida
+        .section
+          label(for="plate") Plate of the expired vehicle
+          form(action="/agent/fines/new", method="GET")
+            input#plate(type="text", name="plate", maxlength="7", placeholder="ABC123", value=plate || '', autocomplete="off", required)
+            button.button(type="submit", style="margin-top:12px") Load vehicle
+          p.note Fines are only issued to vehicles whose parking session expired. You can also start from Verify plate.
 
-      main.content
-
+      else if info.status !== 'expired' || info.fine
+        //- Estado que no permite multa
         .section
           .status
-            | ⚠️ ESTATUS: #{multa.estado}
-            small= multa.descripcionEstado
+            if info.status === 'active'
+              | ✅ STATUS: ACTIVE
+              small(style="color:#0b9e50") The parking session of #{info.plate} is active until #{info.expiredAt}. A fine cannot be issued.
+            else if info.fine
+              | 🧾 FINE ALREADY ISSUED
+              small This session of #{info.plate} already has the fine #{info.fine.number} (#{info.fine.issuedAt}).
+            else
+              | ❔ STATUS: NOT REGISTERED
+              small The plate #{info.plate} has no parking payments. A fine cannot be issued.
+        a.button(href=`/agent/verify?plate=${info.plate}`, style="display:block;text-decoration:none;text-align:center") Back to verify plate
 
-        .section
+      else
+        form#fineForm(data-plate=info.plate, novalidate)
+          .section
+            .status
+              | ⚠️ STATUS: EXPIRED
+              small The vehicle exceeded the time limit
 
-          .plate
-            h4= multa.vehiculo.placa
+          .section
+            .plate
+              h4= info.plate
+            .info
+              span.label Date:
+              span.value= info.date
+            .info
+              span.label Location:
+              span.value Zone #{info.zone} · #{info.space}
+            .info
+              span.label Expired:
+              span.value(style="color:red;") #{info.expiredAt} (#{info.expiredAgo} ago)
 
-          .info
-            span.label Date:
-            span.value= multa.fecha
+          .section
+            label(for="location") Current location
+            input#location(type="text", name="location", maxlength="150", value=`Zone ${info.zone} · ${info.space}`, required)
 
-          .info
-            span.label Location:
-            span.value= multa.ubicacion
+          .section
+            label(for="comments") Comments (optional)
+            textarea#comments(name="comments", maxlength="300", placeholder="Ex: The ticket is not visible")
 
-          .info
-            span.label Expired:
-            span.value(style="color:red;")= multa.tiempoExcedido
+          .fine
+            | Amount of the fine
+            p#fineAmount= fineAmount
 
-        .section
+          .ticked-id
+            | Ticket #:
+            span#ticketNumber  Generated when you issue the fine
 
-          label(for="location") Current location
+          p#fineError.note(role="alert", style="color:#e33e45")
 
-          input(
-            type="text"
-            id="location"
-            name="ubicacionActual"
-            value=multa.ubicacionActual
-          )
+          button.button#issueBtn(type="submit") Generate Ticket # Auto
 
-        .section
+          .note
+            | ✅ The fine is saved in the system history with date, time, location and agent.
 
-          label(for="comments") Comments (optional)
+          div#afterFine(hidden, style="margin-top:12px")
+            a.button(href="/agent/verify", style="display:block;text-decoration:none;text-align:center") Verify another plate
 
-          textarea(
-            id="comments"
-            name="comentarios"
-            placeholder="Ex: The ticket is not visible"
-          )= multa.comentarios
-
-        .fine
-          | Amount of the fine
-
-          p= multa.valor
-
-        .ticked-id
-          | Ticket #:
-          span#ticketNumber= multa.numeroMulta
-
-        button.button(type="button")
-          | Generate Ticket #Auto
-
-        .note
-          | ✅ If the registered user is not logged in
+block scripts
+  script(src="/js/HU-007.js")

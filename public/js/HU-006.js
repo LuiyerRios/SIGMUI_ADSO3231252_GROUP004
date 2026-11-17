@@ -1,98 +1,126 @@
-// 1. Evento para garantizar integridad de datos: Placas siempre en mayusculas
-document.getElementById("plate-input").addEventListener("input", function() {
-    this.value = this.value.toUpperCase();
-});
+// HU-006 · Verificación de placa: consulta GET /api/plates/:plate/status y pinta Active / Expired / Not registered
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('plateForm');
+  const input = document.getElementById('plate-input');
+  const errorText = document.getElementById('plate-error');
+  const button = document.getElementById('checkBtn');
+  const result = document.getElementById('result');
+  if (!form) return;
 
-/**
- * Funcion auxiliar para formatear la hora (Requerimiento visual)
- */
-function formatHour(date) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
+  // Misma validación del servidor: sin vacíos, sin caracteres especiales, formato ABC123 / ABC12D
+  function validate(raw) {
+    if (!raw.trim()) return 'Please enter a license plate.';
+    if (/[^A-Za-z0-9\s-]/.test(raw)) return 'Special characters are not allowed in the license plate.';
+    const plate = raw.toUpperCase().replace(/[\s-]/g, '');
+    if (!/^[A-Z]{3}\d{2}[A-Z0-9]$/.test(plate)) return 'Invalid license plate. Use ABC123 for cars or ABC12D for motorcycles.';
+    return null;
+  }
 
-/**
- * Funcion principal de validacion (checkPlate)
- * Esta funcion procesa la entrada del agente y actualiza el DOM.
- * Integracion n8n: Preparada para ser conectada a un webhook mediante fetch().
- */
-function checkPlate() {
-    const plateInput = document.getElementById("plate-input");
-    const plate = plateInput.value.trim().toUpperCase();
-    const resultContainer = document.getElementById("result");
-
-    // Limpieza de interfaz antes de mostrar nuevos datos
-    resultContainer.innerHTML = ""; 
-
-    // Validacion de campo vacio
-    if (!plate) {
-        resultContainer.innerHTML = "<p style='color:red; text-align:center;'>Error: Debe ingresar una matricula</p>";
-        return;
-    }
-
-    // Expresion regular para validar formato estandar (3 letras, 3 numeros)
-    const formato = /^[A-Z]{3}[0-9]{3}$/;
-    if (!formato.test(plate)) {
-        resultContainer.innerHTML = "<p style='color:red; text-align:center;'>Formato incorrecto. Ejemplo: ABC123</p>";
-        return;
-    }
-
-    // --- Simulacion de consulta al sistema (Aqui iria el Fetch a n8n) ---
-    procesarRespuesta(plate);
-}
-
-/**
- * Logica para renderizar los estados segun el resultado de la consulta
- */
-function procesarRespuesta(plate) {
-    let inicio = new Date();
-    let fin = new Date();
-    fin.setHours(inicio.getHours() + 2);
-
-    // Logica condicional basica para el prototipo
-    if (plate === "ABC123") {
-        renderizarUI("success", "PAYMENT PROCESSED", "Zone A1", `${formatHour(inicio)} - ${formatHour(fin)} (2h)`, "Valid", "fa-check");
-    } else if (plate === "XYZ123") {
-        renderizarUI("error", "PAYMENT INACTIVE", "Zone B2", "Expirado hace 1 hora", "Expired", "fa-xmark");
-    } else {
-        renderizarNoRegistrado();
-    }
-}
-
-// --- FUNCIONES DE RENDERING (Modularidad para evitar redundancia de codigo) ---
-
-function renderizarUI(tipo, titulo, zona, detalle, badge, iconClass) {
-    const html = `
-        <article class="card card--${tipo}">
-            <div class="card__icon icon-status--${tipo}">
-                <i class="fa-solid ${iconClass}"></i>
-            </div>
-            <div class="card__info">
-                <h3>${titulo}</h3>
-                <p>${zona}</p>
-                <p>${detalle}</p>
-            </div>
-            <span class="badge badge--${tipo}">${badge}</span>
-        </article>`;
-    document.getElementById("result").innerHTML = html;
-}
-
-function renderizarNoRegistrado() {
-    document.getElementById("result").innerHTML = `
-        <h3 class="results-area__subtitle" style="margin-top:20px;">NOT REGISTERED</h3>
-        <article class="card card--neutral">
-            <div class="card__icon icon-status--neutral">
-                <i class="fa-solid fa-circle-xmark"></i>
-            </div>
-            <div class="card__info">
-                <p>La placa no presenta registros activos.</p>
-            </div>
-        </article>`;
-}
-
-// Botón CHECK
-document.querySelector(".btn-check").addEventListener("click", checkPlate);
-
-// Botón volver
-document.querySelector(".header__back").addEventListener("click", () => {
-     history.back();
+  // Tarjeta del diseño original, armada con textContent (sin innerHTML con datos)
+  function card(type, icon, title, lines, badge) {
+    const article = document.createElement('article');
+    article.className = `card card--${type}`;
+    const iconBox = document.createElement('div');
+    iconBox.className = `card__icon icon-status--${type}`;
+    const i = document.createElement('i');
+    i.className = `fa-solid ${icon}`;
+    iconBox.appendChild(i);
+    const info = document.createElement('div');
+    info.className = 'card__info';
+    const h3 = document.createElement('h3');
+    h3.textContent = title;
+    info.appendChild(h3);
+    lines.filter(Boolean).forEach((text) => {
+      const p = document.createElement('p');
+      p.textContent = text;
+      info.appendChild(p);
     });
+    article.append(iconBox, info);
+    if (badge) {
+      const span = document.createElement('span');
+      span.className = `badge badge--${type}`;
+      span.textContent = badge;
+      article.appendChild(span);
+    }
+    return article;
+  }
+
+  function render(data) {
+    result.replaceChildren();
+    if (data.status === 'active') {
+      result.appendChild(card('success', 'fa-check', 'PAYMENT PROCESSED', [
+        `${data.plate} · Zone ${data.zone} · Space ${data.space}`,
+        `${data.date} · ${data.range}`,
+        `Time remaining: ${data.remaining}`
+      ], 'Valid'));
+      return;
+    }
+    if (data.status === 'expired') {
+      result.appendChild(card('error', 'fa-xmark', 'PAYMENT INACTIVE', [
+        `${data.plate} · Zone ${data.zone} · Space ${data.space}`,
+        `${data.date} · ${data.range}`,
+        `Expired ${data.expiredAgo} ago`
+      ], 'Expired'));
+      if (data.fine) {
+        const note = card('neutral', 'fa-file-invoice', `FINE ${data.fine.number}`, [`Issued ${data.fine.issuedAt}`], null);
+        result.appendChild(note);
+      } else {
+        const link = document.createElement('a');
+        link.href = `/agent/fines/new?plate=${encodeURIComponent(data.plate)}`;
+        link.className = 'btn-check';
+        link.style.display = 'block';
+        link.style.textAlign = 'center';
+        link.style.textDecoration = 'none';
+        link.textContent = 'ISSUE DIGITAL FINE';
+        result.appendChild(link);
+      }
+      return;
+    }
+    const subtitle = document.createElement('h3');
+    subtitle.className = 'results-area__subtitle';
+    subtitle.textContent = 'NOT REGISTERED';
+    result.append(subtitle, card('neutral', 'fa-circle-xmark', data.plate, ['The license plate has no parking payments.'], null));
+  }
+
+  async function check() {
+    const message = validate(input.value);
+    errorText.textContent = message || '';
+    if (message) {
+      result.replaceChildren();
+      input.focus();
+      return;
+    }
+    const plate = input.value.toUpperCase().replace(/[\s-]/g, '');
+    button.disabled = true;
+    button.textContent = 'CHECKING…';
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000); // timeout de 10 s
+    try {
+      const response = await fetch(`/api/plates/${encodeURIComponent(plate)}/status`, { signal: controller.signal });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'The plate could not be verified right now. Please try again.');
+      render(data);
+    } catch (err) {
+      result.replaceChildren();
+      errorText.textContent = err.name === 'AbortError'
+        ? 'The server took too long to answer. Check your connection and try again.'
+        : err.message;
+    } finally {
+      clearTimeout(timer);
+      button.disabled = false;
+      button.textContent = 'CHECK';
+    }
+  }
+
+  input.addEventListener('input', () => {
+    input.value = input.value.toUpperCase();
+    errorText.textContent = '';
+  });
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    check();
+  });
+
+  // Si llega con ?plate= (por ejemplo al volver de la multa) se consulta de una vez
+  if (input.value) check();
+});
