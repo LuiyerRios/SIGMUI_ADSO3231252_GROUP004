@@ -1,145 +1,144 @@
-extends layouts/admin-settings
+//- HU-018 · Admin settings (diseño de Michael, conectado al layout compartido)
+//- El título y subtítulo los pinta el topbar con pageTitle / pageSubtitle.
+extends layouts/app
+
+block styles
+  link(rel="stylesheet", href="/css/HU-018.css")
 
 block content
-  //- Page Heading
-  .page-heading
-    div
-      h1 Settings
-      p Manage your account, security and preferences
-    .heading-breadcrumb
-      span Dashboard
-      i.fas.fa-chevron-right
-      strong Settings
+  .hu018#adminSettings
+    //- Information Banner
+    .settings-info-banner
+      .info-icon
+        i.fas.fa-info-circle
+      .info-content
+        strong Manage your administrator account
+        p Keep your profile information and security preferences up to date.
 
-  //- Information Banner
-  .settings-info-banner
-    .info-icon
-      i.fas.fa-info-circle
-    .info-content
-      strong Manage your administrator account
-      p Keep your profile information and security preferences up to date.
+    //- Profile Information
+    section.settings-card#profileSection
+      .settings-card-header
+        .settings-section-icon.profile-icon
+          i.fa-solid.fa-user
+        .settings-section-heading
+          h2 Profile Information
+          p Update your personal and contact information.
 
-  //- Profile Information
-  section.settings-card#profileSection
-    .settings-card-header
-      .settings-section-icon.profile-icon
-        i.fa-solid.fa-user
-      .settings-section-heading
-        h2 Profile Information
-        p Update your personal and contact information.
+      form#profileForm.settings-form
+        .form-grid
+          .form-group
+            label(for="fullName") Full Name
+            input#fullName(type="text" name="fullName" placeholder="Enter your full name" required maxlength="100" value=admin ? admin.fullName : '')
+            small.field-error#fullNameError
 
-    form#profileForm.settings-form
-      .form-grid
-        .form-group
-          label(for="fullName") Full Name
-          input#fullName(type="text" name="fullName" placeholder="Enter your full name" required maxlength="100" value=admin ? admin.fullName : '')
-          small.field-error#fullNameError
+          .form-group
+            label(for="email") Email Address
+            input#email(type="email" name="email" placeholder="Enter your email address" required maxlength="255" value=admin ? admin.email : '')
+            small.field-error#emailError
 
-        .form-group
-          label(for="email") Email Address
-          input#email(type="email" name="email" placeholder="Enter your email address" required maxlength="255" value=admin ? admin.email : '')
-          small.field-error#emailError
+          .form-group
+            label(for="phone") Phone Number
+            input#phone(type="tel" name="phone" placeholder="Enter your phone number" maxlength="20" value=admin && admin.phone ? admin.phone : '')
+            small.field-error#phoneError
 
-        .form-group
-          label(for="phone") Phone Number
-          input#phone(type="tel" name="phone" placeholder="Enter your phone number" maxlength="20" value=admin && admin.phone ? admin.phone : '')
-          small.field-error#phoneError
+          .form-group.form-group-full
+            label(for="primaryAddress") Primary Address
+            input#primaryAddress(type="text" name="primaryAddress" placeholder="Enter your primary address" maxlength="255" value=admin && admin.primaryAddress ? admin.primaryAddress : '')
+            small.field-error#addressError
 
-        .form-group.form-group-full
-          label(for="primaryAddress") Primary Address
-          input#primaryAddress(type="text" name="primaryAddress" placeholder="Enter your primary address" maxlength="255" value=admin && admin.primaryAddress ? admin.primaryAddress : '')
-          small.field-error#addressError
+        .form-actions
+          button.btn-secondary#cancelProfile(type="button") Cancel
+          button.btn-primary(type="submit")
+            i.fas.fa-save
+            span Save Changes
 
-      .form-actions
-        button.btn-secondary#cancelProfile(type="button") Cancel
-        button.btn-primary(type="submit")
-          i.fas.fa-save
-          span Save Changes
+    //- Password and Security
+    section.settings-card#securitySection
+      .settings-card-header
+        .settings-section-icon.security-icon
+          i.fa-solid.fa-shield-halved
+        .settings-section-heading
+          h2 Password & Security
+          p Protect your account by keeping your password secure.
 
-  //- Password and Security
-  section.settings-card#securitySection
-    .settings-card-header
-      .settings-section-icon.security-icon
-        i.fa-solid.fa-shield-halved
-      .settings-section-heading
-        h2 Password & Security
-        p Protect your account by keeping your password secure.
+      form#passwordForm.settings-form
+        .form-grid
+          .form-group
+            label(for="currentPassword") Current Password
+            .password-input-wrapper
+              input#currentPassword(type="password" name="currentPassword" placeholder="Enter current password" required)
+              button.password-toggle(type="button" data-target="currentPassword" aria-label="Show password")
+                i.fas.fa-eye
+          small.field-error#currentPasswordError
 
-    form#passwordForm.settings-form
-      .form-grid
-        .form-group
-          label(for="currentPassword") Current Password
-          .password-input-wrapper
-            input#currentPassword(type="password" name="currentPassword" placeholder="Enter current password" required)
-            button.password-toggle(type="button" data-target="currentPassword" aria-label="Show password")
-              i.fas.fa-eye
-        small.field-error#currentPasswordError
+          .form-group
+            label(for="newPassword") New Password
+            .password-input-wrapper
+              input#newPassword(type="password" name="newPassword" placeholder="Enter new password" required)
+              button.password-toggle(type="button" data-target="newPassword" aria-label="Show password")
+                i.fas.fa-eye
+            small.field-error#newPasswordError
 
-        .form-group
-          label(for="newPassword") New Password
-          .password-input-wrapper
-            input#newPassword(type="password" name="newPassword" placeholder="Enter new password" required)
-            button.password-toggle(type="button" data-target="newPassword" aria-label="Show password")
-              i.fas.fa-eye
-          small.field-error#newPasswordError
+          .form-group
+            label(for="confirmPassword") Confirm New Password
+            .password-input-wrapper
+              input#confirmPassword(type="password" name="confirmPassword" placeholder="Confirm new password" required)
+              button.password-toggle(type="button" data-target="confirmPassword" aria-label="Show password")
+                i.fas.fa-eye
+            small.field-error#confirmPasswordError
 
-        .form-group
-          label(for="confirmPassword") Confirm New Password
-          .password-input-wrapper
-            input#confirmPassword(type="password" name="confirmPassword" placeholder="Confirm new password" required)
-            button.password-toggle(type="button" data-target="confirmPassword" aria-label="Show password")
-              i.fas.fa-eye
-          small.field-error#confirmPasswordError
+        .password-requirements
+          strong Password requirements
+          ul
+            li At least 8 characters
+            li At least one uppercase letter
+            li At least one lowercase letter
+            li At least one number
 
-      .password-requirements
-        strong Password requirements
-        ul
-          li At least 8 characters
-          li At least one uppercase letter
-          li At least one lowercase letter
-          li At least one number
+        .form-actions
+          button.btn-secondary#cancelPassword(type="button") Cancel
+          button.btn-primary(type="submit")
+            i.fas.fa-lock
+            span Update Password
 
-      .form-actions
-        button.btn-secondary#cancelPassword(type="button") Cancel
-        button.btn-primary(type="submit")
-          i.fas.fa-lock
-          span Update Password
+    //- Notification Preferences
+    section.settings-card#notificationsSection
+      .settings-card-header
+        .settings-section-icon.notifications-icon
+          i.fa-solid.fa-bell
+        .settings-section-heading
+          h2 Notification Preferences
+          p Choose which notifications you want to receive.
 
-  //- Notification Preferences
-  section.settings-card#notificationsSection
-    .settings-card-header
-      .settings-section-icon.notifications-icon
-        i.fa-solid.fa-bell
-      .settings-section-heading
-        h2 Notification Preferences
-        p Choose which notifications you want to receive.
+      form#notificationsForm.settings-form
+        .notification-option
+          .notification-option-info
+            strong Account Activity
+            p Receive notifications about important activity related to your account.
+          label.switch
+            input#notifyAccountActivity(type="checkbox" name="notifyAccountActivity" checked=admin ? admin.notifyAccountActivity : true)
+            span.switch-slider
 
-    form#notificationsForm.settings-form
-      .notification-option
-        .notification-option-info
-          strong Account Activity
-          p Receive notifications about important activity related to your account.
-        label.switch
-          input#notifyAccountActivity(type="checkbox" name="notifyAccountActivity" checked=admin ? admin.notifyAccountActivity : true)
-          span.switch-slider
+        .notification-divider
 
-      .notification-divider
+        .notification-option
+          .notification-option-info
+            strong Important System Events
+            p Receive notifications about important system updates and events.
+          label.switch
+            input#notifySystemEvents(type="checkbox" name="notifySystemEvents" checked=admin ? admin.notifySystemEvents : true)
+            span.switch-slider
 
-      .notification-option
-        .notification-option-info
-          strong Important System Events
-          p Receive notifications about important system updates and events.
-        label.switch
-          input#notifySystemEvents(type="checkbox" name="notifySystemEvents" checked=admin ? admin.notifySystemEvents : true)
-          span.switch-slider
+        .form-actions
+          button.btn-secondary#cancelNotifications(type="button") Cancel
+          button.btn-primary(type="submit")
+            i.fas.fa-save
+            span Save Notifications
 
-      .form-actions
-        button.btn-secondary#cancelNotifications(type="button") Cancel
-        button.btn-primary(type="submit")
-          i.fas.fa-save
-          span Save Notifications
+    //- Feedback Toast
+    #settingsToast.toast-notification(role="status" aria-live="polite")
+      i.fas.fa-check-circle
+      span#toastMessage Settings updated successfully.
 
-  //- Feedback Toast
-  #settingsToast.toast-notification(role="status" aria-live="polite")
-    i.fas.fa-check-circle
-    span#toastMessage Settings updated successfully.
+block scripts
+  script(src="/js/HU-018.js")

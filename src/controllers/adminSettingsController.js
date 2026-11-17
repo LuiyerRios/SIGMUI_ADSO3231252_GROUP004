@@ -20,7 +20,10 @@ export const renderAdminSettings = async (req, res) => {
     res.render('HU-018', {
       title: 'Settings | SIGMUI',
       admin,
-      active: 'settings'
+      active: 'settings',
+      activeMenu: 'settings',
+      pageTitle: 'Settings',
+      pageSubtitle: 'Manage your account, security and preferences'
     });
   } catch (error) {
     console.error('Admin settings error:', error);

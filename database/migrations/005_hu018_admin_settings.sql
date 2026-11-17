@@ -1,7 +1,7 @@
 -- =====================================================================
--- SIGMUI - Migración 003: HU-014 User Profile Settings
+-- SIGMUI - Migración 005: HU-018 Admin profile settings (antes 003_hu014_admin_settings.sql)
 -- Agrega dirección y preferencias de configuración por usuario.
--- Conserva los datos existentes.
+-- Conserva los datos existentes. Sin estas columnas el login falla (el modelo User las lee).
 -- =====================================================================
 
 USE sigmui_db;
