@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { renderZoneSettings } from '../controllers/zoneAdminController.js';
 import { renderAdminHome } from '../controllers/adminHomeController.js';
 import { renderDashboard, exportDashboardCsv } from '../controllers/dashboardController.js';
 import { renderManageUsers } from '../controllers/userAdminController.js';
@@ -51,6 +52,9 @@ router.get('/help-reports', listHelpReports);
 router.get('/help-reports/:id', renderHelpReport);
 router.post('/help-reports/:id/reply', validateReplyRules, replyHelpReport);
 // HU-018 Admin Settings Routes
+// HU-018 (#35): tarifas, horario y regla de extensión por zona
+router.get('/zones', renderZoneSettings);
+
 router.get('/settings', renderAdminSettings);
 router.put('/settings/profile', updateAdminProfile);
 router.put('/settings/password', updateAdminPassword);

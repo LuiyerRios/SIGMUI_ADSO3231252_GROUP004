@@ -1,5 +1,6 @@
 import db from '../config/db.js';
 import { QueryTypes } from 'sequelize';
+import { toHHMM, formatSchedule } from '../utils/zoneRules.js';
 
 /**
  * Consulta la regla de ocupación en SQL:
@@ -27,11 +28,14 @@ export async function getZonesOverview() {
       z.rate_per_hour AS ratePerHour,
       z.rate_per_day AS ratePerDay,
       z.allows_extension AS allowsExtension,
+      z.opens_at AS opensAt,
+      z.closes_at AS closesAt,
+      (CURTIME() >= z.opens_at AND CURTIME() < z.closes_at) AS isOpen,
       COUNT(ps.id) AS total,
       SUM(CASE WHEN NOT ${SQL_OCCUPIED_EXISTS} THEN 1 ELSE 0 END) AS free
     FROM zones z
     JOIN parking_spaces ps ON ps.zone = z.code
-    GROUP BY z.code, z.name, z.rate_per_hour, z.rate_per_day, z.allows_extension
+    GROUP BY z.code, z.name, z.rate_per_hour, z.rate_per_day, z.allows_extension, z.opens_at, z.closes_at
     ORDER BY z.code ASC
   `;
 
@@ -43,6 +47,10 @@ export async function getZonesOverview() {
     ratePerHour: Number(r.ratePerHour),
     ratePerDay: Number(r.ratePerDay),
     allowsExtension: Boolean(r.allowsExtension),
+    opensAt: toHHMM(r.opensAt),
+    closesAt: toHHMM(r.closesAt),
+    scheduleText: formatSchedule(r.opensAt, r.closesAt),
+    isOpen: Boolean(Number(r.isOpen)),
     total: Number(r.total),
     free: Number(r.free)
   }));

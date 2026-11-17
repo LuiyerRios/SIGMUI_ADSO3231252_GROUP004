@@ -75,6 +75,8 @@ CREATE TABLE zones (
   rate_per_hour INT NOT NULL,
   rate_per_day INT NOT NULL,
   allows_extension BOOLEAN NOT NULL DEFAULT TRUE,
+  opens_at TIME NOT NULL DEFAULT '00:00:00',
+  closes_at TIME NOT NULL DEFAULT '23:59:00',
   PRIMARY KEY (code)
 ) ENGINE=InnoDB;
 

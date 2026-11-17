@@ -8,6 +8,7 @@ import {
   buildReceiptNumber
 } from '../utils/paymentRules.js';
 import { SQL_OCCUPIED_EXISTS } from './driverParkingService.js';
+import { formatSchedule } from '../utils/zoneRules.js';
 
 export class PaymentError extends Error {
   constructor(message, status = 400) {
@@ -28,7 +29,9 @@ export async function recordParkingPayment(userId, input) {
   return await db.transaction(async (transaction) => {
     // 1. Obtener zona y tarifas desde la BD
     const zones = await db.query(
-      'SELECT code, rate_per_hour, rate_per_day FROM zones WHERE code = ? LIMIT 1',
+      `SELECT code, rate_per_hour, rate_per_day, opens_at, closes_at,
+              (CURTIME() >= opens_at AND CURTIME() < closes_at) AS is_open
+         FROM zones WHERE code = ? LIMIT 1`,
       {
         replacements: [zone],
         type: QueryTypes.SELECT,
@@ -41,6 +44,14 @@ export async function recordParkingPayment(userId, input) {
     }
 
     const zoneRecord = zones[0];
+
+    // HU-018 (#35): solo se puede parquear dentro del horario de servicio de la zona
+    if (zoneRecord.is_open !== undefined && !Number(zoneRecord.is_open)) {
+      throw new PaymentError(
+        `Zone ${zoneRecord.code} is closed right now. Service hours: ${formatSchedule(zoneRecord.opens_at, zoneRecord.closes_at)}.`,
+        409
+      );
+    }
 
     // 2. Espacio: si viene spaceId se verifica que exista y esté libre;
     //    si no viene, se asigna el primer espacio libre de la zona (HU-004).

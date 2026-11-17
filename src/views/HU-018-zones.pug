@@ -1,0 +1,72 @@
+//- HU-018 (#35) · Tarifas, horario y regla de extensión por zona (solo admin)
+extends layouts/app
+
+block content
+  div(class="flex flex-col gap-5")
+
+    if errorMessage
+      .alert.alert-error
+        i.fas.fa-triangle-exclamation
+        span= errorMessage
+
+    .alert.alert-info
+      i.fas.fa-circle-info
+      span Changes apply only to new parking sessions. Active sessions keep the rate they already paid.
+
+    if zones.length === 0 && !errorMessage
+      .card
+        p(class="text-sm text-muted text-center py-6") No zones are configured yet.
+
+    div(id="zoneGrid", class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-5")
+      each z in zones
+        form.card.zone-form(data-zone=z.code, novalidate, class="flex flex-col gap-4")
+          //- Encabezado de la zona
+          div(class="flex items-start justify-between gap-3")
+            div(class="flex items-center gap-3 min-w-0")
+              span(class="w-11 h-11 shrink-0 rounded-xl bg-primary/10 text-primary font-bold text-lg flex items-center justify-center")= z.code
+              div(class="min-w-0")
+                h2.card-title= z.name
+                p(class="text-xs text-muted truncate")= z.description || `${z.spaces} spaces`
+            span(class="pill whitespace-nowrap shrink-0 " + (z.isOpen ? 'pill-success' : 'pill-muted'), data-role="open-pill")= z.isOpen ? 'Open now' : 'Closed now'
+
+          //- Tarifas
+          div(class="grid grid-cols-1 sm:grid-cols-2 gap-3")
+            .field(class="mb-0")
+              label(for=`rateHour${z.code}`) Rate per hour (COP)
+              .input-icon
+                i.fas.fa-clock
+                input.input(id=`rateHour${z.code}`, name="ratePerHour", type="number", min="1", step="1", inputmode="numeric", required, value=z.ratePerHour)
+            .field(class="mb-0")
+              label(for=`rateDay${z.code}`) Rate per day (COP)
+              .input-icon
+                i.fas.fa-calendar-day
+                input.input(id=`rateDay${z.code}`, name="ratePerDay", type="number", min="1", step="1", inputmode="numeric", required, value=z.ratePerDay)
+
+          //- Horario de servicio
+          div(class="grid grid-cols-2 gap-3")
+            .field(class="mb-0")
+              label(for=`opens${z.code}`) Opens at
+              input.input(id=`opens${z.code}`, name="opensAt", type="time", required, value=z.opensAt)
+            .field(class="mb-0")
+              label(for=`closes${z.code}`) Closes at
+              input.input(id=`closes${z.code}`, name="closesAt", type="time", required, value=z.closesAt)
+
+          //- Regla de extensión
+          label(class="flex items-center justify-between gap-3 p-3 rounded-control bg-surface-soft cursor-pointer")
+            span(class="flex flex-col")
+              span(class="text-xs font-semibold text-ink") Allow extensions
+              span(class="text-[11px] text-muted") Drivers can add time before the session expires
+            input(type="checkbox", name="allowsExtension", checked=z.allowsExtension, class="w-5 h-5 accent-accent cursor-pointer")
+
+          p.field-error(data-role="error", hidden)
+
+          //- Pie: resumen y guardar
+          div(class="flex items-center justify-between gap-3 pt-3 border-t border-line flex-wrap")
+            span(class="text-[11px] text-muted", data-role="summary")
+              | #{z.rateHourText} / hour · #{z.scheduleText} · #{z.activeSessions} active
+            button.btn.btn-primary(type="submit")
+              i.fas.fa-save
+              span Save zone
+
+block scripts
+  script(src="/js/HU-018-zones.js")
