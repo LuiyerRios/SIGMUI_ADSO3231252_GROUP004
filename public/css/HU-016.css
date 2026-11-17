@@ -1,28 +1,24 @@
-
-.deactivate-button {
+/* HU-016 · Manage users (diseño de Juan Esteban Villota). Panel de edición, diálogos y toast limitados a .hu016;
+   la tabla y los filtros usan los componentes del layout del equipo (app.css). */
+.hu016 { --line: #e2e8f0; --muted: #64748b; --text: #0f172a; --shadow: 0 10px 30px rgba(15, 23, 42, 0.12); }
+.hu016 [hidden] { display: none !important; }
+.hu016 .overlay { z-index: 100 !important; } /* por encima del topbar y el sidebar del layout */
+.hu016 .toast { z-index: 110 !important; }
+body.modal-open { overflow: hidden; }
+.hu016 .deactivate-button {
   color: #e33e45;
   background: #fdebed;
 }
 
-.reactivate-button {
+.hu016 .reactivate-button {
   color: #0b9e50;
   background: #e6f7ed;
 }
 
 /* Empty state */
-.empty-state {
-  padding: 60px 20px;
-  color: var(--muted);
-  text-align: center;
-}
-
-.empty-state strong {
-  color: var(--text);
-  font-size: 14px;
-}
 
 /* Overlay and edit drawer */
-.overlay {
+.hu016 .overlay {
   position: fixed;
   inset: 0;
   z-index: 20;
@@ -32,7 +28,7 @@
   backdrop-filter: blur(2px);
 }
 
-.drawer {
+.hu016 .drawer {
   display: flex;
   flex-direction: column;
   width: min(590px, 100%);
@@ -43,7 +39,7 @@
 }
 
 /* Drawer header */
-.drawer-header {
+.hu016 .drawer-header {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
@@ -52,7 +48,7 @@
   border-bottom: 1px solid var(--line);
 }
 
-.drawer-title-icon {
+.hu016 .drawer-title-icon {
   display: grid;
   flex: 0 0 43px;
   place-items: center;
@@ -64,26 +60,26 @@
   font-size: 23px;
 }
 
-.drawer-title-copy {
+.hu016 .drawer-title-copy {
   min-width: 0;
 }
 
-.drawer-title-copy h2,
-.dialog-heading h2 {
+.hu016 .drawer-title-copy h2,
+.hu016 .dialog-heading h2 {
   margin: 0 0 5px;
   font-size: 18px;
   letter-spacing: -0.4px;
 }
 
-.drawer-title-copy p,
-.dialog-heading p {
+.hu016 .drawer-title-copy p,
+.hu016 .dialog-heading p {
   margin: 0;
   color: var(--muted);
   font-size: 11px;
   line-height: 1.55;
 }
 
-.close-button {
+.hu016 .close-button {
   flex: 0 0 auto;
   width: 30px;
   height: 30px;
@@ -97,26 +93,26 @@
   cursor: pointer;
 }
 
-.close-button:hover {
+.hu016 .close-button:hover {
   color: var(--text);
   background: #f0f3f8;
 }
 
 /* Edit user form */
-#editUserForm {
+.hu016 #editUserForm {
   display: flex;
   flex: 1;
   flex-direction: column;
   min-height: 0;
 }
 
-.drawer-scroll {
+.hu016 .drawer-scroll {
   flex: 1;
   overflow-y: auto;
   padding: 15px 20px;
 }
 
-.form-section {
+.hu016 .form-section {
   margin-bottom: 14px;
   padding: 16px;
   border: 1px solid #e2eaf5;
@@ -124,19 +120,19 @@
   background: linear-gradient(145deg, #fff, #fbfcff);
 }
 
-.form-section h3 {
+.hu016 .form-section h3 {
   margin: 0 0 15px;
   font-size: 14px;
 }
 
 /* Form fields */
-.form-grid {
+.hu016 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px 13px;
 }
 
-.form-field {
+.hu016 .form-field {
   display: flex;
   flex-direction: column;
   gap: 7px;
@@ -146,9 +142,9 @@
   font-weight: 600;
 }
 
-.form-field input,
-.form-field select,
-.form-field textarea {
+.hu016 .form-field input,
+.hu016 .form-field select,
+.hu016 .form-field textarea {
   width: 100%;
   min-width: 0;
   min-height: 38px;
@@ -162,22 +158,22 @@
   font-weight: 400;
 }
 
-.form-field textarea {
+.hu016 .form-field textarea {
   resize: vertical;
 }
 
-.form-field input:focus,
-.form-field select:focus,
-.form-field textarea:focus {
+.hu016 .form-field input:focus,
+.hu016 .form-field select:focus,
+.hu016 .form-field textarea:focus {
   border-color: #8b78ff;
   box-shadow: 0 0 0 3px #7555ff17;
 }
 
-.form-field input::placeholder {
+.hu016 .form-field input::placeholder {
   color: #8a9ab0;
 }
 
-.form-hint {
+.hu016 .form-hint {
   margin: 11px 0 0;
   color: #7788a0;
   font-size: 10px;
@@ -185,20 +181,20 @@
 }
 
 /* Section headings and buttons */
-.section-title-row {
+.hu016 .section-title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
 
-.section-title-row h3 {
+.hu016 .section-title-row h3 {
   margin-bottom: 13px;
 }
 
-.primary-button,
-.secondary-button,
-.danger-button {
+.hu016 .primary-button,
+.hu016 .secondary-button,
+.hu016 .danger-button {
   min-height: 38px;
   padding: 0 17px;
   border: 0;
@@ -208,47 +204,47 @@
   cursor: pointer;
 }
 
-.primary-button {
+.hu016 .primary-button {
   color: #fff;
   background: linear-gradient(100deg, #7657ff, #6446f1);
   box-shadow: 0 4px 10px #7657ff25;
 }
 
-.primary-button:hover {
+.hu016 .primary-button:hover {
   background: #5f43eb;
 }
 
-.secondary-button {
+.hu016 .secondary-button {
   color: #243750;
   background: #edf2f8;
 }
 
-.secondary-button:hover {
+.hu016 .secondary-button:hover {
   background: #e0e8f2;
 }
 
-.danger-button {
+.hu016 .danger-button {
   color: #fff;
   background: #ed3d47;
 }
 
-.danger-button:hover {
+.hu016 .danger-button:hover {
   background: #d92d38;
 }
 
-.small-button {
+.hu016 .small-button {
   min-height: 31px;
   padding: 0 12px;
   font-size: 10px;
 }
 
 /* Linked vehicles */
-.vehicle-list {
+.hu016 .vehicle-list {
   display: grid;
   gap: 9px;
 }
 
-.vehicle-card {
+.hu016 .vehicle-card {
   display: grid;
   grid-template-columns: 40px minmax(0, 1fr) auto;
   align-items: start;
@@ -259,7 +255,7 @@
   background: #fff;
 }
 
-.vehicle-symbol {
+.hu016 .vehicle-symbol {
   display: grid;
   place-items: center;
   width: 38px;
@@ -270,22 +266,22 @@
   font-size: 19px;
 }
 
-.vehicle-info {
+.hu016 .vehicle-info {
   min-width: 0;
 }
 
-.vehicle-title-row {
+.hu016 .vehicle-title-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
 }
 
-.vehicle-title-row strong {
+.hu016 .vehicle-title-row strong {
   font-size: 11px;
 }
 
-.vehicle-type {
+.hu016 .vehicle-type {
   padding: 4px 8px;
   border-radius: 12px;
   color: #2867b2;
@@ -293,14 +289,14 @@
   font-size: 9px;
 }
 
-.vehicle-info p {
+.hu016 .vehicle-info p {
   margin: 7px 0 0;
   color: #617895;
   font-size: 10px;
   overflow-wrap: anywhere;
 }
 
-.vehicle-info .vehicle-description {
+.hu016 .vehicle-info .vehicle-description {
   margin-top: 9px;
   padding: 8px;
   border-radius: 7px;
@@ -308,12 +304,12 @@
   background: #f2f5fa;
 }
 
-.vehicle-actions {
+.hu016 .vehicle-actions {
   display: flex;
   gap: 5px;
 }
 
-.no-vehicles {
+.hu016 .no-vehicles {
   padding: 20px 12px;
   border: 1px dashed #dbe4f0;
   border-radius: 9px;
@@ -324,7 +320,7 @@
 }
 
 /* Drawer footer */
-.drawer-footer {
+.hu016 .drawer-footer {
   display: flex;
   flex: 0 0 auto;
   justify-content: flex-end;
@@ -335,7 +331,7 @@
 }
 
 /* Dialogs and modals */
-.dialog {
+.hu016 .dialog {
   width: min(440px, calc(100% - 30px));
   margin: auto;
   overflow: hidden;
@@ -345,14 +341,14 @@
   animation: dialog-in 0.16s ease-out;
 }
 
-.dialog-header {
+.hu016 .dialog-header {
   display: flex;
   align-items: flex-start;
   gap: 13px;
   padding: 23px 23px 18px;
 }
 
-.dialog-icon {
+.hu016 .dialog-icon {
   display: grid;
   flex: 0 0 43px;
   place-items: center;
@@ -362,49 +358,49 @@
   font-size: 22px;
 }
 
-.danger-icon {
+.hu016 .danger-icon {
   color: #e33e48;
   background: #ffebed;
 }
 
-.blue-icon {
+.hu016 .blue-icon {
   color: #6650ef;
   background: #efedff;
 }
 
-.dialog-heading {
+.hu016 .dialog-heading {
   padding-top: 3px;
 }
 
-.dialog-footer {
+.hu016 .dialog-footer {
   display: flex;
   justify-content: flex-end;
   gap: 9px;
   padding: 0 23px 22px;
 }
 
-.vehicle-dialog .dialog-header {
+.hu016 .vehicle-dialog .dialog-header {
   padding-bottom: 14px;
 }
 
-.dialog-body {
+.hu016 .dialog-body {
   padding: 0 23px 20px;
 }
 
-.dialog-body .form-grid {
+.hu016 .dialog-body .form-grid {
   gap: 13px;
 }
 
-.full-field {
+.hu016 .full-field {
   margin-top: 14px;
 }
 
-.confirm-dialog .dialog-header {
+.hu016 .confirm-dialog .dialog-header {
   padding-bottom: 23px;
 }
 
 /* Notifications */
-.toast {
+.hu016 .toast {
   position: fixed;
   right: 22px;
   bottom: 22px;
@@ -423,17 +419,13 @@
   line-height: 1.5;
 }
 
-.toast.show {
+.hu016 .toast.show {
   opacity: 1;
   transform: translateY(0);
 }
 
-.toast.toast-error {
+.hu016 .toast.toast-error {
   background: #b82f3b;
-}
-
-body.modal-open {
-  overflow: hidden;
 }
 
 /* Animations */
@@ -462,213 +454,68 @@ body.modal-open {
 }
 
 /* Large screens */
-@media (min-width: 1450px) {
-  .sidebar {
-    width: 205px;
-    flex-basis: 205px;
-    padding-right: 11px;
-    padding-left: 11px;
-  }
-
-  .content {
-    padding: 18px 22px;
-  }
-
-  .user-table td {
-    height: 43px;
-  }
-}
 
 /* Tablets and smaller laptops */
-@media (max-width: 1000px) {
-  .sidebar {
-    width: 160px;
-    flex-basis: 160px;
-  }
-
-  .topbar {
-    padding: 10px 15px;
-  }
-
-  .content {
-    padding: 14px;
-  }
-
-  .global-search {
-    width: 165px;
-  }
-
-  .filter-row {
-    flex-wrap: wrap;
-  }
-
-  .result-count {
-    margin-left: auto;
-  }
-
-  .table-card {
-    min-height: 500px;
-  }
-}
 
 /* Mobile devices */
 @media (max-width: 720px) {
-  .sidebar {
-    width: 58px;
-    flex-basis: 58px;
-    padding: 12px 7px;
-  }
 
-  .brand {
-    justify-content: center;
-    padding: 0 0 24px;
-  }
-
-  .brand > span,
-  .sidebar-collapse,
-  .menu-label,
-  .nav-item span:not(.nav-icon),
-  .profile-copy,
-  .logout {
+  .hu016 .menu-label,
+  .hu016 .profile-copy {
     display: none;
   }
 
-  .nav-item {
-    justify-content: center;
-    padding: 0;
-  }
-
-  .nav-icon {
-    font-size: 18px;
-  }
-
-  .sidebar-profile {
-    grid-template-columns: 1fr;
-    justify-items: center;
-    padding: 7px 3px;
-  }
-
-  .topbar {
-    align-items: flex-start;
-  }
-
-  .topbar-right {
-    gap: 5px;
-  }
-
-  .global-search {
-    display: none;
-  }
-
-  .icon-button {
-    width: 30px;
-    height: 30px;
-  }
-
-  .admin-greeting {
-    padding-left: 7px;
-  }
-
-  .content {
-    padding: 12px 9px;
-  }
-
-  .filter-row {
-    align-items: stretch;
-  }
-
-  .search-field {
+  .hu016 .drawer {
     width: 100%;
   }
 
-  .filter-group {
-    flex-wrap: wrap;
-  }
-
-  .filter-chip {
-    padding: 7px 10px;
-  }
-
-  .filter-divider {
-    display: none;
-  }
-
-  .result-count {
-    width: 100%;
-    text-align: right;
-  }
-
-  .user-table {
-    min-width: 820px;
-  }
-
-  .drawer {
-    width: 100%;
-  }
-
-  .drawer-scroll {
+  .hu016 .drawer-scroll {
     padding: 12px;
   }
 
-  .drawer-header {
+  .hu016 .drawer-header {
     padding: 14px;
   }
 
-  .form-section {
+  .hu016 .form-section {
     padding: 12px;
   }
 }
 
 /* Small mobile devices */
 @media (max-width: 430px) {
-  .page-heading h1 {
-    font-size: 15px;
-  }
 
-  .page-heading p {
-    max-width: 160px;
-    line-height: 1.4;
-  }
-
-  .topbar {
-    gap: 8px;
-  }
-
-  .admin-greeting {
-    display: none;
-  }
-
-  .form-grid {
+  .hu016 .form-grid {
     grid-template-columns: 1fr;
   }
 
-  .vehicle-card {
+  .hu016 .vehicle-card {
     grid-template-columns: 32px minmax(0, 1fr);
   }
 
-  .vehicle-symbol {
+  .hu016 .vehicle-symbol {
     width: 32px;
     height: 32px;
   }
 
-  .vehicle-actions {
+  .hu016 .vehicle-actions {
     grid-column: 2;
     justify-content: flex-end;
   }
 
-  .drawer-footer {
+  .hu016 .drawer-footer {
     padding: 12px;
   }
 
-  .drawer-footer button {
+  .hu016 .drawer-footer button {
     flex: 1;
   }
 
-  .dialog-header {
+  .hu016 .dialog-header {
     padding: 18px 16px;
   }
 
-  .dialog-footer {
+  .hu016 .dialog-footer {
     padding: 0 16px 18px;
   }
 }
