@@ -1,0 +1,59 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title= title || "Settings | SIGMUI"
+
+    //- Typography
+    link(rel="preconnect" href="https://fonts.googleapis.com")
+    link(rel="preconnect" href="https://fonts.gstatic.com" crossorigin)
+    link(href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet")
+
+    //- Icons
+    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css")
+
+    //- Tailwind CSS
+    script(src="https://cdn.tailwindcss.com")
+
+    //- HU-018 Styles
+    link(rel="stylesheet" href="/css/HU-018.css")
+
+  body
+    .admin-layout
+
+      //- Administrative Sidebar
+      include ../partials/admin-sidebar
+
+      //- Main Content
+      main.admin-main-content
+
+        //- Top Navigation Bar
+        header.topbar-header
+          .topbar-left
+            button#mobileToggle.btn-mobile-toggle(type="button" aria-label="Open menu")
+              i.fas.fa-bars
+
+            .topbar-search
+              i.fas.fa-search
+              input(type="text" placeholder="Search..." aria-label="Search")
+
+          .topbar-actions
+            button.topbar-icon-btn(type="button" aria-label="Notifications")
+              i.far.fa-bell
+              span.notification-badge-dot
+
+            .topbar-user-greeting
+              span Welcome,
+              strong= currentUser ? currentUser.name : 'Administrator'
+              i.far.fa-user-circle
+
+        //- Page Content
+        section.content-body
+          block content
+
+      //- Mobile Sidebar Overlay
+      #sidebarOverlay.sidebar-overlay
+
+    //- HU-018 JavaScript
+    script(src="/js/HU-018.js")

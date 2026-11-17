@@ -13,6 +13,12 @@ import {
   renderPaymentHistory, 
   exportPayments 
 } from '../controllers/paymentHistoryController.js';
+import {
+  renderAdminSettings,
+  updateAdminProfile,
+  updateAdminPassword,
+  updateAdminNotifications
+} from '../controllers/adminSettingsController.js';
 
 const router = Router();
 
@@ -44,5 +50,10 @@ const validateReplyRules = [
 router.get('/help-reports', listHelpReports);
 router.get('/help-reports/:id', renderHelpReport);
 router.post('/help-reports/:id/reply', validateReplyRules, replyHelpReport);
+// HU-018 Admin Settings Routes
+router.get('/settings', renderAdminSettings);
+router.put('/settings/profile', updateAdminProfile);
+router.put('/settings/password', updateAdminPassword);
+router.put('/settings/notifications', updateAdminNotifications);
 
 export default router;
