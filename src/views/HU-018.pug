@@ -23,7 +23,7 @@ block content
   section.settings-card#profileSection
     .settings-card-header
       .settings-section-icon.profile-icon
-        i.fas.fa-user
+        i.fa-solid.fa-user
       .settings-section-heading
         h2 Profile Information
         p Update your personal and contact information.
@@ -60,7 +60,7 @@ block content
   section.settings-card#securitySection
     .settings-card-header
       .settings-section-icon.security-icon
-        i.fas.fa-shield-alt
+        i.fa-solid.fa-shield-halved
       .settings-section-heading
         h2 Password & Security
         p Protect your account by keeping your password secure.
@@ -105,40 +105,11 @@ block content
           i.fas.fa-lock
           span Update Password
 
-  //- Administrative Preferences
-  section.settings-card#preferencesSection
-    .settings-card-header
-      .settings-section-icon.preferences-icon
-        i.fas.fa-sliders-h
-      .settings-section-heading
-        h2 Administrative Preferences
-        p Customize your personal application experience.
-
-    form#preferencesForm.settings-form
-      .form-grid
-        .form-group
-          label(for="preferredLanguage") Language
-          select#preferredLanguage(name="preferredLanguage")
-            option(value="en" selected=admin && admin.preferredLanguage === 'en') English
-            option(value="es" selected=admin && admin.preferredLanguage === 'es') Spanish
-
-        .form-group
-          label(for="preferredTheme") Theme
-          select#preferredTheme(name="preferredTheme")
-            option(value="light" selected=admin && admin.preferredTheme === 'light') Light
-            option(value="dark" selected=admin && admin.preferredTheme === 'dark') Dark
-
-      .form-actions
-        button.btn-secondary#cancelPreferences(type="button") Cancel
-        button.btn-primary(type="submit")
-          i.fas.fa-save
-          span Save Preferences
-
   //- Notification Preferences
   section.settings-card#notificationsSection
     .settings-card-header
       .settings-section-icon.notifications-icon
-        i.fas.fa-bell
+        i.fa-solid.fa-bell
       .settings-section-heading
         h2 Notification Preferences
         p Choose which notifications you want to receive.

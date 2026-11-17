@@ -57,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const profileForm = document.getElementById('profileForm');
   const passwordForm = document.getElementById('passwordForm');
-  const preferencesForm = document.getElementById('preferencesForm');
   const notificationsForm = document.getElementById('notificationsForm');
 
 
@@ -440,27 +439,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // =========================================
-  // PREFERENCES FORM
-  // =========================================
-
-  handleSubmission(
-    preferencesForm,
-    '/admin/settings/preferences',
-    () => ({
-      preferredLanguage: document.getElementById('preferredLanguage').value,
-      preferredTheme: document.getElementById('preferredTheme').value
-    }),
-    () => {
-      preferencesForm.querySelectorAll('select').forEach(select => {
-        Array.from(select.options).forEach(option => {
-          option.defaultSelected = option.selected;
-        });
-      });
-    }
-  );
-
-
-  // =========================================
   // NOTIFICATIONS FORM
   // =========================================
 
@@ -496,10 +474,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (passwordForm) {
       resetPasswordVisibility(passwordForm);
     }
-  });
-
-  document.getElementById('cancelPreferences')?.addEventListener('click', () => {
-    preferencesForm?.reset();
   });
 
   document.getElementById('cancelNotifications')?.addEventListener('click', () => {

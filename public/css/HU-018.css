@@ -590,11 +590,6 @@ button {
   color: var(--success);
 }
 
-.preferences-icon {
-  background: #F0ECFF;
-  color: var(--accent);
-}
-
 .notifications-icon {
   background: #FFF4E5;
   color: #D97706;

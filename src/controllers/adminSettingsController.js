@@ -171,50 +171,6 @@ export const updateAdminPassword = async (req, res) => {
   }
 };
 
-// Actualizar preferencias administrativas
-export const updateAdminPreferences = async (req, res) => {
-  try {
-    const language = req.body.preferredLanguage;
-    const theme = req.body.preferredTheme;
-
-    if (!['en', 'es'].includes(language)) {
-      return res.status(400).json({
-        error: 'Invalid language selected.'
-      });
-    }
-
-    if (!['light', 'dark'].includes(theme)) {
-      return res.status(400).json({
-        error: 'Invalid theme selected.'
-      });
-    }
-
-    const admin = await User.findByPk(req.session.user.id);
-
-    if (!admin) {
-      return res.status(404).json({
-        error: 'Administrator account not found.'
-      });
-    }
-
-    await admin.update({
-      preferredLanguage: language,
-      preferredTheme: theme
-    });
-
-    res.json({
-      message: 'Preferences updated successfully.'
-    });
-
-  } catch (error) {
-    console.error('Preferences update error:', error);
-
-    res.status(500).json({
-      error: 'Unable to update preferences. Please try again.'
-    });
-  }
-};
-
 // Actualizar preferencias de notificaciones
 export const updateAdminNotifications = async (req, res) => {
   try {

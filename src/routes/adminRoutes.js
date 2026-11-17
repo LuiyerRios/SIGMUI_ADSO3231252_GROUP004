@@ -13,7 +13,6 @@ import {
   renderAdminSettings,
   updateAdminProfile,
   updateAdminPassword,
-  updateAdminPreferences,
   updateAdminNotifications
 } from '../controllers/adminSettingsController.js';
 
@@ -44,7 +43,6 @@ router.post('/help-reports/:id/reply', validateReplyRules, replyHelpReport);
 router.get('/settings', renderAdminSettings);
 router.put('/settings/profile', updateAdminProfile);
 router.put('/settings/password', updateAdminPassword);
-router.put('/settings/preferences', updateAdminPreferences);
 router.put('/settings/notifications', updateAdminNotifications);
 
 export default router;
