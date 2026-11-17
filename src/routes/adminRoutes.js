@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { renderAdminHome } from '../controllers/adminHomeController.js';
 import { renderDashboard, exportDashboardCsv } from '../controllers/dashboardController.js';
+import { renderManageUsers } from '../controllers/userAdminController.js';
 import { body } from 'express-validator';
 
 import { 
@@ -21,6 +22,9 @@ router.get('/', renderAdminHome);
 // HU-008 Admin Dashboard
 router.get('/dashboard', renderDashboard);
 router.get('/dashboard/export', exportDashboardCsv);
+
+// HU-016 Manage users (los datos se cargan desde /api/admin/users)
+router.get('/users', renderManageUsers);
 
 // HU-017 Admin Payment History Routes
 router.get('/payments', renderPaymentHistory);

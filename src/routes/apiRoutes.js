@@ -3,6 +3,9 @@ import { QueryTypes } from 'sequelize';
 import db from '../config/db.js';
 import { requireRole } from '../middlewares/auth.js';
 import { getAdminSpaces, getAdminStats, getConfig } from '../services/adminParkingService.js';
+import {
+  listUsers, saveUser, changeUserStatus, removeUser, saveVehicle, removeVehicle
+} from '../controllers/userAdminController.js';
 
 const router = express.Router();
 const adminOnly = requireRole('admin');   // Todas estas rutas son solo del admin
@@ -123,5 +126,14 @@ router.post('/parking-config', adminOnly, async (req, res) => {
     res.status(500).json({ error: 'Changes cannot be saved due to system failure.' });
   }
 });
+
+// HU-016: gestión de usuarios y vehículos (admin)
+router.get('/admin/users', adminOnly, listUsers);
+router.put('/admin/users/:id', adminOnly, saveUser);
+router.patch('/admin/users/:id/status', adminOnly, changeUserStatus);
+router.delete('/admin/users/:id', adminOnly, removeUser);
+router.post('/admin/vehicles', adminOnly, saveVehicle);
+router.put('/admin/vehicles/:id', adminOnly, saveVehicle);
+router.delete('/admin/vehicles/:id', adminOnly, removeVehicle);
 
 export default router;
