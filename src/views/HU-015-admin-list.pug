@@ -1,51 +1,77 @@
-extends layouts/main2
+//- HU-015 (admin) · Help reports: lista de reportes de HU-011 con estado, búsqueda y acceso a la respuesta (mockup HU015AdminReports)
+extends layouts/app
 
 block content
-  link(rel="stylesheet", href="/css/HU-015-admin.css")
+  -
+    const statusPill = { Pending: 'pill-warning', In_Review: 'pill-info', Resolved: 'pill-success' }
+    const avatarColors = ['bg-primary', 'bg-accent', 'bg-tech', 'bg-success', 'bg-warning']
+    const chips = [['all', 'All', stats.total], ['Pending', 'Pending', stats.pending], ['In_Review', 'In review', stats.inReview], ['Resolved', 'Resolved', stats.resolved]]
+    const chipHref = (status) => `/admin/help-reports?status=${status}` + (q ? `&q=${encodeURIComponent(q)}` : '')
 
-  .admin-page-container
-    a.btn-back(href="/admin") ← Back to Admin Dashboard
-
-    header.admin-header
-      .header-title
-        h1 Support & Help Reports
-        p Manage and respond to user inquiry tickets
-
+  div(class="flex flex-col gap-6")
     if errorMessage
-      .admin-alert-error
-        p= errorMessage
+      .alert.alert-error
+        i.fas.fa-exclamation-circle
+        span= errorMessage
 
-    .admin-card
-      .card-filters
-        a.chip(href="/admin/help-reports?status=all", class=statusFilter === 'all' ? 'active' : '') All
-        a.chip(href="/admin/help-reports?status=Pending", class=statusFilter === 'Pending' ? 'active' : '') Pending
-        a.chip(href="/admin/help-reports?status=In_Review", class=statusFilter === 'In_Review' ? 'active' : '') In Review
-        a.chip(href="/admin/help-reports?status=Resolved", class=statusFilter === 'Resolved' ? 'active' : '') Resolved
+    .stat-grid
+      .stat-card
+        span.card-label Pending
+        strong.card-value= stats.pending
+        span(class="text-xs text-muted") Waiting for a reply
+      .stat-card
+        span.card-label In review
+        strong.card-value= stats.inReview
+        span(class="text-xs text-muted") Being handled
+      .stat-card
+        span.card-label Resolved
+        strong.card-value= stats.resolved30d
+        span(class="text-xs text-muted") Last 30 days
+      .stat-card
+        span.card-label Avg. response time
+        strong.card-value= stats.avgResponse
 
+    div(class="flex items-center justify-between gap-4 flex-wrap")
+      nav(class="flex items-center gap-2 flex-wrap", aria-label="Filter by status")
+        each c in chips
+          a(href=chipHref(c[0]), class="chip" + (statusFilter === c[0] ? ' active' : '')) #{c[1]} · #{c[2]}
+      form(action="/admin/help-reports", method="GET", class="relative w-full sm:w-80")
+        input(type="hidden", name="status", value=statusFilter)
+        i(class="fas fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-muted text-xs")
+        input(type="search", name="q", value=q, maxlength="60", placeholder="Search by ticket, name or email…", class="input pl-9 w-full")
+
+    .card(class="p-0 overflow-hidden")
       if reports.length === 0
         .empty-state
-          p No help reports found for this filter.
+          i.far.fa-folder-open
+          p= q ? 'No help reports match your search.' : 'No help reports found for this filter.'
       else
         .table-responsive
-          table.admin-table
+          table.table
             thead
               tr
-                th Ticket
-                th User Name
-                th Email
-                th Description
-                th Status
-                th Date
-                th Action
+                th TICKET
+                th USER NAME
+                th EMAIL
+                th DESCRIPTION
+                th STATUS
+                th DATE
+                th ACTION
             tbody
-              each report in reports
+              each report, i in reports
                 tr
-                  td.font-bold= report.code
-                  td= report.firstName + ' ' + report.lastName
-                  td= report.email
-                  td.desc-cell= report.shortDescription
-                  td
-                    span.pill-status(class=report.status.toLowerCase())= report.status.replace('_', ' ')
-                  td= report.formattedDate
-                  td
-                    a.btn-action(href=`/admin/help-reports/${report.id}`) View & Reply
+                  td.font-bold(data-label="Ticket")= report.code
+                  td(data-label="User name")
+                    div(class="flex items-center gap-2.5 min-w-0")
+                      span(class="w-8 h-8 rounded-full text-white text-[11px] font-bold flex items-center justify-center shrink-0 " + avatarColors[report.id % avatarColors.length])= report.initials
+                      span(class="font-semibold text-ink truncate max-w-[140px]")= report.fullName
+                  td(data-label="Email", class="text-muted")= report.email
+                  td(data-label="Description", class="max-w-[240px] truncate", title=report.description)= report.shortDescription
+                  td(data-label="Status")
+                    span.pill(class=statusPill[report.status])= report.status.replace('_', ' ').replace('In Review', 'In review')
+                  td(data-label="Date", class="text-muted")= report.formattedDate
+                  td(data-label="")
+                    if report.status === 'Resolved'
+                      a(href=`/admin/help-reports/${report.id}`, class="btn btn-secondary whitespace-nowrap") View
+                    else
+                      a(href=`/admin/help-reports/${report.id}`, class="btn btn-primary whitespace-nowrap") View &amp; Reply

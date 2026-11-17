@@ -1,0 +1,521 @@
+/* HU-016 · Manage users (diseño de Juan Esteban Villota). Panel de edición, diálogos y toast limitados a .hu016;
+   la tabla y los filtros usan los componentes del layout del equipo (app.css). */
+.hu016 { --line: #e2e8f0; --muted: #64748b; --text: #0f172a; --shadow: 0 10px 30px rgba(15, 23, 42, 0.12); }
+.hu016 [hidden] { display: none !important; }
+.hu016 .overlay { z-index: 100 !important; } /* por encima del topbar y el sidebar del layout */
+.hu016 .toast { z-index: 110 !important; }
+body.modal-open { overflow: hidden; }
+.hu016 .deactivate-button {
+  color: #e33e45;
+  background: #fdebed;
+}
+
+.hu016 .reactivate-button {
+  color: #0b9e50;
+  background: #e6f7ed;
+}
+
+/* Empty state */
+
+/* Overlay and edit drawer */
+.hu016 .overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(22, 43, 73, 0.42);
+  backdrop-filter: blur(2px);
+}
+
+.hu016 .drawer {
+  display: flex;
+  flex-direction: column;
+  width: min(590px, 100%);
+  height: 100%;
+  background: #fff;
+  box-shadow: var(--shadow);
+  animation: slide-in 0.2s ease-out;
+}
+
+/* Drawer header */
+.hu016 .drawer-header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 13px;
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.hu016 .drawer-title-icon {
+  display: grid;
+  flex: 0 0 43px;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  color: #fff;
+  background: linear-gradient(140deg, #8061ff, #6246ed);
+  border-radius: 50%;
+  font-size: 23px;
+}
+
+.hu016 .drawer-title-copy {
+  min-width: 0;
+}
+
+.hu016 .drawer-title-copy h2,
+.hu016 .dialog-heading h2 {
+  margin: 0 0 5px;
+  font-size: 18px;
+  letter-spacing: -0.4px;
+}
+
+.hu016 .drawer-title-copy p,
+.hu016 .dialog-heading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.hu016 .close-button {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  margin-left: auto;
+  border: 0;
+  border-radius: 8px;
+  color: #73839a;
+  background: transparent;
+  font-size: 25px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.hu016 .close-button:hover {
+  color: var(--text);
+  background: #f0f3f8;
+}
+
+/* Edit user form */
+.hu016 #editUserForm {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.hu016 .drawer-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px 20px;
+}
+
+.hu016 .form-section {
+  margin-bottom: 14px;
+  padding: 16px;
+  border: 1px solid #e2eaf5;
+  border-radius: 11px;
+  background: linear-gradient(145deg, #fff, #fbfcff);
+}
+
+.hu016 .form-section h3 {
+  margin: 0 0 15px;
+  font-size: 14px;
+}
+
+/* Form fields */
+.hu016 .form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 13px;
+}
+
+.hu016 .form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  color: #354b68;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.hu016 .form-field input,
+.hu016 .form-field select,
+.hu016 .form-field textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  padding: 9px 11px;
+  border: 1px solid #d9e3f0;
+  border-radius: 7px;
+  outline: 0;
+  color: #203653;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.hu016 .form-field textarea {
+  resize: vertical;
+}
+
+.hu016 .form-field input:focus,
+.hu016 .form-field select:focus,
+.hu016 .form-field textarea:focus {
+  border-color: #8b78ff;
+  box-shadow: 0 0 0 3px #7555ff17;
+}
+
+.hu016 .form-field input::placeholder {
+  color: #8a9ab0;
+}
+
+.hu016 .form-hint {
+  margin: 11px 0 0;
+  color: #7788a0;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/* Section headings and buttons */
+.hu016 .section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.hu016 .section-title-row h3 {
+  margin-bottom: 13px;
+}
+
+.hu016 .primary-button,
+.hu016 .secondary-button,
+.hu016 .danger-button {
+  min-height: 38px;
+  padding: 0 17px;
+  border: 0;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hu016 .primary-button {
+  color: #fff;
+  background: linear-gradient(100deg, #7657ff, #6446f1);
+  box-shadow: 0 4px 10px #7657ff25;
+}
+
+.hu016 .primary-button:hover {
+  background: #5f43eb;
+}
+
+.hu016 .secondary-button {
+  color: #243750;
+  background: #edf2f8;
+}
+
+.hu016 .secondary-button:hover {
+  background: #e0e8f2;
+}
+
+.hu016 .danger-button {
+  color: #fff;
+  background: #ed3d47;
+}
+
+.hu016 .danger-button:hover {
+  background: #d92d38;
+}
+
+.hu016 .small-button {
+  min-height: 31px;
+  padding: 0 12px;
+  font-size: 10px;
+}
+
+/* Linked vehicles */
+.hu016 .vehicle-list {
+  display: grid;
+  gap: 9px;
+}
+
+.hu016 .vehicle-card {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e5ebf4;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.hu016 .vehicle-symbol {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: #28578e;
+  background: #edf3fc;
+  font-size: 19px;
+}
+
+.hu016 .vehicle-info {
+  min-width: 0;
+}
+
+.hu016 .vehicle-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.hu016 .vehicle-title-row strong {
+  font-size: 11px;
+}
+
+.hu016 .vehicle-type {
+  padding: 4px 8px;
+  border-radius: 12px;
+  color: #2867b2;
+  background: #e8f3ff;
+  font-size: 9px;
+}
+
+.hu016 .vehicle-info p {
+  margin: 7px 0 0;
+  color: #617895;
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.hu016 .vehicle-info .vehicle-description {
+  margin-top: 9px;
+  padding: 8px;
+  border-radius: 7px;
+  color: #526b89;
+  background: #f2f5fa;
+}
+
+.hu016 .vehicle-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.hu016 .no-vehicles {
+  padding: 20px 12px;
+  border: 1px dashed #dbe4f0;
+  border-radius: 9px;
+  color: #71839c;
+  background: #f7f9fc;
+  font-size: 11px;
+  text-align: center;
+}
+
+/* Drawer footer */
+.hu016 .drawer-footer {
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  gap: 9px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--line);
+  background: #fff;
+}
+
+/* Dialogs and modals */
+.hu016 .dialog {
+  width: min(440px, calc(100% - 30px));
+  margin: auto;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  animation: dialog-in 0.16s ease-out;
+}
+
+.hu016 .dialog-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 23px 23px 18px;
+}
+
+.hu016 .dialog-icon {
+  display: grid;
+  flex: 0 0 43px;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  border-radius: 50%;
+  font-size: 22px;
+}
+
+.hu016 .danger-icon {
+  color: #e33e48;
+  background: #ffebed;
+}
+
+.hu016 .blue-icon {
+  color: #6650ef;
+  background: #efedff;
+}
+
+.hu016 .dialog-heading {
+  padding-top: 3px;
+}
+
+.hu016 .dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  padding: 0 23px 22px;
+}
+
+.hu016 .vehicle-dialog .dialog-header {
+  padding-bottom: 14px;
+}
+
+.hu016 .dialog-body {
+  padding: 0 23px 20px;
+}
+
+.hu016 .dialog-body .form-grid {
+  gap: 13px;
+}
+
+.hu016 .full-field {
+  margin-top: 14px;
+}
+
+.hu016 .confirm-dialog .dialog-header {
+  padding-bottom: 23px;
+}
+
+/* Notifications */
+.hu016 .toast {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 50;
+  max-width: min(420px, calc(100vw - 35px));
+  padding: 13px 17px;
+  border-radius: 9px;
+  color: #fff;
+  background: #1e3150;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.hu016 .toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hu016 .toast.toast-error {
+  background: #b82f3b;
+}
+
+/* Animations */
+@keyframes slide-in {
+  from {
+    transform: translateX(25px);
+    opacity: 0.75;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    transform: translateY(8px) scale(0.985);
+    opacity: 0.5;
+  }
+
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Large screens */
+
+/* Tablets and smaller laptops */
+
+/* Mobile devices */
+@media (max-width: 720px) {
+
+  .hu016 .menu-label,
+  .hu016 .profile-copy {
+    display: none;
+  }
+
+  .hu016 .drawer {
+    width: 100%;
+  }
+
+  .hu016 .drawer-scroll {
+    padding: 12px;
+  }
+
+  .hu016 .drawer-header {
+    padding: 14px;
+  }
+
+  .hu016 .form-section {
+    padding: 12px;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 430px) {
+
+  .hu016 .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hu016 .vehicle-card {
+    grid-template-columns: 32px minmax(0, 1fr);
+  }
+
+  .hu016 .vehicle-symbol {
+    width: 32px;
+    height: 32px;
+  }
+
+  .hu016 .vehicle-actions {
+    grid-column: 2;
+    justify-content: flex-end;
+  }
+
+  .hu016 .drawer-footer {
+    padding: 12px;
+  }
+
+  .hu016 .drawer-footer button {
+    flex: 1;
+  }
+
+  .hu016 .dialog-header {
+    padding: 18px 16px;
+  }
+
+  .hu016 .dialog-footer {
+    padding: 0 16px 18px;
+  }
+}

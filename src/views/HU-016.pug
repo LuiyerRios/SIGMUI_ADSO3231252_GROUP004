@@ -1,0 +1,167 @@
+//- HU-016 · Manage users (diseño de Juan Esteban Villota, conectado al layout y a la BD con /api/admin/users)
+extends layouts/app
+
+block styles
+  link(rel="stylesheet", href="/css/HU-016.css")
+
+block content
+  .hu016#manageUsers(data-self-id=currentUser && currentUser.id)
+    div(class="flex flex-col gap-6")
+      //- Filtros (los cuenta y aplica HU-016.js sobre los datos de la BD)
+      div(class="flex items-center gap-3 flex-wrap")
+        div(class="relative w-full sm:w-72")
+          i(class="fas fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-muted text-xs")
+          input#userSearch(type="search", placeholder="Search by name, email or plate…", aria-label="Search by name, email or plate", class="input pl-9 w-full")
+        div#roleFilters(class="flex items-center gap-2 flex-wrap", aria-label="Filter by role")
+          button(type="button", data-role="all", class="chip active") All roles
+          button(type="button", data-role="Client", class="chip") Client
+          button(type="button", data-role="Traffic Agent", class="chip") Agent
+          button(type="button", data-role="Admin", class="chip") Admin
+        span(class="hidden lg:block w-px h-6 bg-line")
+        div#statusFilters(class="flex items-center gap-2 flex-wrap", aria-label="Filter by status")
+          button(type="button", data-status="all", class="chip active") All
+          button(type="button", data-status="Active", class="chip") Active
+          button(type="button", data-status="Suspended", class="chip") Inactive
+        span#resultCount(class="text-xs text-muted lg:ml-auto") Loading users…
+
+      .card(class="p-0 overflow-hidden")
+        .table-responsive
+          table.table
+            thead
+              tr
+                th NAME
+                th EMAIL
+                th ROLE
+                th VERIFIED
+                th STATUS
+                th JOINED
+                th ACTIONS
+            tbody#usersTableBody
+        .empty-state#emptyState(hidden)
+          i.far.fa-folder-open
+          p No users found. Try changing your search or filters.
+
+      .overlay#editOverlay(hidden)
+        section.drawer(role="dialog" aria-modal="true" aria-labelledby="editTitle")
+          header.drawer-header
+            .drawer-title-icon ✎
+            .drawer-title-copy
+              h2#editTitle Edit user
+              p Update the user information and associated vehicles
+            button.close-button#closeEdit(type="button" aria-label="Close edit panel") ×
+          form#editUserForm
+            .drawer-scroll
+              section.form-section
+                h3 User information
+                .form-grid
+                  label.form-field
+                    span Full name
+                    input#editName(name="name" required maxlength="100")
+                  label.form-field
+                    span Email
+                    input#editEmail(name="email" type="email" required maxlength="150")
+                  label.form-field
+                    span Phone number
+                    input#editPhone(name="phone" type="tel" maxlength="30")
+                  label.form-field
+                    span Role
+                    select#editRole(name="role" required)
+                      option(value="") Select a role
+                      option(value="Admin") Administrator
+                      option(value="Client") Client
+                      option(value="Traffic Agent") Traffic Agent
+                  label.form-field
+                    span Status
+                    select#editStatus(name="status" required)
+                      option(value="Active") Active
+                      option(value="Suspended") Suspended
+                  label.form-field
+                    span Password (optional)
+                    input#editPassword(name="password" type="password" autocomplete="new-password" placeholder="Leave blank to keep current password")
+                p.form-hint Leave the password blank to keep the current one. A new password needs 8+ characters, one uppercase letter and one number.
+
+              section.form-section
+                .section-title-row
+                  h3 Linked vehicles
+                  button.primary-button.small-button#addVehicle(type="button") + Add vehicle
+                #vehicleList.vehicle-list
+                p.form-hint Edit vehicle details or remove a vehicle from this user's account.
+
+            footer.drawer-footer
+              button.secondary-button#cancelEdit(type="button") Cancel
+              button.primary-button(type="submit") Save changes
+
+      //- Add/edit vehicle modal
+      .overlay#vehicleOverlay(hidden)
+        section.dialog.vehicle-dialog(role="dialog" aria-modal="true" aria-labelledby="vehicleDialogTitle")
+          header.dialog-header
+            .dialog-icon.blue-icon ✎
+            .dialog-heading
+              h2#vehicleDialogTitle Add vehicle
+              p Enter the vehicle details below
+            button.close-button#closeVehicle(type="button" aria-label="Close vehicle form") ×
+          form#vehicleForm
+            .dialog-body
+              .form-grid
+                label.form-field
+                  span License plate
+                  input#vehiclePlate(name="plate" required maxlength="7" placeholder="ABC123" autocomplete="off")
+                label.form-field
+                  span Vehicle type
+                  select#vehicleType(name="type" required)
+                    option(value="") Select type
+                    option(value="Car") Car
+                    option(value="Motorcycle") Motorcycle
+                    option(value="SUV") SUV
+                    option(value="Truck") Truck
+                    option(value="Van") Van
+                    option(value="Other") Other
+                label.form-field
+                  span Make
+                  input#vehicleMake(name="make" maxlength="60")
+                label.form-field
+                  span Model
+                  input#vehicleModel(name="model" maxlength="60")
+                label.form-field
+                  span Color
+                  input#vehicleColor(name="color" maxlength="40")
+                label.form-field
+                  span Assigned user
+                  select#vehicleOwner(name="owner" required)
+              label.form-field.full-field
+                span Description
+                textarea#vehicleDescription(name="description" rows="3" maxlength="150")
+            footer.dialog-footer
+              button.secondary-button#cancelVehicle(type="button") Cancel
+              button.primary-button(type="submit") Save vehicle
+
+      //- Delete confirmation modal
+      .overlay#deleteOverlay(hidden)
+        section.dialog.confirm-dialog(role="alertdialog" aria-modal="true" aria-labelledby="deleteTitle" aria-describedby="deleteDescription")
+          header.dialog-header
+            .dialog-icon.danger-icon ♜
+            .dialog-heading
+              h2#deleteTitle Delete user?
+              p#deleteDescription Are you sure you want to delete this user? This action cannot be undone.
+            button.close-button#closeDelete(type="button" aria-label="Close confirmation") ×
+          .dialog-footer
+            button.secondary-button#cancelDelete(type="button") Cancel
+            button.danger-button#confirmDelete(type="button") Delete user
+
+      //- Vehicle deletion confirmation
+      .overlay#deleteVehicleOverlay(hidden)
+        section.dialog.confirm-dialog(role="alertdialog" aria-modal="true" aria-labelledby="deleteVehicleTitle")
+          header.dialog-header
+            .dialog-icon.danger-icon ♜
+            .dialog-heading
+              h2#deleteVehicleTitle Delete vehicle?
+              p Are you sure you want to remove this vehicle? This action cannot be undone.
+            button.close-button#closeDeleteVehicle(type="button" aria-label="Close confirmation") ×
+          .dialog-footer
+            button.secondary-button#cancelDeleteVehicle(type="button") Cancel
+            button.danger-button#confirmDeleteVehicle(type="button") Delete vehicle
+
+      .toast#toast(role="status" aria-live="polite")
+
+block scripts
+  script(src="/js/HU-016.js")

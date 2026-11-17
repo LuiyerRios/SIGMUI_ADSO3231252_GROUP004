@@ -40,6 +40,11 @@ export const login = async (req, res) => {
       return fail(GENERIC_ERROR);
     }
 
+    // HU-016: el admin puede suspender cuentas (la contraseña ya fue validada)
+    if (user.status === 'suspended') {
+      return fail('Your account is suspended. Please contact the administrator.', 403);
+    }
+
     // Verificación de email obligatorio antes de crear la sesión (HU-012)
     if (!user.emailVerifiedAt) {
       return fail('Please verify your email before signing in.', 403, {

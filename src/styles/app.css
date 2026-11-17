@@ -6,11 +6,28 @@
 @source "../views/HU-003.pug";
 @source "../views/HU-004.pug";
 @source "../views/HU-005.pug";
+@source "../views/HU-013.pug";
+@source "../views/HU-013-payments.pug";
+@source "../views/HU-015.pug";
+@source "../views/HU-015-admin-list.pug";
+@source "../views/HU-015-admin-detail.pug";
+@source "../views/HU-016.pug";
+@source "../../public/js/HU-016.js";
+@source "../views/HU-006.pug";
+@source "../views/HU-007.pug";
+@source "../../public/js/HU-006.js";
+@source "../../public/js/HU-007.js";
+@source "../views/HU-014.pug";
+@source "../../public/js/HU-014.js";
+@source "../../public/js/HU-013.js";
+@source "../views/HU-010.pug";
+@source "../views/HU-008.pug";
 @source "../../public/js/app.js";
 @source "../../public/js/HU-017.js";
 @source "../../public/js/HU-003.js";
 @source "../../public/js/HU-004.js";
 @source "../../public/js/HU-005.js";
+@source "../../public/js/HU-010.js";
 
 @theme {
   --font-sans: "Poppins", system-ui, sans-serif;

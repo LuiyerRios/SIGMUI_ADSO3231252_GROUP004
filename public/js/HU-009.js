@@ -32,7 +32,7 @@ form.addEventListener("submit", (event) => {
   const address = email.value.trim();
 
   if (address === "") {
-    showEmailError("Ingresa tu correo electrónico para continuar.");
+    showEmailError("Enter your email address to continue.");
     email.focus();
     return;
   }
@@ -41,7 +41,7 @@ form.addEventListener("submit", (event) => {
 
   if (!emailPattern.test(address)) {
     showEmailError(
-      "Ingresa un correo válido, por ejemplo: usuario@hotmail.com."
+      "Enter a valid email address, for example: usuario@hotmail.com."
     );
     email.focus();
     return;
@@ -50,6 +50,6 @@ form.addEventListener("submit", (event) => {
   clearEmailError();
 
   formMessage.textContent =
-    "La solicitud pasó la validación. La recuperación debe conectarse al servidor para enviar el enlace.";
+    "The request passed validation. The recovery process must connect to the server to send the link.";
   formMessage.className = "form-message success";
 });

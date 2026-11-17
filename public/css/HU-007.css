@@ -1,59 +1,13 @@
-* {
-@import "tailwindcss";
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #E6F2F8;
-}
-
-.app {
-    display: flex;
-    justify-content: center;
-    text-align: center;
-    flex-direction: column;
-    min-height: 100vh;
-    width: 100%;
-}
-
-
+/* HU-007 · Multa digital (diseño del equipo del agente). Estilos limitados a .hu007 para convivir con el layout del equipo. */
+.hu007 [hidden] { display: none !important; }
+.hu007 .fine p { color: #fff !important; } /* el valor se lee sobre el fondo rojo, como en el mockup */
+.hu007 .plate h4 { font-size: 22px; font-weight: 800; letter-spacing: 0.08em; }
+.hu007 .note:empty { display: none; }
 /* HEADER */
-
-.header {
-    position: relative;
-    background: #2565AE;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px;
-}
-
-.back-arrow {
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 32px;
-    height: auto;
-    cursor: pointer;
-}
-
-.logo {
-    max-width: 150px;
-    height: auto;
-}
-
 
 /* CONTENIDO */
 
-.content {
+.hu007 .content {
     flex: 1;
     overflow-y: auto;
     padding: 20px;
@@ -61,10 +15,9 @@ body {
     margin: 0 auto;
 }
 
-
 /* SECCIONES */
 
-.section {
+.hu007 .section {
     background: white;
     padding: 16px;
     border-radius: 10px;
@@ -72,10 +25,9 @@ body {
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 
-
 /* ESTADO DE LA MULTA */
 
-.status {
+.hu007 .status {
     background: white;
     color: black;
     padding: 14px;
@@ -84,46 +36,43 @@ body {
     font-weight: bold;
 }
 
-.status small {
+.hu007 .status small {
     display: block;
     margin-top: 5px;
     color: red;
     font-weight: normal;
 }
 
-
 /* PLACA */
 
-.plate {
+.hu007 .plate {
     display: flex;
     justify-content: center;
     align-items: center;
     text-align: center;
 }
 
-
 /* INFORMACIÓN */
 
-.info {
+.hu007 .info {
     display: flex;
     justify-content: space-between;
     margin: 8px 0;
     font-size: 15px;
 }
 
-.label {
+.hu007 .label {
     color: #333;
 }
 
-.value {
+.hu007 .value {
     font-weight: bold;
 }
 
-
 /* INPUTS */
 
-input,
-textarea {
+.hu007 input,
+.hu007 textarea {
 
     width: 100%;
     padding: 12px;
@@ -136,18 +85,16 @@ textarea {
     font-family: Arial, sans-serif;
 }
 
-
-textarea {
+.hu007 textarea {
 
     height: 80px;
     resize: none;
 
 }
 
-
 /* VALOR DE LA MULTA */
 
-.fine {
+.hu007 .fine {
 
     background: #ff5451;
     color: white;
@@ -163,18 +110,16 @@ textarea {
 
 }
 
-
-.fine p {
+.hu007 .fine p {
 
     color: red;
     margin-bottom: 0;
 
 }
 
-
 /* NUMERO DEL TICKET */
 
-.ticked-id {
+.hu007 .ticked-id {
 
     margin: 15px 0;
 
@@ -182,10 +127,9 @@ textarea {
 
 }
 
-
 /* BOTÓN */
 
-.button {
+.hu007 .button {
 
     width: 100%;
 
@@ -207,24 +151,21 @@ textarea {
 
 }
 
-
-.button:hover {
+.hu007 .button:hover {
 
     background: #f2f2f2;
 
 }
 
-
-.button:focus {
+.hu007 .button:focus {
 
     outline: 2px solid #000;
 
 }
 
-
 /* NOTA */
 
-.note {
+.hu007 .note {
 
     text-align: center;
 
@@ -236,25 +177,17 @@ textarea {
 
 }
 
-
-
 /* RESPONSIVE TABLET */
 
 @media (min-width: 768px) {
 
-    body {
-        font-size: 18px;
-    }
-
-
-    .section {
+    .hu007 .section {
 
         padding: 20px;
 
     }
 
-
-    .fine {
+    .hu007 .fine {
 
         font-size: 22px;
 
@@ -262,35 +195,29 @@ textarea {
 
 }
 
-
-
 /* RESPONSIVE CELULAR */
 
 @media (max-width: 480px) {
 
-
-    .content {
-
-        padding: 12px;
-
-    }
-
-
-    .section {
+    .hu007 .content {
 
         padding: 12px;
 
     }
 
+    .hu007 .section {
 
-    .fine {
+        padding: 12px;
+
+    }
+
+    .hu007 .fine {
 
         font-size: 18px;
 
     }
 
-
-    .button {
+    .hu007 .button {
 
         font-size: 14px;
 

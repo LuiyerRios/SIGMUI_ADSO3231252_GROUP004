@@ -1,79 +1,105 @@
-extends layouts/main2
+//- HU-015 (admin) · Detalle del reporte y respuesta al usuario (mockup HU015AdminReply)
+extends layouts/app
 
 block content
-  link(rel="stylesheet", href="/css/HU-015-admin.css")
+  -
+    const statusPill = { Pending: 'pill-warning', In_Review: 'pill-info', Resolved: 'pill-success' }
+    const currentStatus = (formData && formData.status) ? formData.status : (report.status === 'Pending' ? 'Resolved' : report.status)
+    const currentResponse = (formData && formData.response !== undefined) ? formData.response : (report.response || '')
 
-  .admin-page-container
-    .nav-breadcrumbs
-      a.btn-back(href="/admin/help-reports") ← Back to Reports List
-      span.nav-separator |
-      a.btn-back(href="/admin") Admin Home
+  div(class="flex flex-col gap-6")
+    a(href="/admin/help-reports", class="inline-flex items-center gap-2 text-sm font-semibold text-primary w-fit")
+      i.fas.fa-arrow-left
+      span Back to help reports
 
     if successMessage
-      .admin-alert-success
-        p= successMessage
-
+      .alert.alert-success
+        i.fas.fa-circle-check
+        span= successMessage
     if infoMessage
-      .admin-alert-info
-        p= infoMessage
-
+      .alert.alert-info
+        i.fas.fa-circle-info
+        span= infoMessage
     if errorMessage
-      .admin-alert-error
-        p= errorMessage
-
+      .alert.alert-error
+        i.fas.fa-exclamation-circle
+        span= errorMessage
     if errors && errors.length > 0
-      .admin-alert-error
-        ul
-          each err in errors
-            li= err.msg
+      .alert.alert-error
+        i.fas.fa-exclamation-circle
+        span= errors.map(e => e.msg).join(' ')
 
-    .admin-grid-detail
-      .admin-card
-        .card-header-flex
-          h2 Ticket #{report.code}
-          span.pill-status(class=report.status.toLowerCase())= report.status.replace('_', ' ')
+    div(class="grid grid-cols-12 gap-6 items-start")
+      //- Ticket
+      section(class="card col-span-12 lg:col-span-7 p-6")
+        header(class="flex items-start justify-between gap-4 mb-5")
+          div(class="flex items-center gap-3")
+            span(class="w-12 h-12 rounded-2xl bg-gradient-to-br from-tech to-primary text-white flex items-center justify-center text-lg shrink-0")
+              i.far.fa-comment
+            div
+              h2(class="text-xl font-bold text-ink") Ticket #{report.code}
+              p(class="text-xs text-muted") Submitted #{report.formattedDate}
+          span.pill(class=statusPill[report.status] + " shrink-0")= report.status.replace('_', ' ').replace('In Review', 'In review')
 
-        .report-meta-grid
-          .meta-item
-            span.meta-label Submitted By:
-            strong= report.firstName + ' ' + report.lastName
-          .meta-item
-            span.meta-label Email:
-            strong= report.email
-          .meta-item
-            span.meta-label Phone:
-            strong= report.phone || 'N/A'
-          .meta-item
-            span.meta-label Date:
-            strong= report.formattedDate
+        div(class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6")
+          div(class="rounded-xl bg-surface-soft p-4 flex items-center gap-3 min-w-0")
+            span(class="w-9 h-9 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center shrink-0")= report.initials
+            div(class="min-w-0")
+              p(class="text-xs text-muted") Submitted by
+              p(class="text-sm font-bold text-ink truncate")= report.fullName
+          div(class="rounded-xl bg-surface-soft p-4 min-w-0")
+            p(class="text-xs text-muted") Email
+            p(class="text-sm font-bold text-ink truncate")= report.email
+          div(class="rounded-xl bg-surface-soft p-4")
+            p(class="text-xs text-muted") Phone
+            p(class="text-sm font-bold text-ink")= report.phone || '—'
+          div(class="rounded-xl bg-surface-soft p-4")
+            p(class="text-xs text-muted") Linked account
+            if linkedAccount
+              p(class="text-sm font-bold text-success") #{linkedAccount} · will be notified
+            else
+              p(class="text-sm font-bold text-muted") No account · not notified
 
-        hr.divider
+        p(class="text-[11px] font-bold text-muted uppercase tracking-wider mb-2") Original user message
+        p(class="rounded-xl bg-surface-soft border-l-[3px] border-accent p-4 text-sm text-ink leading-relaxed whitespace-pre-line")= report.description
 
-        .description-box
-          h3 Original User Message:
-          p= report.description
+      //- Respuesta del admin
+      section(class="card col-span-12 lg:col-span-5 p-6")
+        h2(class="text-lg font-bold text-ink") Admin response
+        p(class="text-xs text-muted mb-5") The user will see this reply in their inbox
 
-      .admin-card
-        h2 Admin Response
+        form(action=`/admin/help-reports/${report.id}/reply`, method="POST", id="replyForm", class="flex flex-col gap-5")
+          fieldset
+            legend(class="text-sm font-bold text-ink mb-2") Update status
+            div(class="flex items-center gap-2")
+              label(class="cursor-pointer")
+                input(type="radio", name="status", value="In_Review", class="peer sr-only", checked=currentStatus === 'In_Review')
+                span(class="chip inline-block peer-checked:bg-accent peer-checked:text-white peer-checked:shadow-md peer-focus-visible:ring-2 peer-focus-visible:ring-accent/40") In review
+              label(class="cursor-pointer")
+                input(type="radio", name="status", value="Resolved", class="peer sr-only", checked=currentStatus === 'Resolved')
+                span(class="chip inline-block peer-checked:bg-accent peer-checked:text-white peer-checked:shadow-md peer-focus-visible:ring-2 peer-focus-visible:ring-accent/40") Resolved
 
-        - const currentStatus = (formData && formData.status) ? formData.status : report.status
-        - const currentResponse = (formData && formData.response !== undefined) ? formData.response : (report.response || '')
+          div
+            label(for="response", class="text-sm font-bold text-ink mb-2 block") Official response message
+            textarea(id="response", name="response", rows="6", minlength="5", maxlength="1000", required, placeholder="Write your response to the user here…", class="input w-full resize-y leading-relaxed")= currentResponse
+            div(class="flex items-center justify-between text-[11px] text-muted mt-1.5")
+              span Between 5 and 1000 characters
+              span
+                span#responseCount= currentResponse.length
+                |  / 1000
 
-        form(action=`/admin/help-reports/${report.id}/reply`, method="POST", class="reply-form")
-          .form-group
-            label(for="status") Update Status:
-            select#status.form-control(name="status", required)
-              option(value="In_Review", selected=currentStatus === 'In_Review') In Review
-              option(value="Resolved", selected=currentStatus === 'Resolved' || currentStatus === 'Pending') Resolved
+          div
+            p(class="text-[11px] font-bold text-muted uppercase tracking-wider mb-2") Preview in user's inbox
+            div(class="flex items-start gap-3 rounded-xl bg-surface-soft border-l-[3px] border-accent p-3")
+              span(class="w-9 h-9 rounded-xl bg-accent/12 text-accent flex items-center justify-center shrink-0")
+                i.fas.fa-comment-dots
+              div(class="min-w-0")
+                p(class="text-sm font-bold text-ink") Reply to your report #{report.code}
+                p#responsePreview(class="text-xs text-muted truncate")= currentResponse || 'Your reply will appear here.'
 
-          .form-group
-            label(for="response") Official Response Message:
-            textarea#response.form-control(
-              name="response", 
-              rows="6", 
-              placeholder="Write your response to the user here...", 
-              required
-            )= currentResponse
+          button(type="submit", class="btn btn-primary btn-block")
+            i.far.fa-envelope
+            span= report.response ? 'Update response & notify user' : 'Send response & notify user'
 
-          .form-actions
-            button.btn-primary(type="submit") Send Response & Notify User
+block scripts
+  script(src="/js/HU-015-admin.js")

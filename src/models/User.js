@@ -30,6 +30,7 @@ notifySystemEvents: {
 },
   password: { type: DataTypes.STRING(255), allowNull: false },
   role: { type: DataTypes.ENUM('driver', 'agent', 'admin'), allowNull: false, defaultValue: 'driver' },
+  status: { type: DataTypes.ENUM('active', 'suspended'), allowNull: false, defaultValue: 'active' }, // HU-016
   emailVerifiedAt: { type: DataTypes.DATE, allowNull: true },
   failedAttempts: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
   lockoutUntil: { type: DataTypes.DATE, allowNull: true }

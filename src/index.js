@@ -51,7 +51,7 @@ app.use('/help', requireRole(), helpRoutes);           // HU-011
 app.use('/inbox', requireRole(), inboxRoutes);         // HU-015
 app.use('/agent', requireRole('agent'), agentRoutes);  // HU-006, HU-007
 app.use('/admin', requireRole('admin'), adminRoutes);  // HU-010, HU-008
-app.use('/', driverRoutes);                            // HU-003, HU-004, HU-005
+app.use('/', driverRoutes);                            // HU-003, HU-004, HU-005, HU-014
 
 // 404
 app.use((req, res) => {

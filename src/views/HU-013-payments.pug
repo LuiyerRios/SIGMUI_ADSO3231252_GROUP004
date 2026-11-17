@@ -1,0 +1,68 @@
+//- HU-013 · My payments: pagos del conductor en sesión (parqueos y extensiones) con acceso al recibo
+extends layouts/app
+
+block content
+  div(class="flex flex-col gap-6")
+    if errorMessage
+      .alert.alert-error
+        i.fas.fa-exclamation-circle
+        span= errorMessage
+
+    .stat-grid
+      .stat-card
+        span.card-label Spent this month
+        strong.card-value.primary= stats.monthTotal
+      .stat-card
+        span.card-label Parking payments
+        strong.card-value= stats.parkingCount
+      .stat-card
+        span.card-label Extensions
+        strong.card-value= stats.extensionCount
+      .stat-card
+        span.card-label Active now
+        strong.card-value= stats.activeCount
+
+    .card(class="p-0 overflow-hidden")
+      div(class="flex items-center justify-between gap-3 flex-wrap p-5 border-b border-line")
+        div
+          h2.card-title Payment history
+          p.card-subtitle Simulated payments · no real money was moved
+        a(href="/parking/start", class="btn btn-primary")
+          i.fas.fa-circle-play
+          span Start parking
+
+      if payments.length === 0
+        .empty-state
+          i.far.fa-folder-open
+          p You have no payments yet.
+      else
+        .table-responsive
+          table.table
+            thead
+              tr
+                th DATE
+                th RECEIPT
+                th PLATE
+                th ZONE · SPACE
+                th TYPE
+                th AMOUNT
+                th
+            tbody
+              each p in payments
+                tr
+                  td.js-local-time(data-label="Date", data-time=p.paidAtIso) —
+                  td.font-bold(data-label="Receipt")= p.receiptNumber
+                  td.font-bold(data-label="Plate")= p.plate
+                  td(data-label="Zone · space")
+                    span.pill.pill-muted= p.place
+                  td(data-label="Type")
+                    if p.type === 'parking'
+                      span.pill.pill-info Parking
+                    else
+                      span.pill.pill-accent Extension
+                  td.font-bold(data-label="Amount")= p.amountText
+                  td(data-label="")
+                    a(href=`/payments/${p.sessionId}/receipt`, class="btn btn-ghost") View receipt
+
+block scripts
+  script(src="/js/HU-013.js")

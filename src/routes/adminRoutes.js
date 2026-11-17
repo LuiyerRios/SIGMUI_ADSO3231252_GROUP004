@@ -1,5 +1,9 @@
-import express from 'express';
+import { Router } from 'express';
+import { renderAdminHome } from '../controllers/adminHomeController.js';
+import { renderDashboard, exportDashboardCsv } from '../controllers/dashboardController.js';
+import { renderManageUsers } from '../controllers/userAdminController.js';
 import { body } from 'express-validator';
+
 import { 
   listHelpReports, 
   renderHelpReport, 
@@ -16,10 +20,17 @@ import {
   updateAdminNotifications
 } from '../controllers/adminSettingsController.js';
 
-const router = express.Router();
+const router = Router();
 
-router.get('/', (req, res) => res.render('HU-010', { title: 'Admin | SIGMUI' }));                          // HU-010
-router.get('/dashboard', (req, res) => res.render('HU-008', { title: 'Administrative dashboard | SIGMUI' }));  // HU-008
+// HU-010 Admin Parking Zones
+router.get('/', renderAdminHome);
+
+// HU-008 Admin Dashboard
+router.get('/dashboard', renderDashboard);
+router.get('/dashboard/export', exportDashboardCsv);
+
+// HU-016 Manage users (los datos se cargan desde /api/admin/users)
+router.get('/users', renderManageUsers);
 
 // HU-017 Admin Payment History Routes
 router.get('/payments', renderPaymentHistory);

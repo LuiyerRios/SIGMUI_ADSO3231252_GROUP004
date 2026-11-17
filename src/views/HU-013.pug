@@ -1,213 +1,167 @@
-doctype html
-html(lang="en")
-  head
-    meta(charset="UTF-8")
-    meta(name="viewport", content="width=device-width, initial-scale=1.0")
-    title Tech Parking | Manage Users
-    link(rel="stylesheet", href="/css/HU-013.css")
-    script(src="https://cdn.tailwindcss.com")
-  body
-    .app-shell
-      aside.sidebar
-        .brand
-          .brand-mark P
-          span tech parking
-          button.sidebar-collapse(type="button" aria-label="Collapse sidebar") «
-        p.menu-label MENU
-        nav.side-nav(aria-label="Main navigation")
-          a.nav-item(href="#")
-            span.nav-icon ▦
-            span Parking zones
-          a.nav-item(href="#")
-            span.nav-icon ↗
-            span Dashboard
-          a.nav-item.active(href="#")
-            span.nav-icon ♙
-            span Manage users
-          a.nav-item(href="#")
-            span.nav-icon ▤
-            span Payment history
-          a.nav-item(href="#")
-            span.nav-icon ⚙
-            span Settings
-        .sidebar-profile
-          .profile-avatar AS
-          .profile-copy
-            strong Admin SIGMUI
-            small Administrator
-          button.logout(type="button") ⇥ &nbsp; Logout
+//- HU-013 · Simulación de pago (diseño de Juan Sebastián Sánchez, conectado al layout y a los datos reales de HU-004)
+extends layouts/app
 
-      main.main-area
-        header.topbar
-          .page-heading
-            h1 Manage users
-            p Roles and access of the system users
-          .topbar-right
-            label.global-search
-              span.search-symbol ⌕
-              input#globalSearch(type="search" placeholder="Search space or plate..." aria-label="Search space or plate")
-            button.icon-button(type="button" aria-label="Toggle theme") ☾
-            button.icon-button(type="button" aria-label="Messages") ✉
-            button.icon-button.notification(type="button" aria-label="Notifications") ♧
-            .admin-greeting
-              small Hello,
-              strong Admin
+block styles
+  link(rel="preconnect", href="https://fonts.googleapis.com")
+  link(rel="preconnect", href="https://fonts.gstatic.com", crossorigin)
+  link(href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap", rel="stylesheet")
+  link(rel="stylesheet", href="/css/HU-013.css")
 
-        section.content
-          .filter-row
-            label.search-field
-              span.search-symbol ⌕
-              input#userSearch(type="search" placeholder="Search by name or email..." aria-label="Search by name or email")
-            .filter-group#roleFilters(aria-label="Filter by role")
-              button.filter-chip.selected(type="button" data-role="all") All roles
-              button.filter-chip(type="button" data-role="Client") Client
-              button.filter-chip(type="button" data-role="Traffic Agent") Agent
-              button.filter-chip(type="button" data-role="Admin") Admin
-            .filter-divider
-            .filter-group#statusFilters(aria-label="Filter by status")
-              button.filter-chip.selected(type="button" data-status="all") All
-              button.filter-chip(type="button" data-status="Active") Active
-              button.filter-chip(type="button" data-status="Suspended") Inactive
-            .result-count#resultCount 9 of 9 users
+block content
+  .hu013#paymentSimulation(
+    data-plate=sim.plate,
+    data-zone=sim.zone,
+    data-rate-type=sim.rateType,
+    data-quantity=sim.quantity,
+    data-start=sim.startIso,
+    data-end=sim.endIso
+  )
+    //- Encabezado de página
+    .page-header
+      .page-header-left
+        p.step-label YOUR PAYMENT, STEP BY STEP
+        h1.page-title= sim.confirmed ? 'Parking payment receipt' : 'Parking payment simulation'
+        p.page-subtitle All the details in one place. Review, confirm, and practice with peace of mind.
+      .page-header-right
+        span.badge-simulated Simulated payment
 
-          .table-card
-            .table-scroll
-              table.user-table
-                thead
-                  tr
-                    th(scope="col") Name
-                    th(scope="col") Email
-                    th(scope="col") Role
-                    th(scope="col") Verified
-                    th(scope="col") Status
-                    th(scope="col") Joined
-                    th.actions-heading(scope="col") Actions
-                tbody#usersTableBody
-                  //- Rows are rendered from the sample data in the script below.
-            .empty-state#emptyState(hidden)
-              strong No users found
-              p Try changing your search or filters.
+    //- Banner verde
+    .simulation-alert
+      i.fas.fa-flask
+      p
+        strong Simulation · No real money
+        span You are practicing; no charge will be made.
 
-    //- Edit user drawer
-    .overlay#editOverlay(hidden)
-      section.drawer(role="dialog" aria-modal="true" aria-labelledby="editTitle")
-        header.drawer-header
-          .drawer-title-icon ✎
-          .drawer-title-copy
-            h2#editTitle Edit user
-            p Update the user information and associated vehicles
-          button.close-button#closeEdit(type="button" aria-label="Close edit panel") ×
-        form#editUserForm
-          .drawer-scroll
-            section.form-section
-              h3 User information
-              .form-grid
-                label.form-field
-                  span Full name
-                  input#editName(name="name" required maxlength="100")
-                label.form-field
-                  span Email
-                  input#editEmail(name="email" type="email" required maxlength="150")
-                label.form-field
-                  span Phone number
-                  input#editPhone(name="phone" type="tel" maxlength="30")
-                label.form-field
-                  span Role
-                  select#editRole(name="role" required)
-                    option(value="") Select a role
-                    option(value="Admin") Administrator
-                    option(value="Client") Client
-                    option(value="Traffic Agent") Traffic Agent
-                label.form-field
-                  span Status
-                  select#editStatus(name="status" required)
-                    option(value="Active") Active
-                    option(value="Suspended") Suspended
-                label.form-field
-                  span Password (optional)
-                  input#editPassword(name="password" type="password" autocomplete="new-password" placeholder="Leave blank to keep current password")
-              p.form-hint Password changes are not stored in this demo. Connect this form to your backend to update credentials securely.
+    //- Error al confirmar (lo llena HU-013.js)
+    .alert.alert-error#simulationError(class="mb-4", role="alert", hidden)
+      i.fas.fa-exclamation-circle
+      span#simulationErrorText
 
-            section.form-section
-              .section-title-row
-                h3 Linked vehicles
-                button.primary-button.small-button#addVehicle(type="button") + Add vehicle
-              #vehicleList.vehicle-list
-              p.form-hint Edit vehicle details or remove a vehicle from this user's account.
+    //- Grilla principal
+    .simulation-grid
+      //- COLUMNA IZQUIERDA
+      .left-column
+        //- Fila superior (Payment details + Your time)
+        .top-cards-row
+          //- Tarjeta: Payment details
+          .card.payment-details-card
+            .card-header-row
+              span.card-title Payment details
+              span.zone-pill#zonePill Zone #{sim.confirmed ? sim.spaceText : sim.zone + ' · Auto'}
+            .vehicle-main
+              h3.plate-number= sim.plate
+              p.vehicle-desc= sim.vehicleText
+            p.parking-zone-footer Parking · Zone #{sim.zone}
 
-          footer.drawer-footer
-            button.secondary-button#cancelEdit(type="button") Cancel
-            button.primary-button(type="submit") Save changes
+          //- Tarjeta: Your time
+          .card.your-time-card
+            .card-header-row
+              span.time-title Your time
+              i.far.fa-clock.time-icon
+            h3.duration-value= sim.durationText
+            .rate-info
+              p.rate-label= sim.rateLabel
+              p.rate-value= sim.rateText
 
-    //- Add/edit vehicle modal
-    .overlay#vehicleOverlay(hidden)
-      section.dialog.vehicle-dialog(role="dialog" aria-modal="true" aria-labelledby="vehicleDialogTitle")
-        header.dialog-header
-          .dialog-icon.blue-icon ✎
-          .dialog-heading
-            h2#vehicleDialogTitle Add vehicle
-            p Enter the vehicle details below
-          button.close-button#closeVehicle(type="button" aria-label="Close vehicle form") ×
-        form#vehicleForm
-          .dialog-body
-            .form-grid
-              label.form-field
-                span License plate
-                input#vehiclePlate(name="plate" required maxlength="15")
-              label.form-field
-                span Vehicle type
-                select#vehicleType(name="type" required)
-                  option(value="") Select type
-                  option(value="Car") Car
-                  option(value="Motorcycle") Motorcycle
-                  option(value="SUV") SUV
-                  option(value="Truck") Truck
-                  option(value="Van") Van
-                  option(value="Other") Other
-              label.form-field
-                span Make
-                input#vehicleMake(name="make" maxlength="60")
-              label.form-field
-                span Model
-                input#vehicleModel(name="model" maxlength="60")
-              label.form-field
-                span Color
-                input#vehicleColor(name="color" maxlength="40")
-              label.form-field
-                span Assigned user
-                select#vehicleOwner(name="owner" required)
-            label.form-field.full-field
-              span Description
-              textarea#vehicleDescription(name="description" rows="3" maxlength="300")
-          footer.dialog-footer
-            button.secondary-button#cancelVehicle(type="button") Cancel
-            button.primary-button(type="submit") Save vehicle
+        //- Fila media (Start -> End)
+        .card.time-range-card
+          .time-block
+            p.time-label Start
+            p.time-stamp.js-local-time#startTime(data-time=sim.startIso) —
+          .time-arrow
+            i.fas.fa-arrow-right
+          .time-block.end-block
+            p.time-label End
+            p.time-stamp.js-local-time#endTime(data-time=sim.endIso) —
 
-    //- Delete confirmation modal
-    .overlay#deleteOverlay(hidden)
-      section.dialog.confirm-dialog(role="alertdialog" aria-modal="true" aria-labelledby="deleteTitle" aria-describedby="deleteDescription")
-        header.dialog-header
-          .dialog-icon.danger-icon ♜
-          .dialog-heading
-            h2#deleteTitle Delete user?
-            p#deleteDescription Are you sure you want to delete this user? This action cannot be undone.
-          button.close-button#closeDelete(type="button" aria-label="Close confirmation") ×
-        .dialog-footer
-          button.secondary-button#cancelDelete(type="button") Cancel
-          button.danger-button#confirmDelete(type="button") Delete user
+        //- Fila inferior (Simulation summary)
+        .card.summary-card
+          .summary-header
+            h3 Simulation summary
+            span #{sim.baseDurationText} × #{sim.rateText}
 
-    //- Vehicle deletion confirmation
-    .overlay#deleteVehicleOverlay(hidden)
-      section.dialog.confirm-dialog(role="alertdialog" aria-modal="true" aria-labelledby="deleteVehicleTitle")
-        header.dialog-header
-          .dialog-icon.danger-icon ♜
-          .dialog-heading
-            h2#deleteVehicleTitle Delete vehicle?
-            p Are you sure you want to remove this vehicle? This action cannot be undone.
-          button.close-button#closeDeleteVehicle(type="button" aria-label="Close confirmation") ×
-        .dialog-footer
-          button.secondary-button#cancelDeleteVehicle(type="button") Cancel
-          button.danger-button#confirmDeleteVehicle(type="button") Delete vehicle
+          .summary-breakdown
+            .breakdown-item
+              p.breakdown-label Subtotal
+              p.breakdown-value= sim.subtotalText
+            .breakdown-item
+              p.breakdown-label= sim.feeLabel
+              p.breakdown-value= sim.feeText
 
-    .toast#toast(role="status" aria-live="polite")
-    script(src="/js/HU-013.js" defer)
+          .summary-footer
+            .summary-total-label
+              p.total-title Simulated total
+              p.total-subtitle No real money will be moved.
+            .summary-total-amount
+              p.total-Big= sim.amountShort
+              p.total-currency Colombian Pesos · COP
+
+      //- COLUMNA DERECHA (Recibo)
+      .right-column
+        .receipt-card
+          .receipt-header
+            .receipt-brand
+              .receipt-logo-icon P
+              .receipt-logo-text
+                span.text-tech tech
+                span.text-parking  parking
+            span.receipt-tag SIMULATED
+
+          .receipt-body
+            p.receipt-label Simulated receipt
+            h3.receipt-code#receiptCode= sim.receiptCode || 'Pending'
+
+            .receipt-list
+              .receipt-row
+                span.row-label Vehicle
+                span.row-value= sim.plate
+              .receipt-row
+                span.row-label Zone · space
+                span.row-value#receiptSpace= sim.spaceText || `${sim.zone} · Assigned on confirm`
+              .receipt-row
+                span.row-label Duration
+                span.row-value= sim.durationText
+              .receipt-row
+                span.row-label Fee
+                span.row-value= sim.rateText
+              .receipt-row
+                span.row-label Total
+                span.row-value#receiptTotal= sim.amountText
+
+            .receipt-detail-box
+              p.detail-box-title DETAIL
+              p.detail-box-text#receiptDetail Simulated parking charge for zone #{sim.spaceText || sim.zone}. Does not result in any actual account activity.
+
+            .receipt-date-row
+              span.row-label Date
+              span.row-value.js-local-time#receiptDate(data-time=sim.startIso) —
+
+        .legal-notice
+          h4 No valid for banking purposes
+          p This receipt is merely a simulation for practice purposes. It does not represent an actual charge and should not be used as a valid proof of payment.
+
+    //- Pie de confirmación
+    .confirmation-bar#confirmationBar
+      if sim.confirmed
+        .confirmation-text
+          h4 Payment confirmed
+          p= sim.isActive ? `Your parking in space ${sim.spaceText} is active.` : 'This parking session has ended.'
+        div(class="flex items-center gap-3 flex-wrap")
+          a(href="/payments", class="btn btn-secondary") Back to payments
+          if sim.isActive
+            a(href="/parking/extend", class="btn btn-primary") Extend time
+      else
+        .confirmation-text
+          h4#confirmTitle Is everything in order?
+          p#confirmText You are just practicing. No real money will be moved.
+        div(class="flex items-center gap-3 flex-wrap")
+          a(href="/parking/start", id="backLink", class="btn btn-secondary") Back
+          button.confirm-btn#confirmBtn(type="button")
+            span.btn-label Confirm simulation
+            i.fas.fa-arrow-right
+          div#afterConfirm(class="flex items-center gap-3 flex-wrap", hidden)
+            a(href="/payments", class="btn btn-secondary") My payments
+            a(href="/parking/extend", class="btn btn-primary") Extend time
+
+block scripts
+  script(src="/js/HU-013.js")
