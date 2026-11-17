@@ -1,10 +1,10 @@
 
 doctype html
-html(lang="es")
+html(lang="en")
   head
     meta(charset="UTF-8")
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
-    title Recuperar contraseña | Tech Parking
+    title= title || "Forgot your password | SIGMUI"
     link(rel="stylesheet" href="/css/HU-009.css")
     script(src="/js/HU-009.js" defer)
 
@@ -43,6 +43,9 @@ html(lang="es")
           h2 Forgot your password?
           p.description Type the email of your account and we'll send you a link to create a new password. The link works for 1 hour.
 
+          if expired
+            p.form-message.error(role="alert") This recovery link has expired. Request a new one below.
+
           form#recovery-form(novalidate)
             div.email-field
               svg(
@@ -63,7 +66,7 @@ html(lang="es")
                 input#email(
                   type="email"
                   name="email"
-                  placeholder="usuario@hotmail.com"
+                  placeholder="name@example.com"
                   autocomplete="email"
                   aria-describedby="email-error form-message"
                   required

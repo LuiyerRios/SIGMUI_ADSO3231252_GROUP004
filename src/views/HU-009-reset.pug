@@ -1,0 +1,85 @@
+//- HU-009 · Paso 2: crear la contraseña nueva desde el enlace del correo (mismo diseño de HU-009)
+mixin lockIcon(size)
+  svg(xmlns="http://www.w3.org/2000/svg", width=size, height=size, viewBox="0 0 24 24", fill="none", stroke="currentColor", stroke-width="1.8", stroke-linecap="round", stroke-linejoin="round", aria-hidden="true")
+    rect(x="4", y="10", width="16", height="11", rx="2")
+    path(d="M8 10V7a4 4 0 0 1 8 0v3")
+
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title= title
+    link(rel="stylesheet", href="/css/HU-009.css")
+    script(src="/js/HU-009-reset.js", defer)
+
+  body
+    main.recovery-page
+      section.brand-panel
+        a.brand(href="/", aria-label="Tech Parking")
+          span.brand-icon P
+          span tech parking
+
+        div.brand-message
+          h1 Almost there.
+            br
+            | New password.
+          p Choose a password you have not used before and sign in again.
+
+        p.brand-footer Park smarter. Move better. - © Team 004 - SENA ADSO 3231252
+
+      section.form-panel
+        div.recovery-card
+          div.lock-icon
+            +lockIcon(25)
+
+          if state === 'changed'
+            h2 Password changed
+            p.description Your password was changed successfully. You can now sign in with your new password.
+            a(href="/login?reset=1", id="send-button", style="display:flex;justify-content:center;align-items:center;gap:8px;text-decoration:none")
+              span Go to sign in
+              span(aria-hidden="true") →
+
+          else if state === 'expired' || state === 'invalid' || state === 'error'
+            h2= state === 'expired' ? 'Link expired' : 'Link not valid'
+            p.form-message.error(role="alert")= error || (state === 'expired' ? 'This recovery link has expired. Request a new one; links work for 1 hour.' : 'This recovery link is not valid or was already used. Request a new one.')
+            a(href="/forgot-password", id="send-button", style="display:flex;justify-content:center;align-items:center;gap:8px;text-decoration:none")
+              span Request a new link
+              span(aria-hidden="true") →
+
+          else
+            h2 Create a new password
+            p.description It must have at least 8 characters, one uppercase letter and one number.
+
+            if error
+              p.form-message.error(role="alert")= error
+
+            form#reset-form(action="/reset-password", method="POST", novalidate)
+              input(type="hidden", name="token", value=token)
+
+              div.email-field
+                +lockIcon(18)
+                div.input-content
+                  label(for="password") New password
+                  input#password(type="password", name="password", autocomplete="new-password", minlength="8", required)
+
+              div.email-field(style="margin-top:12px")
+                +lockIcon(18)
+                div.input-content
+                  label(for="confirmPassword") Confirm new password
+                  input#confirmPassword(type="password", name="confirmPassword", autocomplete="new-password", required)
+
+              ul#password-rules.password-rules
+                li(data-rule="length") At least 8 characters
+                li(data-rule="upper") One uppercase letter
+                li(data-rule="number") One number
+
+              p#reset-error.field-error(role="alert", aria-live="polite")
+
+              button#send-button(type="submit")
+                span Save new password
+                span(aria-hidden="true") →
+
+          a.back-link(href="/login")
+            span(aria-hidden="true") →
+            | Back to sign in

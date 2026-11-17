@@ -7,6 +7,7 @@ import { renderHome, homeData } from '../controllers/driverController.js';
 import { renderStartParking } from '../controllers/parkingStartController.js';
 import { renderExtendTime } from '../controllers/extendTimeController.js';
 import { renderPaymentSimulation, renderMyPayments, renderReceipt } from '../controllers/paymentSimulationController.js';
+import { downloadReceipt } from '../controllers/receiptController.js';
 import {
   validateProfile,
   validatePasswordChange,
@@ -25,6 +26,7 @@ router.get('/parking/extend', driverOnly, renderExtendTime);                    
 router.get('/payments', driverOnly, renderMyPayments);                                                             // HU-013 (mis pagos)
 router.get('/payments/simulate', driverOnly, renderPaymentSimulation);                                             // HU-013
 router.get('/payments/:id/receipt', driverOnly, renderReceipt);                                                    // HU-013 (recibo)
+router.get('/parking/receipt/:receiptNumber', driverOnly, downloadReceipt);                                         // HU-004 (recibo en PDF)
 
 // ===================== HU-014 · Settings (perfil, contraseña y vehículos del usuario en sesión) =====================
 

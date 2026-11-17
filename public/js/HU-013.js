@@ -29,6 +29,31 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   paintTimes(); // también formatea las fechas de la lista "My payments"
+
+  // HU-004: descarga del recibo en PDF; si el servidor falla se muestra el error sin salir de la página
+  document.addEventListener('click', async (event) => {
+    const link = event.target.closest('[data-receipt-pdf]');
+    if (!link || link.getAttribute('href') === '#') return;
+    event.preventDefault();
+    try {
+      const response = await fetch(link.href, { headers: { Accept: 'application/json, application/pdf' } });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'The receipt could not be generated. Please try again.');
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = (response.headers.get('Content-Disposition') || '').match(/filename="([^"]+)"/)?.[1] || 'receipt.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      if (typeof window.showToast === 'function') window.showToast(err.message, 'error');
+    }
+  });
   if (!root || !confirmBtn) return; // recibo ya confirmado: solo se muestran las horas
 
   confirmBtn.addEventListener('click', async () => {
@@ -60,6 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
       // El recibo pasa a mostrar los datos que guardó el servidor
       const space = data.spaceId || data.zone;
       setText('receiptCode', data.receiptNumber);
+      const pdfLink = document.getElementById('receiptPdfLink');
+      if (pdfLink) pdfLink.href = `/parking/receipt/${encodeURIComponent(data.receiptNumber)}`;
       setText('receiptSpace', `${data.zone} · ${space}`);
       setText('zonePill', `Zone ${data.zone} · ${space}`);
       setText('receiptTotal', formatCOP(data.amount));
