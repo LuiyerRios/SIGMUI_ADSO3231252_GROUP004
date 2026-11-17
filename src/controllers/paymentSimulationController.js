@@ -82,6 +82,7 @@ export const renderMyPayments = async (req, res) => {
         sessionId: r.session_id,
         paidAtIso: new Date(r.paid_at).toISOString(),
         receiptNumber: r.receipt_number,
+        sessionReceipt: r.session_receipt, // el PDF es del parqueo e incluye sus extensiones
         plate: r.plate,
         place: r.space_id ? `${r.zone} · ${r.space_id}` : r.zone,
         type: r.type,

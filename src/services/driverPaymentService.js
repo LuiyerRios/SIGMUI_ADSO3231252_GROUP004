@@ -7,12 +7,12 @@ export async function getDriverPayments(userId, limit = 50) {
   return db.query(
     `SELECT p.*
        FROM (
-         SELECT ps.id AS session_id, ps.start_time AS paid_at, ps.receipt_number,
+         SELECT ps.id AS session_id, ps.start_time AS paid_at, ps.receipt_number, ps.receipt_number AS session_receipt,
                 ps.plate, ps.zone, ps.space_id, 'parking' AS type, ps.amount
            FROM parking_sessions ps
           WHERE ps.user_id = :userId AND ps.payment_status = 'paid'
          UNION ALL
-         SELECT ps.id AS session_id, se.created_at AS paid_at, CONCAT(ps.receipt_number, '-E', se.id) AS receipt_number,
+         SELECT ps.id AS session_id, se.created_at AS paid_at, CONCAT(ps.receipt_number, '-E', se.id) AS receipt_number, ps.receipt_number AS session_receipt,
                 ps.plate, ps.zone, ps.space_id, 'extension' AS type, se.amount
            FROM session_extensions se
            JOIN parking_sessions ps ON ps.id = se.session_id

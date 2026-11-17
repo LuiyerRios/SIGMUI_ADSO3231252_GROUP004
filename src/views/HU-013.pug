@@ -148,6 +148,9 @@ block content
           p= sim.isActive ? `Your parking in space ${sim.spaceText} is active.` : 'This parking session has ended.'
         div(class="flex items-center gap-3 flex-wrap")
           a(href="/payments", class="btn btn-secondary") Back to payments
+          a(href=`/parking/receipt/${sim.receiptCode}`, data-receipt-pdf="", class="btn btn-secondary")
+            i.fas.fa-file-pdf
+            span Download receipt
           if sim.isActive
             a(href="/parking/extend", class="btn btn-primary") Extend time
       else
@@ -160,6 +163,9 @@ block content
             span.btn-label Confirm simulation
             i.fas.fa-arrow-right
           div#afterConfirm(class="flex items-center gap-3 flex-wrap", hidden)
+            a(href="#", id="receiptPdfLink", data-receipt-pdf="", class="btn btn-secondary")
+              i.fas.fa-file-pdf
+              span Download receipt
             a(href="/payments", class="btn btn-secondary") My payments
             a(href="/parking/extend", class="btn btn-primary") Extend time
 

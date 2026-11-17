@@ -64,6 +64,9 @@ html(lang="es")
           if error
             div(role="alert", class="mt-[14px] rounded-xl border border-[#fecaca] bg-[#fef2f2] px-[14px] py-[10px] text-[13px] font-medium leading-5 text-[#b42318] lg:mt-4")
               p= error
+          if notice
+            div(role="status", class="mt-[14px] rounded-xl border border-[#bbf7d0] bg-[#f0fdf4] px-[14px] py-[10px] text-[13px] font-medium leading-5 text-[#15803d] lg:mt-4")
+              p= notice
 
           //- Reenvío de verificación de correo (HU-012)
           if showResend

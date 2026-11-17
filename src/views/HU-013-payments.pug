@@ -62,7 +62,11 @@ block content
                       span.pill.pill-accent Extension
                   td.font-bold(data-label="Amount")= p.amountText
                   td(data-label="")
-                    a(href=`/payments/${p.sessionId}/receipt`, class="btn btn-ghost") View receipt
+                    div(class="flex items-center gap-2")
+                      a(href=`/payments/${p.sessionId}/receipt`, class="btn btn-ghost whitespace-nowrap") View receipt
+                      a(href=`/parking/receipt/${p.sessionReceipt}`, data-receipt-pdf="", class="btn btn-ghost", title="Download receipt (PDF)", aria-label=`Download receipt ${p.sessionReceipt} as PDF`)
+                        i.fas.fa-file-pdf
+                        span PDF
 
 block scripts
   script(src="/js/HU-013.js")

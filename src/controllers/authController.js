@@ -9,7 +9,8 @@ const GENERIC_ERROR = 'Invalid credentials or user does not exist.';
 export const renderLogin = (req, res) => {
   res.render('HU-001', {
     title: 'Sign in | SIGMUI',
-    error: req.query.expired ? 'Your session has expired. Please log in again.' : null
+    error: req.query.expired ? 'Your session has expired. Please log in again.' : null,
+    notice: req.query.reset ? 'Your password was changed successfully. You can now sign in.' : null // HU-009
   });
 };
 
