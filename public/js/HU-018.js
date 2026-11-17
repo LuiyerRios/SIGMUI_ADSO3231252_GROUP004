@@ -1,55 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-  // =========================================
-  // SIDEBAR
-  // =========================================
-
-  const sidebar = document.getElementById('adminSidebar');
-  const toggleBtn = document.getElementById('toggleSidebar');
-  const mobileToggleBtn = document.getElementById('mobileToggle');
-  const overlay = document.getElementById('sidebarOverlay');
-
-  try {
-    const isCollapsed = localStorage.getItem('sigmui_sidebar_collapsed') === 'true';
-
-    if (isCollapsed && sidebar && window.innerWidth > 768) {
-      sidebar.classList.add('collapsed');
-    }
-  } catch (error) {
-    console.warn('Could not restore sidebar state:', error);
-  }
-
-  if (toggleBtn && sidebar) {
-    toggleBtn.addEventListener('click', () => {
-      sidebar.classList.toggle('collapsed');
-
-      try {
-        localStorage.setItem(
-          'sigmui_sidebar_collapsed',
-          sidebar.classList.contains('collapsed')
-        );
-      } catch (error) {
-        console.warn('Could not save sidebar state:', error);
-      }
-    });
-  }
-
-  if (mobileToggleBtn && sidebar && overlay) {
-    mobileToggleBtn.addEventListener('click', () => {
-      sidebar.classList.add('mobile-open');
-      overlay.classList.add('show');
-    });
-
-    overlay.addEventListener('click', closeMobileSidebar);
-  }
-
-  function closeMobileSidebar() {
-    if (sidebar && overlay) {
-      sidebar.classList.remove('mobile-open');
-      overlay.classList.remove('show');
-    }
-  }
-
+  // El sidebar y el topbar los maneja el layout compartido (layouts/app + public/js/app.js).
 
   // =========================================
   // FORM REFERENCES
