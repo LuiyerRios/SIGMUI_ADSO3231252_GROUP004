@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (data.formattedRate && panelRateVal) panelRateVal.textContent = data.formattedRate;
 
-      // HU-018 (#35): horario de servicio de la zona y si está cerrada ahora
+      // HU-019 (#35): horario de servicio de la zona y si está cerrada ahora
       const panelHoursVal = document.getElementById('panelHoursVal');
       if (panelHoursVal && data.scheduleText) {
         panelHoursVal.textContent = data.scheduleText;

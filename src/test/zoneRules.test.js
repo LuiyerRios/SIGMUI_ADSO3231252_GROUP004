@@ -1,4 +1,4 @@
-// HU-018 (#35) · Pruebas unitarias de tarifas y reglas por zona (Arrange / Act / Assert)
+// HU-019 (#35) · Pruebas unitarias de tarifas y reglas por zona (Arrange / Act / Assert)
 import {
   validateZoneSettings,
   parseRate,
@@ -15,7 +15,7 @@ const validBody = {
   allowsExtension: true
 };
 
-describe('HU-018 · validateZoneSettings', () => {
+describe('HU-019 · validateZoneSettings', () => {
   test('acepta datos válidos y normaliza el horario a HH:MM:SS', () => {
     // Arrange / Act
     const { value, error } = validateZoneSettings(validBody);
@@ -57,7 +57,7 @@ describe('HU-018 · validateZoneSettings', () => {
   });
 });
 
-describe('HU-018 · horario de servicio', () => {
+describe('HU-019 · horario de servicio', () => {
   test('parseRate solo acepta enteros positivos', () => {
     expect(parseRate('3000')).toBe(3000);
     expect(parseRate(' 3000 ')).toBe(3000);

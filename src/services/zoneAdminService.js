@@ -1,4 +1,4 @@
-// HU-018 (#35) · Lectura y actualización de tarifas, horario y regla de extensión por zona
+// HU-019 (#35) · Lectura y actualización de tarifas, horario y regla de extensión por zona
 import { QueryTypes } from 'sequelize';
 import db from '../config/db.js';
 import { toHHMM, formatSchedule } from '../utils/zoneRules.js';
