@@ -28,6 +28,10 @@
 @source "../../public/js/HU-004.js";
 @source "../../public/js/HU-005.js";
 @source "../../public/js/HU-010.js";
+@source "../views/HU-011.pug";
+@source "../../public/js/HU-011.js";
+@source "../views/HU-012.pug";
+@source "../views/errors/*.pug";
 
 @theme {
   --font-sans: "Poppins", system-ui, sans-serif;

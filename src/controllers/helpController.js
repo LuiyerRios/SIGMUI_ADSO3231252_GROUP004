@@ -1,15 +1,38 @@
 import { validationResult } from 'express-validator';
 import HelpReport from '../models/HelpReport.js';
+import User from '../models/User.js';
+
+// Locals del layout compartido (sidebar + topbar)
+const layoutLocals = {
+  title: 'Help & Support - SIGMUI',
+  activeMenu: 'help',
+  pageTitle: 'Help & Support',
+  pageSubtitle: 'Tell us about a problem or send us a suggestion'
+};
+
+// Prellena el formulario con los datos del usuario de la sesión
+const getPrefill = async (sessionUser) => {
+  const user = await User.findByPk(sessionUser.id, { attributes: ['fullName', 'email', 'phone'] });
+  const parts = String(user?.fullName || sessionUser.name || '').trim().split(/\s+/);
+  return {
+    firstName: parts[0] || '',
+    lastName: parts.slice(1).join(' '),
+    email: user?.email || sessionUser.email || '',
+    phone: user?.phone || '',
+    description: ''
+  };
+};
 
 // GET: Renderiza la vista del formulario
-export const renderHelpPage = (req, res) => {
+export const renderHelpPage = async (req, res) => {
   try {
-    res.render('HU-011', { 
-      title: 'Help & Support - SIGMUI',
+    res.render('HU-011', {
+      ...layoutLocals,
       errors: [],
-      formData: {} 
+      formData: await getPrefill(req.session.user)
     });
   } catch (error) {
+    console.error('Help page error:', error);
     res.status(500).send('The Help page is temporarily unavailable.');
   }
 };
@@ -21,7 +44,7 @@ export const createHelpReport = async (req, res) => {
 
   if (!errors.isEmpty()) {
     return res.status(400).render('HU-011', {
-      title: 'Help & Support - SIGMUI',
+      ...layoutLocals,
       errors: errors.array(),
       formData
     });
@@ -29,7 +52,7 @@ export const createHelpReport = async (req, res) => {
 
   try {
     await HelpReport.create({
-      userId: req.session.user?.id,
+      userId: req.session.user.id,
       firstName: formData.firstName,
       lastName: formData.lastName,
       email: formData.email,
@@ -38,15 +61,15 @@ export const createHelpReport = async (req, res) => {
     });
 
     res.render('HU-011', {
-      title: 'Help & Support - SIGMUI',
+      ...layoutLocals,
       successMessage: 'Your report was sent successfully!',
       errors: [],
-      formData: {}
+      formData: await getPrefill(req.session.user)
     });
   } catch (error) {
     console.error('Error al guardar reporte:', error);
     res.status(500).render('HU-011', {
-      title: 'Help & Support - SIGMUI',
+      ...layoutLocals,
       errorMessage: 'Failed to submit report due to a server error. Please try again later.',
       errors: [],
       formData
