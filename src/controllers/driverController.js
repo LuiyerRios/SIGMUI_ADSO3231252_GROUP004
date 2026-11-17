@@ -97,6 +97,8 @@ export async function homeData(req, res) {
       spaces,
       activeSessions,
       selectedZoneCode: targetZone ? targetZone.code : requestedZone,
+      scheduleText: targetZone ? targetZone.scheduleText : '',
+      isOpen: targetZone ? targetZone.isOpen : true,
       formattedRate: targetZone ? `${formatCOP(targetZone.ratePerHour)} / hour` : '$2,000 COP / hour'
     });
   } catch (error) {

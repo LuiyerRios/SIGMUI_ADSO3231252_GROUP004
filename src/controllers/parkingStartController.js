@@ -26,8 +26,8 @@ export async function renderStartParking(req, res) {
     // Zona preseleccionada: la de ?zone= si tiene espacios libres; si no, la primera con espacios libres
     const requested = String(req.query.zone || '').toUpperCase();
     const selectedZone =
-      zones.find(z => z.code === requested && z.free > 0) ||
-      zones.find(z => z.free > 0) ||
+      zones.find(z => z.code === requested && z.free > 0 && z.isOpen) ||
+      zones.find(z => z.free > 0 && z.isOpen) ||
       null;
 
     // Tarifas ya formateadas para que la vista y el JS no repitan el formato

@@ -41,14 +41,17 @@ block content
               if zones.length === 0
                 span(class="text-xs text-muted") No zones are configured yet.
               each z in zones
+                //- HU-018 (#35): una zona cerrada o llena no se puede elegir
+                - const unavailable = z.free === 0 || z.isOpen === false
                 button(
                   type="button",
-                  class="chip zone-chip" + (z.code === selectedZoneCode ? ' active' : '') + (z.free === 0 ? ' opacity-50' : ''),
+                  class="chip zone-chip" + (z.code === selectedZoneCode ? ' active' : '') + (unavailable ? ' opacity-50' : ''),
                   data-zone=z.code,
                   data-rate-hour=z.ratePerHour,
                   data-rate-day=z.ratePerDay,
-                  disabled=(z.free === 0)
-                )= 'Zone ' + z.code + ' · ' + z.free + ' free'
+                  title=z.isOpen === false ? `Closed · Service hours ${z.scheduleText}` : z.scheduleText,
+                  disabled=unavailable
+                )= z.isOpen === false ? `Zone ${z.code} · closed` : `Zone ${z.code} · ${z.free} free`
 
           div(class="border-t border-line")
 

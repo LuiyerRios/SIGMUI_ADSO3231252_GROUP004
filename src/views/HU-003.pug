@@ -113,6 +113,15 @@ block content
             span.data-list-label Rate
             span.data-list-value#panelRateVal= formattedRate || '$2,000 COP / hour'
           .data-list-item
+            span.data-list-label Service hours
+            span.data-list-value#panelHoursVal
+              if selectedZone
+                = selectedZone.scheduleText
+                if !selectedZone.isOpen
+                  span.pill.pill-muted(class="ml-2") Closed
+              else
+                | —
+          .data-list-item
             span.data-list-label Max time
             span.data-list-value 4 h
 

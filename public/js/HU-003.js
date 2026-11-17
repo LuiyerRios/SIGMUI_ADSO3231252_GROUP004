@@ -132,6 +132,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (data.formattedRate && panelRateVal) panelRateVal.textContent = data.formattedRate;
 
+      // HU-018 (#35): horario de servicio de la zona y si está cerrada ahora
+      const panelHoursVal = document.getElementById('panelHoursVal');
+      if (panelHoursVal && data.scheduleText) {
+        panelHoursVal.textContent = data.scheduleText;
+        if (data.isOpen === false) {
+          const closedPill = document.createElement('span');
+          closedPill.className = 'pill pill-muted ml-2';
+          closedPill.textContent = 'Closed';
+          panelHoursVal.appendChild(closedPill);
+        }
+      }
+
       // Cuadrícula, conservando la selección si el espacio sigue libre
       if (Array.isArray(data.spaces)) {
         const keep = selectedSpaceId;

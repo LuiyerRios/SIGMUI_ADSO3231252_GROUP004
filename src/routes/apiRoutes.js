@@ -2,6 +2,7 @@ import express from 'express';
 import { QueryTypes } from 'sequelize';
 import db from '../config/db.js';
 import { requireRole } from '../middlewares/auth.js';
+import { listZones, saveZone } from '../controllers/zoneAdminController.js';
 import { getAdminSpaces, getAdminStats, getConfig } from '../services/adminParkingService.js';
 import {
   listUsers, saveUser, changeUserStatus, removeUser, saveVehicle, removeVehicle
@@ -135,6 +136,10 @@ router.get('/plates/:plate/status', agentOnly, plateStatus);
 router.post('/fines', agentOnly, createFine);
 
 // HU-016: gestión de usuarios y vehículos (admin)
+// HU-018 (#35): tarifas y reglas por zona (admin)
+router.get('/admin/zones', adminOnly, listZones);
+router.put('/admin/zones/:code', adminOnly, saveZone);
+
 router.get('/admin/users', adminOnly, listUsers);
 router.put('/admin/users/:id', adminOnly, saveUser);
 router.patch('/admin/users/:id/status', adminOnly, changeUserStatus);
