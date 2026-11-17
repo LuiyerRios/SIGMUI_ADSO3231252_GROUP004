@@ -1,4 +1,4 @@
-// HU-018 (#35) · Validaciones puras de tarifas y reglas por zona (sin BD) para probarlas con Jest
+// HU-019 (#35) · Validaciones puras de tarifas y reglas por zona (sin BD) para probarlas con Jest
 
 export const ZONE_MESSAGES = {
   saved: 'Zone settings updated successfully.',

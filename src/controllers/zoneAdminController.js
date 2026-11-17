@@ -1,4 +1,4 @@
-// HU-018 (#35) · Tarifas y reglas por zona (solo admin)
+// HU-019 (#35) · Tarifas y reglas por zona (solo admin)
 import { listZoneSettings, updateZoneSettings } from '../services/zoneAdminService.js';
 import { validateZoneSettings, ZONE_MESSAGES } from '../utils/zoneRules.js';
 import { formatCOP } from '../utils/paymentFormat.js';
@@ -20,10 +20,10 @@ const withTexts = (zone) => ({
 export async function renderZoneSettings(req, res) {
   try {
     const zones = (await listZoneSettings()).map(withTexts);
-    res.render('HU-018-zones', { ...layoutLocals, zones, errorMessage: null });
+    res.render('HU-019', { ...layoutLocals, zones, errorMessage: null });
   } catch (error) {
     console.error('Zone settings error:', error);
-    res.status(500).render('HU-018-zones', {
+    res.status(500).render('HU-019', {
       ...layoutLocals,
       zones: [],
       errorMessage: 'The zone settings are temporarily unavailable.'

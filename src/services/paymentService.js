@@ -45,7 +45,7 @@ export async function recordParkingPayment(userId, input) {
 
     const zoneRecord = zones[0];
 
-    // HU-018 (#35): solo se puede parquear dentro del horario de servicio de la zona
+    // HU-019 (#35): solo se puede parquear dentro del horario de servicio de la zona
     if (zoneRecord.is_open !== undefined && !Number(zoneRecord.is_open)) {
       throw new PaymentError(
         `Zone ${zoneRecord.code} is closed right now. Service hours: ${formatSchedule(zoneRecord.opens_at, zoneRecord.closes_at)}.`,

@@ -1,4 +1,4 @@
-// HU-018 (#35) · Guarda las tarifas y reglas de cada zona con PUT /api/admin/zones/:code
+// HU-019 (#35) · Guarda las tarifas y reglas de cada zona con PUT /api/admin/zones/:code
 document.addEventListener('DOMContentLoaded', () => {
   const toast = (message, type) => {
     if (typeof window.showToast === 'function') window.showToast(message, type);

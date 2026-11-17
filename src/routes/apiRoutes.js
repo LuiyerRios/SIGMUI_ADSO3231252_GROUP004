@@ -136,7 +136,7 @@ router.get('/plates/:plate/status', agentOnly, plateStatus);
 router.post('/fines', agentOnly, createFine);
 
 // HU-016: gestión de usuarios y vehículos (admin)
-// HU-018 (#35): tarifas y reglas por zona (admin)
+// HU-019 (#35): tarifas y reglas por zona (admin)
 router.get('/admin/zones', adminOnly, listZones);
 router.put('/admin/zones/:code', adminOnly, saveZone);
 

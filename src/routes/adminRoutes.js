@@ -52,7 +52,7 @@ router.get('/help-reports', listHelpReports);
 router.get('/help-reports/:id', renderHelpReport);
 router.post('/help-reports/:id/reply', validateReplyRules, replyHelpReport);
 // HU-018 Admin Settings Routes
-// HU-018 (#35): tarifas, horario y regla de extensión por zona
+// HU-019 (#35): tarifas, horario y regla de extensión por zona
 router.get('/zones', renderZoneSettings);
 
 router.get('/settings', renderAdminSettings);

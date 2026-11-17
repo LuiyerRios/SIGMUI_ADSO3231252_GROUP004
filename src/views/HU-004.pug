@@ -41,7 +41,7 @@ block content
               if zones.length === 0
                 span(class="text-xs text-muted") No zones are configured yet.
               each z in zones
-                //- HU-018 (#35): una zona cerrada o llena no se puede elegir
+                //- HU-019 (#35): una zona cerrada o llena no se puede elegir
                 - const unavailable = z.free === 0 || z.isOpen === false
                 button(
                   type="button",

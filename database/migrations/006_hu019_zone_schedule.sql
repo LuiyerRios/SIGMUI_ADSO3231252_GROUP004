@@ -1,5 +1,5 @@
 -- =====================================================================
--- SIGMUI - Migración 006: HU-018 Tarifas y reglas por zona (issue #35)
+-- SIGMUI - Migración 006: HU-019 Tarifas y reglas por zona (issue #35)
 -- Agrega el horario de servicio de cada zona. Las tarifas y la regla de
 -- extensión ya existen (rate_per_hour, rate_per_day, allows_extension).
 -- Por defecto la zona queda abierta todo el día para no bloquear a nadie;
