@@ -88,7 +88,7 @@
         <td data-label=""><div class="flex items-center gap-2">
           <button class="btn btn-ghost" type="button" data-action="edit" data-id="${user.id}" aria-label="Edit ${escapeHtml(user.name)}" title="Edit user"><i class="fas fa-pen"></i></button>
           <button class="btn btn-ghost text-danger" type="button" data-action="delete" data-id="${user.id}" aria-label="Delete ${escapeHtml(user.name)}" title="${user.isSelf ? 'You cannot delete your own account' : 'Delete user'}" ${user.isSelf ? 'disabled' : ''}><i class="fas fa-trash"></i></button>
-          <button class="btn ${user.status === 'Active' ? 'btn-secondary text-danger' : 'btn-secondary text-success'} whitespace-nowrap" type="button" data-action="toggle-status" data-id="${user.id}" ${user.isSelf ? 'disabled title="You cannot suspend your own account"' : ''}>${user.status === 'Active' ? 'Deactivate' : 'Reactivate'}</button>
+          <button class="btn ${user.status === 'Active' ? 'btn-secondary text-danger' : 'btn-secondary text-success'} whitespace-nowrap" type="button" data-action="toggle-status" data-id="${user.id}" ${user.isSelf ? 'disabled title="You cannot change your own account."' : ''}>${user.status === 'Active' ? 'Deactivate' : 'Reactivate'}</button>
         </div></td>
       </tr>
     `).join('');
@@ -202,6 +202,27 @@
     }
   }
 
+  // HU-016 (#33): cada cambio pide confirmación antes de enviarse
+  const confirmOverlay = $('#confirmChangeOverlay');
+  let pendingChange = null;
+  function askConfirm(title, text, action) {
+    $('#confirmChangeTitle').textContent = title;
+    $('#confirmChangeText').textContent = text;
+    pendingChange = action;
+    confirmOverlay.hidden = false;
+  }
+  function closeConfirm() {
+    confirmOverlay.hidden = true;
+    pendingChange = null;
+  }
+  $('#closeConfirmChange').addEventListener('click', closeConfirm);
+  $('#cancelConfirmChange').addEventListener('click', closeConfirm);
+  $('#acceptConfirmChange').addEventListener('click', () => {
+    const action = pendingChange;
+    closeConfirm();
+    if (action) action();
+  });
+
   tableBody.addEventListener('click', (event) => {
     const button = event.target.closest('button[data-action]');
     if (!button) return;
@@ -212,11 +233,12 @@
       const user = getUser(userId);
       if (!user) return;
       const next = user.status === 'Active' ? 'Suspended' : 'Active';
-      withBusy(button, async () => {
+      const verb = next === 'Active' ? 'Reactivate' : 'Deactivate';
+      askConfirm(`${verb} user?`, `Are you sure you want to ${verb.toLowerCase()} ${user.name}?`, () => withBusy(button, async () => {
         const data = await api('PATCH', `/api/admin/users/${user.id}/status`, { status: next });
         await loadUsers();
         showToast(data.message);
-      });
+      }));
     }
   });
 
@@ -241,7 +263,7 @@
     const user = getUser(activeUserId);
     if (!user) return;
     const submit = event.submitter || $('#editUserForm button[type="submit"]');
-    withBusy(submit, async () => {
+    askConfirm('Save changes?', `Are you sure you want to update ${user.name}?`, () => withBusy(submit, async () => {
       const data = await api('PUT', `/api/admin/users/${user.id}`, {
         name: $('#editName').value,
         email: $('#editEmail').value,
@@ -253,7 +275,7 @@
       closeEdit();
       await loadUsers();
       showToast(data.message);
-    });
+    }));
   });
 
   $('#vehicleList').addEventListener('click', event => {

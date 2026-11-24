@@ -48,27 +48,29 @@ export function validateVehicle(body = {}) {
 }
 
 // Códigos que viajan en la URL (?ok= / ?error=) → mensaje exacto que ve el usuario
+// HU-014 (#31): los textos son los de los criterios de aceptación del issue
 export const SETTINGS_MESSAGES = {
   ok: {
-    profile: 'Your profile was updated.',
-    password: 'Your password was changed.',
-    vehicle_added: 'Vehicle added.',
-    vehicle_removed: 'Vehicle removed.'
+    profile: 'Your changes have been saved.',
+    password: 'Your changes have been saved.',
+    vehicle_added: 'Your changes have been saved.',
+    vehicle_removed: 'Your changes have been saved.'
   },
   error: {
     profile: 'Please check your name and phone.',
     password_required: 'Please fill in all the password fields.',
-    password_current: 'Your current password is incorrect.',
+    password_current: 'The current password is incorrect.',
     password_weak: 'The new password does not meet the requirements.',
-    password_match: 'The passwords do not match.',
+    password_match: 'Passwords do not match.',
     password_same: 'The new password must be different from the current one.',
-    plate_invalid: 'Please enter a valid plate.',
-    plate_taken: 'This plate is already registered.',
+    plate_invalid: 'License plate format not recognized.',
+    plate_taken: 'This license plate is already registered.',
     brand_long: 'Brand / model must be 60 characters or less.',
     vehicle_type: 'Please select a vehicle type.',
-    plate_moto: 'Please enter a valid motorcycle plate (ABC12D, or ABC123 for older motorcycles).',
+    plate_moto: 'License plate format not recognized. Motorcycles use ABC12D, or ABC123 for older motorcycles.',
     bicycle_serial: 'Please enter the bicycle serial number (4 to 12 letters or numbers).',
     vehicle_active: 'You cannot remove a vehicle with an active parking session.',
+    vehicle_last: 'You must keep at least one vehicle registered.',
     vehicle_not_found: 'Vehicle not found.',
     server: 'Something went wrong. Please try again.'
   }

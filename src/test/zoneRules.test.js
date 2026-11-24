@@ -2,6 +2,7 @@
 import {
   validateZoneSettings,
   validateVehicleRate,
+  occupancyLevel,
   parseRate,
   isWithinSchedule,
   formatSchedule,
@@ -77,5 +78,14 @@ describe('HU-019 · horario de servicio', () => {
   test('formatSchedule muestra "Open 24 hours" con el horario por defecto', () => {
     expect(formatSchedule('00:00:00', '23:59:00')).toBe('Open 24 hours');
     expect(formatSchedule('06:00:00', '20:00:00')).toBe('06:00 – 20:00');
+  });
+});
+
+describe('HU-003 · occupancyLevel', () => {
+  test('High desde 70%, Medium entre 30% y 69%, Low por debajo de 30%', () => {
+    expect(occupancyLevel(40, 12)).toMatchObject({ percent: 70, level: 'High' });
+    expect(occupancyLevel(40, 28)).toMatchObject({ percent: 30, level: 'Medium' });
+    expect(occupancyLevel(40, 29)).toMatchObject({ percent: 28, level: 'Low' });
+    expect(occupancyLevel(0, 0)).toMatchObject({ percent: 0, level: 'Low' });
   });
 });

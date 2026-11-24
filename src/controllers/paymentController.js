@@ -11,7 +11,8 @@ export const createParkingPayment = async (req, res) => {
       return res.status(error.status).json({ error: error.message });
     }
     console.error('Error in createParkingPayment:', error);
-    return res.status(500).json({ error: 'The payment could not be processed. Please try again.' });
+    // HU-004 (#38): mensaje exacto cuando el pago falla
+    return res.status(500).json({ error: 'Payment error, please try again' });
   }
 };
 

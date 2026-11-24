@@ -31,10 +31,35 @@ block content
           i.fas.fa-circle-play
           span Start parking
 
+      //- Filtros por fecha y placa (GET normal, funciona sin JS)
+      form(method="GET", action="/payments", id="paymentFilters", class="flex items-end gap-3 flex-wrap p-5 border-b border-line bg-surface-soft")
+        div(class="flex flex-col min-w-0")
+          label(for="from", class="text-[11px] font-semibold text-muted mb-1") From
+          input.input(type="date", id="from", name="from", value=filters.from, class="w-[160px]")
+        div(class="flex flex-col min-w-0")
+          label(for="to", class="text-[11px] font-semibold text-muted mb-1") To
+          input.input(type="date", id="to", name="to", value=filters.to, class="w-[160px]")
+        div(class="flex flex-col min-w-0")
+          label(for="plateFilter", class="text-[11px] font-semibold text-muted mb-1") Plate
+          select.input(id="plateFilter", name="plate", class="w-[160px]")
+            option(value="") All my plates
+            each pl in plates
+              option(value=pl, selected=(pl === filters.plate))= pl
+        div(class="flex items-center gap-2")
+          button.btn.btn-primary(type="submit")
+            i.fas.fa-filter
+            span Apply
+          a.btn.btn-secondary(href="/payments") Clear
+        if period
+          div(class="ml-auto text-right")
+            span(class="block text-[11px] font-semibold text-muted uppercase tracking-wider") Total paid in this period
+            strong(id="periodTotal", class="text-xl font-extrabold text-primary")= period.totalText
+            span(class="block text-[11px] text-muted") #{period.count} payment#{period.count === 1 ? '' : 's'}
+
       if payments.length === 0
         .empty-state
           i.far.fa-folder-open
-          p You have no payments yet.
+          p= (filters.plate || stats.parkingCount > 0) ? 'No payments match the selected filters.' : 'You have no payments yet.'
       else
         .table-responsive
           table.table

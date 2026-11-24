@@ -162,6 +162,19 @@ block content
             button.secondary-button#cancelDeleteVehicle(type="button") Cancel
             button.danger-button#confirmDeleteVehicle(type="button") Delete vehicle
 
+      //- HU-016 (#33): confirmación antes de cada cambio (guardar, activar o desactivar)
+      .overlay#confirmChangeOverlay(hidden)
+        section.dialog.confirm-dialog(role="alertdialog" aria-modal="true" aria-labelledby="confirmChangeTitle" aria-describedby="confirmChangeText")
+          header.dialog-header
+            .dialog-icon ?
+            .dialog-heading
+              h2#confirmChangeTitle Save changes?
+              p#confirmChangeText Are you sure you want to apply these changes to this user?
+            button.close-button#closeConfirmChange(type="button" aria-label="Close confirmation") ×
+          .dialog-footer
+            button.secondary-button#cancelConfirmChange(type="button") Cancel
+            button.primary-button#acceptConfirmChange(type="button") Confirm
+
       .toast#toast(role="status" aria-live="polite")
 
 block scripts

@@ -73,7 +73,8 @@ export async function renderHome(req, res) {
       selectedZone: null,
       spaces: [],
       formattedRate: '—',
-      errorMessage: 'The parking information is temporarily unavailable.'
+      // HU-003 (#37): mensaje exacto cuando falla el servicio de disponibilidad
+      errorMessage: 'Occupancy information temporarily unavailable.'
     });
   }
 }
@@ -115,7 +116,7 @@ export async function homeData(req, res) {
   } catch (error) {
     console.error('Error fetching home data API:', error);
     res.status(500).json({
-      error: 'The parking information is temporarily unavailable.'
+      error: 'Occupancy information temporarily unavailable.'
     });
   }
 }

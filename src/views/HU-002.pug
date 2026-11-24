@@ -60,6 +60,16 @@ html(lang="en")
             div(class="mt-3 lg:mt-[18px]")
               +field('email_address', 'Email address', 'mail', 'email', 'email', true)
 
+            //- HU-002 (#36): el primer vehículo se registra junto con la cuenta
+            div(class="mt-3 grid gap-3 lg:mt-[18px] lg:grid-cols-2")
+              div(class="relative")
+                img(src="/img/signup/car.svg", alt="", class="pointer-events-none absolute left-[15px] top-[17.5px] size-[17px]")
+                select(id="vehicle_type", name="vehicle_type", required, class="h-[52px] w-full appearance-none rounded-xl border border-line bg-white pb-2 pl-[44px] pr-3 pt-5 text-[14.5px] font-medium leading-[22px] text-ink outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20")
+                  each t in ['Car', 'Motorcycle', 'SUV', 'Truck', 'Van', 'Bicycle', 'Other']
+                    option(value=t, selected=(t === 'Car'))= t
+                label(for="vehicle_type", class="pointer-events-none absolute left-[44px] top-[6px] text-[11px] font-medium leading-[17px] text-brand-primary") Vehicle type
+              +field('plate', 'Plate (ABC123)', 'car', 'text', 'off', true)
+
             div(class="mt-3 lg:mt-[18px]")
               +field('password', 'Password', 'lock', 'password', 'new-password', true)
 

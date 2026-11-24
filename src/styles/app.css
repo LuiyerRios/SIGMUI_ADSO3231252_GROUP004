@@ -22,6 +22,7 @@
 @source "../../public/js/HU-013.js";
 @source "../views/HU-010.pug";
 @source "../views/HU-008.pug";
+@source "../../public/js/HU-008.js";
 @source "../../public/js/app.js";
 @source "../../public/js/HU-017.js";
 @source "../../public/js/HU-003.js";
@@ -233,6 +234,11 @@
     @apply absolute top-1.5 right-1.5 w-2 h-2 bg-accent rounded-full;
   }
 
+  /* HU-015: número de mensajes sin leer sobre el ícono del sobre */
+  .notification-badge-count {
+    @apply absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-accent text-white text-[10px] font-bold leading-[18px] text-center;
+  }
+
   .topbar-user-greeting {
     @apply text-xs text-muted border-l border-line pl-4;
   }
@@ -426,6 +432,18 @@
     border-radius: 9999px;
     background-color: #ef4444;
     margin-bottom: 0.25rem;
+  }
+
+  /* HU-003 (#37): nivel de ocupación por zona y zonas en gris cuando falla el servicio */
+  .occupancy-dot {
+    @apply inline-block w-2 h-2 rounded-full ml-1.5 align-middle;
+  }
+  .occupancy-high { background-color: #ef4444; }
+  .occupancy-medium { background-color: #f59e0b; }
+  .occupancy-low { background-color: #22c55e; }
+  .zone-stale {
+    filter: grayscale(1);
+    opacity: 0.55;
   }
 
   /* Espacios preferenciales (discapacidad, embarazo o trato especial · migración 007): azules con ícono */

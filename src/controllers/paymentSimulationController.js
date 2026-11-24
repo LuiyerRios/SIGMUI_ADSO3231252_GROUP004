@@ -5,7 +5,15 @@ import { validateParkingPayment, calculateAmount, calculateEndTime } from '../ut
 import { formatCOP } from '../utils/paymentFormat.js';
 import { guessVehicleType, normalizeVehicleType } from '../utils/vehicleTypes.js';
 import { getRateFor } from '../services/vehicleRateService.js';
-import { getDriverPayments, getDriverPaymentStats, getDriverReceipt } from '../services/driverPaymentService.js';
+import {
+  getDriverPayments,
+  getDriverPaymentStats,
+  getDriverReceipt,
+  getDriverPeriodTotal,
+  getDriverPaidPlates,
+  getSessionOwner
+} from '../services/driverPaymentService.js';
+import { parseFilters } from '../utils/paymentFilters.js';
 
 // GET /payments/simulate?plate=ABC123&zone=A&spaceId=A26&rateType=hour&quantity=2&vehicleType=Car&saveVehicle=true
 export const renderPaymentSimulation = async (req, res) => {
@@ -73,7 +81,7 @@ export const renderPaymentSimulation = async (req, res) => {
 
 // ===================== Payments del conductor (menú "Payments") =====================
 
-// GET /payments · lista de pagos del conductor con acceso a cada recibo
+// GET /payments?from=YYYY-MM-DD&to=YYYY-MM-DD&plate=ABC123 · pagos del conductor con filtros y total del periodo
 export const renderMyPayments = async (req, res) => {
   const baseLocals = {
     title: 'My payments | SIGMUI',
@@ -82,12 +90,48 @@ export const renderMyPayments = async (req, res) => {
     pageSubtitle: 'Your parking payments and receipts'
   };
 
+  // Filtros: por defecto los últimos 30 días; la misma regla de fechas del historial del admin (HU-017)
+  const { filters, error: filterError } = parseFilters(req.query);
+  const formValues = {
+    from: filters ? filters.from : String(req.query.from || ''),
+    to: filters ? filters.to : String(req.query.to || ''),
+    plate: filters ? filters.plate : String(req.query.plate || '').toUpperCase()
+  };
+  const emptyStats = { monthTotal: formatCOP(0), parkingCount: 0, extensionCount: 0, activeCount: 0 };
+
   try {
     const userId = req.session.user.id;
-    const [rows, stats] = await Promise.all([getDriverPayments(userId), getDriverPaymentStats(userId)]);
+    const [stats, plates] = await Promise.all([getDriverPaymentStats(userId), getDriverPaidPlates(userId)]);
+    const statsView = {
+      monthTotal: formatCOP(stats.monthTotal),
+      parkingCount: stats.parkingCount,
+      extensionCount: stats.extensionCount,
+      activeCount: stats.activeCount
+    };
+
+    // Rango inválido: se muestra el mensaje y no se consulta la lista
+    if (filterError) {
+      return res.status(400).render('HU-013-payments', {
+        ...baseLocals,
+        payments: [],
+        stats: statsView,
+        plates,
+        filters: formValues,
+        period: null,
+        errorMessage: filterError
+      });
+    }
+
+    const [rows, period] = await Promise.all([
+      getDriverPayments(userId, filters),
+      getDriverPeriodTotal(userId, filters)
+    ]);
 
     res.render('HU-013-payments', {
       ...baseLocals,
+      plates,
+      filters: formValues,
+      period: { totalText: formatCOP(period.total), count: period.payments },
       payments: rows.map(r => ({
         sessionId: r.session_id,
         paidAtIso: new Date(r.paid_at).toISOString(),
@@ -98,12 +142,7 @@ export const renderMyPayments = async (req, res) => {
         type: r.type,
         amountText: formatCOP(r.amount)
       })),
-      stats: {
-        monthTotal: formatCOP(stats.monthTotal),
-        parkingCount: stats.parkingCount,
-        extensionCount: stats.extensionCount,
-        activeCount: stats.activeCount
-      },
+      stats: statsView,
       errorMessage: null
     });
   } catch (err) {
@@ -111,8 +150,11 @@ export const renderMyPayments = async (req, res) => {
     res.status(500).render('HU-013-payments', {
       ...baseLocals,
       payments: [],
-      stats: { monthTotal: formatCOP(0), parkingCount: 0, extensionCount: 0, activeCount: 0 },
-      errorMessage: 'Your payments are temporarily unavailable.'
+      stats: emptyStats,
+      plates: [],
+      filters: formValues,
+      period: null,
+      errorMessage: 'Payment history is temporarily unavailable. Please try again later.'
     });
   }
 };
@@ -124,7 +166,16 @@ export const renderReceipt = async (req, res) => {
 
   try {
     const s = await getDriverReceipt(req.session.user.id, sessionId);
-    if (!s) return res.redirect('/payments'); // no existe o no es de este conductor
+    if (!s) {
+      // HU-013: el recibo de otro conductor responde 403; uno que no existe, 404
+      const owner = await getSessionOwner(sessionId);
+      const forbidden = owner !== undefined;
+      return res.status(forbidden ? 403 : 404).render('errors/error', {
+        title: forbidden ? 'Forbidden' : 'Not found',
+        code: forbidden ? 403 : 404,
+        message: forbidden ? 'You cannot see the receipt of another driver.' : 'This receipt does not exist.'
+      });
+    }
 
     const isDay = s.rate_type === 'day';
     const extHours = Number(s.extensions_hours) || 0;

@@ -39,7 +39,10 @@ document.getElementById("registro-form").addEventListener("submit", async functi
         phone: document.getElementById("phone_number").value.trim(),
         password: document.getElementById("password").value,
         confirm: document.getElementById("confirm_password").value,
-        terms: document.getElementById("terms").checked
+        terms: document.getElementById("terms").checked,
+        // HU-002 (#36): primer vehículo de la cuenta
+        vehicle_type: document.getElementById("vehicle_type").value,
+        plate: document.getElementById("plate").value.toUpperCase().replace(/[\s-]/g, "")
     };
 
     const errorDiv = document.getElementById("mensaje-feedback");
@@ -61,6 +64,15 @@ document.getElementById("registro-form").addEventListener("submit", async functi
     }
     if (formData.password !== formData.confirm) {
         return showMessage("Passwords do not match.", "red");
+    }
+    // Misma regla de placa por tipo que el servidor (src/utils/vehicleTypes.js)
+    const plateOk = formData.vehicle_type === "Bicycle"
+        ? /^[A-Z0-9]{4,12}$/.test(formData.plate)
+        : formData.vehicle_type === "Motorcycle" || formData.vehicle_type === "Other"
+            ? /^[A-Z]{3}\d{2}[A-Z0-9]$/.test(formData.plate)
+            : /^[A-Z]{3}\d{3}$/.test(formData.plate);
+    if (!plateOk) {
+        return showMessage("License plate format not recognized.", "red");
     }
 
     // 4. ENVÍO AL SERVIDOR: guarda el usuario en la base de datos
@@ -84,9 +96,26 @@ document.getElementById("registro-form").addEventListener("submit", async functi
         }
     } catch (err) {
         // Manejo de errores de conexión o de red
-        showMessage("Error connecting to the server. Please try again later.", "red");
+        showMessage("We were unable to process your registration at this time. Please try again in a few minutes.", "red");
         console.error("Detalle del error:", err);
     } finally {
         submitButton.disabled = false;
     }
 });
+// HU-002 (#36): la etiqueta del campo cambia para bicicletas (número de serie) y motos
+(function () {
+    const type = document.getElementById("vehicle_type");
+    const label = document.querySelector('label[for="plate"]');
+    const plate = document.getElementById("plate");
+    if (!type || !label || !plate) return;
+    const sync = () => {
+        label.textContent = type.value === "Bicycle" ? "Bicycle serial"
+            : type.value === "Motorcycle" ? "Plate (ABC12D / ABC123)" : "Plate (ABC123)";
+        plate.maxLength = type.value === "Bicycle" ? 12 : 6;
+    };
+    type.addEventListener("change", sync);
+    // Al limpiar el formulario tras registrarse, la etiqueta vuelve a la del carro
+    document.getElementById("registro-form").addEventListener("reset", () => setTimeout(sync, 0));
+    plate.addEventListener("input", () => { plate.value = plate.value.toUpperCase().replace(/[^A-Z0-9]/g, ""); });
+    sync();
+})();

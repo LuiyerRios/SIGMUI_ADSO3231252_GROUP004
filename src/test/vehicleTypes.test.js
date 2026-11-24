@@ -56,3 +56,10 @@ describe('validateParkingPayment · espacio y vehículo', () => {
     expect(error.status).toBe(400);
   });
 });
+
+describe('HU-004 · mensajes exactos', () => {
+  test('placa vacía y zona sin elegir', () => {
+    expect(validateParkingPayment({ plate: '', zone: 'A', rateType: 'hour', quantity: 1 }).error.message).toBe('The license plate is mandatory.');
+    expect(validateParkingPayment({ plate: 'ABC123', zone: '', rateType: 'hour', quantity: 1 }).error.message).toBe('You must select a parking zone');
+  });
+});

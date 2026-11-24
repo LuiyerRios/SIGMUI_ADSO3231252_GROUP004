@@ -6,6 +6,11 @@ block content
   - const endIso = activeSession ? new Date(activeSession.endTime).toISOString() : ''
 
   div(class="flex flex-col gap-6")#driverHomeContainer
+    //- HU-003 (#37): aviso cuando falla el auto-refresco (lo muestra el JS)
+    .alert.alert-error#liveErrorBox(hidden)
+      i.fas.fa-triangle-exclamation
+      span#liveErrorText Occupancy information temporarily unavailable.
+
     if errorMessage
       .alert.alert-error
         i.fas.fa-exclamation-circle
@@ -73,6 +78,8 @@ block content
                 else if z.vehicleClass === 'bicycle'
                   i(class="fas fa-bicycle mr-1")
                 span.zone-chip-text= 'Zone ' + z.code + ' · ' + z.free + ' free'
+                //- HU-003 (#37): punto de color con el nivel de ocupación
+                span(class=`occupancy-dot occupancy-${z.occupancy.level.toLowerCase()}`, title=`${z.occupancy.level} occupancy · ${z.occupancy.percent}%`)
 
         //- Cuadrícula de espacios: 4 columnas en celular, 8 desde 640 px
         div(id="spacesGrid", class="grid grid-cols-4 sm:grid-cols-8 gap-3 mb-6", data-current-zone=currentZoneCode)
@@ -121,6 +128,13 @@ block content
           .data-list-item
             span.data-list-label Free in this zone
             span.data-list-value#panelFreeVal= selectedZone ? `${selectedZone.free} of ${selectedZone.total}` : '—'
+          .data-list-item
+            span.data-list-label Occupancy
+            span.data-list-value#panelOccupancyVal
+              if selectedZone
+                span(class=`pill ${selectedZone.occupancy.pill}`)= `${selectedZone.occupancy.level} · ${selectedZone.occupancy.percent}%`
+              else
+                | —
           .data-list-item
             span.data-list-label Vehicles
             span.data-list-value#panelClassVal= selectedZone ? selectedZone.classLabel : '—'

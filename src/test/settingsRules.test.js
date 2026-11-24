@@ -96,7 +96,12 @@ describe('HU-014 Settings Rules Unit Tests', () => {
   test('every error code has a user message', () => {
     // Arrange
     const codes = ['profile', 'password_required', 'password_current', 'password_weak', 'password_match',
-      'password_same', 'plate_invalid', 'plate_moto', 'bicycle_serial', 'vehicle_type', 'plate_taken', 'brand_long', 'vehicle_active', 'vehicle_not_found', 'server'];
+      'password_same', 'plate_invalid', 'plate_moto', 'bicycle_serial', 'vehicle_type', 'plate_taken', 'brand_long', 'vehicle_active', 'vehicle_last', 'vehicle_not_found', 'server'];
+
+    // Mensajes exactos de los criterios del issue #31
+    expect(SETTINGS_MESSAGES.ok.vehicle_added).toBe('Your changes have been saved.');
+    expect(SETTINGS_MESSAGES.error.password_match).toBe('Passwords do not match.');
+    expect(SETTINGS_MESSAGES.error.vehicle_last).toBe('You must keep at least one vehicle registered.');
 
     // Act & Assert
     codes.forEach((code) => expect(SETTINGS_MESSAGES.error[code]).toEqual(expect.any(String)));

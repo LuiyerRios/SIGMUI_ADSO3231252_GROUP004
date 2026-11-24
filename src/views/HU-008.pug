@@ -9,31 +9,51 @@ block content
         i(class="fas fa-exclamation-circle")
         span= errorMessage
 
-    //- 1. Barra de Filtros y Exportación
-    div(class="flex items-center justify-between flex-wrap gap-4")
-      div(class="flex items-center gap-2 flex-wrap")
-        a(
-          href="/admin/dashboard?range=today",
-          class=currentRange === 'today' ? 'chip active' : 'chip'
-        ) Today
+    //- 1. Filtros: rangos rápidos o cualquier periodo, y exportación (HU-008 #43)
+    - const qs = currentRange === 'custom' ? `from=${period.from}&to=${period.to}` : `range=${currentRange}`
+    div(class="flex items-end justify-between flex-wrap gap-4")
+      div(class="flex items-end gap-3 flex-wrap")
+        div(class="flex items-center gap-2 flex-wrap")
+          a.js-loading(href="/admin/dashboard?range=today", class=currentRange === 'today' ? 'chip active' : 'chip') Today
+          a.js-loading(href="/admin/dashboard?range=7d", class=currentRange === '7d' ? 'chip active' : 'chip') Last 7 days
+          a.js-loading(href="/admin/dashboard?range=30d", class=currentRange === '30d' ? 'chip active' : 'chip') Last 30 days
+        form(method="GET", action="/admin/dashboard", id="periodForm", class="flex items-end gap-2 flex-wrap")
+          div(class="flex flex-col")
+            label(for="dashFrom", class="text-[11px] font-semibold text-muted mb-1") From
+            input.input(type="date", id="dashFrom", name="from", value=period ? period.from : '', required, class="w-[150px] py-1.5 text-xs")
+          div(class="flex flex-col")
+            label(for="dashTo", class="text-[11px] font-semibold text-muted mb-1") To
+            input.input(type="date", id="dashTo", name="to", value=period ? period.to : '', required, class="w-[150px] py-1.5 text-xs")
+          button.btn.btn-primary(type="submit", class="py-1.5 px-3 text-xs")
+            i(class="fas fa-filter text-xs")
+            span Apply
 
-        a(
-          href="/admin/dashboard?range=7d",
-          class=currentRange === '7d' ? 'chip active' : 'chip'
-        ) Last 7 days
+      div(class="flex items-center gap-2")
+        a(href=`/admin/dashboard/export?format=excel&${qs}`, class="btn btn-secondary py-1.5 px-3 text-xs js-export")
+          i(class="fas fa-file-excel text-xs")
+          span Excel
+        a(href=`/admin/dashboard/export?format=pdf&${qs}`, class="btn btn-secondary py-1.5 px-3 text-xs js-export")
+          i(class="fas fa-file-pdf text-xs")
+          span PDF
 
-        a(
-          href="/admin/dashboard?range=30d",
-          class=currentRange === '30d' ? 'chip active' : 'chip'
-        ) Last 30 days
+    //- Indicador de carga mientras se consulta el periodo (HU-008 #43)
+    div(id="dashLoading", class="alert alert-info", hidden)
+      i(class="fas fa-spinner fa-spin")
+      span Loading the report…
 
-      div(class="flex items-center gap-3")
-        a(
-          href=`/admin/dashboard/export?range=${currentRange}`,
-          class="btn btn-secondary py-1.5 px-3 text-xs"
-        )
-          i(class="fas fa-download text-xs")
-          span Export CSV
+    if period
+      p(class="text-xs text-muted -mt-3") Showing #{period.from} to #{period.to}
+
+    if data && data.incompleteSessions > 0
+      div(class="alert alert-error")
+        i(class="fas fa-triangle-exclamation")
+        span Some data is incomplete: #{data.incompleteSessions} session(s) have no space, amount or valid times and were not added to the totals.
+
+    if noData
+      div(class="card")
+        div(class="empty-state")
+          i(class="fas fa-chart-line")
+          p No data available
 
     //- 2. Tarjetas de Estadísticas Principales
     div(class="stat-grid")
@@ -80,7 +100,7 @@ block content
         div(class="card-header flex items-center justify-between")
           div
             h2(class="card-title") Occupancy by hour
-            p(class="card-subtitle") Today's hourly usage percentage
+            p(class="card-subtitle") Hourly usage on #{period ? period.to : 'today'}
           span(class="text-xs font-semibold text-accent") Peak #{data ? data.peakHourText : '—'}
 
         if data && data.occupancyByHour && data.occupancyByHour.length > 0
@@ -122,8 +142,28 @@ block content
             i(class="fas fa-coins")
             p No revenue data by zone.
 
-      //- Últimas Sesiones (Tabla Responsive)
+      //- HU-008 (#43): % de zonas con ocupación baja, media y alta (regla de HU-003)
       div(class="card col-span-12 md:col-span-6 xl:col-span-4")
+        div(class="card-header")
+          h2(class="card-title") Zones by occupancy
+          p(class="card-subtitle") Right now · Low under 30%, High 70% or more
+        if data && data.zoneLevels && data.zoneLevels.length
+          div(class="flex flex-col gap-4 py-2")
+            each l in data.zoneLevels
+              - const bar = l.level === 'High' ? 'bg-danger' : l.level === 'Medium' ? 'bg-warning' : 'bg-success'
+              div(class="flex flex-col gap-1.5")
+                div(class="flex justify-between items-center text-xs")
+                  span(class="font-bold text-ink")= l.level
+                  span(class="font-semibold text-muted") #{l.count} zone#{l.count === 1 ? '' : 's'} · #{l.percent}%
+                div(class="w-full bg-surface-soft h-2.5 rounded-full overflow-hidden")
+                  div(class=`${bar} h-full rounded-full`, style=`width: ${l.percent}%`)
+        else
+          div(class="empty-state")
+            i(class="fas fa-layer-group")
+            p No data available
+
+      //- Últimas Sesiones (Tabla Responsive)
+      div(class="card col-span-12")
         div(class="card-header")
           h2(class="card-title") Latest sessions
           p(class="card-subtitle") Recent activity in system
@@ -148,3 +188,5 @@ block content
           div(class="empty-state")
             i(class="fas fa-car-side")
             p No recent sessions recorded.
+block scripts
+  script(src="/js/HU-008.js")

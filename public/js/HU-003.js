@@ -113,13 +113,30 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // HU-003 (#37): si el servicio falla, las zonas se ven en gris con el mensaje exacto
+  const liveErrorBox = document.getElementById('liveErrorBox');
+  const liveErrorText = document.getElementById('liveErrorText');
+  function showLiveError(message) {
+    if (liveErrorText) liveErrorText.textContent = message;
+    if (liveErrorBox) liveErrorBox.hidden = false;
+    document.querySelectorAll('#zoneChipsContainer .chip, .space-grid-item').forEach((el) => el.classList.add('zone-stale'));
+  }
+  function hideLiveError() {
+    if (liveErrorBox) liveErrorBox.hidden = true;
+    document.querySelectorAll('.zone-stale').forEach((el) => el.classList.remove('zone-stale'));
+  }
+
   async function refreshData() {
     if (document.hidden || !spacesGrid) return;
 
     try {
       const response = await fetch(`/zones/data?zone=${encodeURIComponent(currentZone)}`);
-      if (!response.ok) return;
+      if (!response.ok) {
+        showLiveError('Occupancy information temporarily unavailable.');
+        return;
+      }
       const data = await response.json();
+      hideLiveError();
 
       // Tarjetas de resumen
       if (data.totals) {
@@ -137,9 +154,22 @@ document.addEventListener('DOMContentLoaded', () => {
           const chip = document.querySelector(`#zoneChipsContainer a[data-zone="${z.code}"]`);
           const chipText = chip ? chip.querySelector('.zone-chip-text') : null;
           if (chipText) chipText.textContent = `Zone ${z.code} · ${z.free} free`;
+          const dot = chip ? chip.querySelector('.occupancy-dot') : null;
+          if (dot && z.occupancy) {
+            dot.className = `occupancy-dot occupancy-${z.occupancy.level.toLowerCase()}`;
+            dot.title = `${z.occupancy.level} occupancy · ${z.occupancy.percent}%`;
+          }
         });
         const zone = data.zones.find((z) => z.code === currentZone);
         if (zone && panelFreeVal) panelFreeVal.textContent = `${zone.free} of ${zone.total}`;
+        const occ = document.getElementById('panelOccupancyVal');
+        if (zone && occ && zone.occupancy) {
+          occ.replaceChildren();
+          const pill = document.createElement('span');
+          pill.className = `pill ${zone.occupancy.pill}`;
+          pill.textContent = `${zone.occupancy.level} · ${zone.occupancy.percent}%`;
+          occ.appendChild(pill);
+        }
       }
 
       if (data.formattedRate && panelRateVal) panelRateVal.textContent = data.formattedRate;
@@ -163,7 +193,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (keep) selectSpace(keep);
       }
     } catch (err) {
+      // Sin conexión: el mapa no se pudo cargar
       console.warn('Error refreshing zones data:', err);
+      showLiveError('The map could not be loaded. Check your internet connection.');
     }
   }
 

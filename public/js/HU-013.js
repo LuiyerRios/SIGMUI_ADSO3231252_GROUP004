@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        showError(data.error || 'The payment could not be processed. Please try again.');
+        showError(data.error || 'Payment error, please try again');
         confirmBtn.disabled = false;
         label.textContent = 'Confirm simulation';
         return;
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (data.vehicleSaved) setText('vehicleDesc', `${root.dataset.vehicleType || 'Car'} · Saved to your vehicles`);
     } catch (err) {
-      showError('The payment could not be processed. Please try again.');
+      showError('Payment error, please try again');
       confirmBtn.disabled = false;
       label.textContent = 'Confirm simulation';
     }

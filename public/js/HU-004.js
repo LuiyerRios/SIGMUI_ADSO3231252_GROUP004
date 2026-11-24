@@ -277,8 +277,13 @@ document.addEventListener('DOMContentLoaded', () => {
       hideError();
       const plate = currentPlate();
 
+      // HU-004 (#38): mensajes exactos de los criterios
       if (!state.zone) {
-        showError('Please select a valid zone.');
+        showError('You must select a parking zone');
+        return;
+      }
+      if (!plate) {
+        showError('The license plate is mandatory.');
         return;
       }
       // Vehículos registrados: la placa ya se validó al guardarlos; solo se revisa el formato de su tipo

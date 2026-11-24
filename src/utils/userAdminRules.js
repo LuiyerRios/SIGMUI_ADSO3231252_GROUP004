@@ -76,8 +76,8 @@ export function checkAdminSafety({ actorId, target, next = null, activeAdmins })
   }
 
   const staysActiveAdmin = next.role === 'admin' && next.status === 'active';
-  if (isSelf && next.status !== 'active') return 'You cannot suspend your own account.';
-  if (isSelf && next.role !== 'admin') return 'You cannot remove your own administrator role.';
+  if (isSelf && next.status !== 'active') return 'You cannot change your own account.';
+  if (isSelf && next.role !== 'admin') return 'You cannot change your own account.';
   if (targetIsActiveAdmin && !staysActiveAdmin && activeAdmins <= 1) return 'At least one active administrator must remain.';
   return null;
 }
