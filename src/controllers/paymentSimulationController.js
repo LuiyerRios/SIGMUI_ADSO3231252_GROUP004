@@ -5,7 +5,7 @@ import { validateParkingPayment, calculateAmount, calculateEndTime } from '../ut
 import { formatCOP } from '../utils/paymentFormat.js';
 import { getDriverPayments, getDriverPaymentStats, getDriverReceipt } from '../services/driverPaymentService.js';
 
-// GET /payments/simulate?plate=ABC123&zone=A&rateType=hour&quantity=2
+// GET /payments/simulate?plate=ABC123&zone=A&spaceId=A26&rateType=hour&quantity=2&vehicleType=Car&saveVehicle=true
 export const renderPaymentSimulation = async (req, res) => {
   const { data, error } = validateParkingPayment(req.query);
   if (error) return res.redirect('/parking/start'); // sin datos válidos se vuelve a elegir en HU-004
@@ -15,7 +15,7 @@ export const renderPaymentSimulation = async (req, res) => {
       db.query('SELECT code, rate_per_hour, rate_per_day FROM zones WHERE code = :code LIMIT 1', {
         replacements: { code: data.zone }, type: QueryTypes.SELECT
       }),
-      db.query('SELECT brand_model FROM vehicles WHERE plate = :plate AND user_id = :userId LIMIT 1', {
+      db.query('SELECT brand_model, vehicle_type FROM vehicles WHERE plate = :plate AND user_id = :userId LIMIT 1', {
         replacements: { plate: data.plate, userId: req.session.user.id }, type: QueryTypes.SELECT
       })
     ]);
@@ -38,8 +38,15 @@ export const renderPaymentSimulation = async (req, res) => {
       pageSubtitle: 'Your parking payments and receipts',
       sim: {
         plate: data.plate,
-        vehicleText: vehicle ? (vehicle.brand_model || 'No brand / model') : 'Vehicle not registered',
+        vehicleText: vehicle
+          ? [vehicle.vehicle_type || 'Car', vehicle.brand_model].filter(Boolean).join(' · ')
+          : `${data.vehicleType || 'Car'} · ${data.saveVehicle ? 'Will be saved to your vehicles' : 'Vehicle not registered'}`,
+        vehicleType: vehicle ? (vehicle.vehicle_type || 'Car') : (data.vehicleType || 'Car'),
+        saveVehicle: !vehicle && data.saveVehicle,
         zone: data.zone,
+        // Espacio que eligió el conductor (HU-003 / HU-004); vacío = Auto
+        spaceId: data.spaceId || '',
+        spaceText: data.spaceId ? `${data.zone} · ${data.spaceId}` : '',
         rateType: data.rateType,
         quantity: data.quantity,
         durationText: isDay ? `${data.quantity} day${data.quantity > 1 ? 's' : ''}` : `${data.quantity} h`,

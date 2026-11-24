@@ -21,6 +21,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const plate = document.getElementById('plate');
+  const vehicleType = document.getElementById('vehicle_type');
+  const plateLabel = document.getElementById('plateLabel');
+  // Las bicicletas se registran con su número de serie en vez de placa
+  const syncPlateField = () => {
+    if (!plate || !vehicleType) return;
+    const isBike = vehicleType.value === 'Bicycle';
+    if (plateLabel) plateLabel.textContent = isBike ? 'Serial number' : 'Plate';
+    plate.placeholder = isBike ? 'GW1234BK' : 'ABC123';
+    plate.maxLength = isBike ? 12 : 7;
+  };
+  if (vehicleType) {
+    vehicleType.addEventListener('change', syncPlateField);
+    syncPlateField();
+  }
   if (plate) {
     plate.addEventListener('input', () => {
       plate.value = plate.value.toUpperCase().replace(/[^A-Z0-9]/g, '');

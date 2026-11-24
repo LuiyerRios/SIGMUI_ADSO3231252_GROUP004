@@ -11,6 +11,9 @@ block content
   .hu013#paymentSimulation(
     data-plate=sim.plate,
     data-zone=sim.zone,
+    data-space-id=sim.spaceId,
+    data-vehicle-type=sim.vehicleType,
+    data-save-vehicle=(sim.saveVehicle ? 'true' : 'false'),
     data-rate-type=sim.rateType,
     data-quantity=sim.quantity,
     data-start=sim.startIso,
@@ -47,10 +50,10 @@ block content
           .card.payment-details-card
             .card-header-row
               span.card-title Payment details
-              span.zone-pill#zonePill Zone #{sim.confirmed ? sim.spaceText : sim.zone + ' · Auto'}
+              span.zone-pill#zonePill Zone #{sim.spaceText || sim.zone + ' · Auto'}
             .vehicle-main
               h3.plate-number= sim.plate
-              p.vehicle-desc= sim.vehicleText
+              p.vehicle-desc#vehicleDesc= sim.vehicleText
             p.parking-zone-footer Parking · Zone #{sim.zone}
 
           //- Tarjeta: Your time

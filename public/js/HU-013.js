@@ -69,6 +69,10 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({
           plate: root.dataset.plate,
           zone: root.dataset.zone,
+          // Espacio elegido (vacío = el servidor asigna el primero libre), tipo y si se guarda la placa
+          spaceId: root.dataset.spaceId || undefined,
+          vehicleType: root.dataset.vehicleType || undefined,
+          saveVehicle: root.dataset.saveVehicle === 'true',
           rateType: root.dataset.rateType,
           quantity: Number(root.dataset.quantity)
         })
@@ -103,7 +107,10 @@ document.addEventListener('DOMContentLoaded', () => {
       afterConfirm.hidden = false;
       if (typeof window.showToast === 'function') {
         window.showToast(`Payment completed. Receipt ${data.receiptNumber}`, 'success');
+        // HU-004: la placa nueva quedó en "Mis vehículos"
+        if (data.vehicleSaved) window.showToast(`Vehicle ${root.dataset.plate} saved to your account.`, 'success');
       }
+      if (data.vehicleSaved) setText('vehicleDesc', `${root.dataset.vehicleType || 'Car'} · Saved to your vehicles`);
     } catch (err) {
       showError('The payment could not be processed. Please try again.');
       confirmBtn.disabled = false;
