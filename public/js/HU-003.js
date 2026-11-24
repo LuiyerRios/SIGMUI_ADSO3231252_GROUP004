@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Vuelve el panel a su estado inicial (sin espacio elegido)
   function resetPanel() {
     selectedSpaceId = null;
+    // Sin espacio elegido, "Park here" abre Start parking solo con la zona (asignación automática)
+    if (parkHereBtn) parkHereBtn.href = `/parking/start?zone=${encodeURIComponent(currentZone)}`;
     if (panelSpaceIdBadge) panelSpaceIdBadge.textContent = '—';
     if (panelSpaceTitle) panelSpaceTitle.textContent = 'Select a space';
     if (panelSpaceStatusPill) {
@@ -39,6 +41,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     target.classList.add('selected');
     selectedSpaceId = spaceId;
+    // El espacio elegido viaja a Start parking (HU-004) y se guarda tal cual al pagar
+    if (parkHereBtn) {
+      parkHereBtn.href = `/parking/start?zone=${encodeURIComponent(currentZone)}&space=${encodeURIComponent(spaceId)}`;
+    }
 
     if (panelSpaceIdBadge) panelSpaceIdBadge.textContent = spaceId;
     if (panelSpaceTitle) panelSpaceTitle.textContent = `Space ${spaceId}`;

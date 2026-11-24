@@ -105,7 +105,7 @@ block content
               .form-grid
                 label.form-field
                   span License plate
-                  input#vehiclePlate(name="plate" required maxlength="7" placeholder="ABC123" autocomplete="off")
+                  input#vehiclePlate(name="plate" required maxlength="12" placeholder="ABC123" autocomplete="off")
                 label.form-field
                   span Vehicle type
                   select#vehicleType(name="type" required)
@@ -115,6 +115,7 @@ block content
                     option(value="SUV") SUV
                     option(value="Truck") Truck
                     option(value="Van") Van
+                    option(value="Bicycle") Bicycle
                     option(value="Other") Other
                 label.form-field
                   span Make

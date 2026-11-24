@@ -1,5 +1,6 @@
 // HU-014 · Validaciones puras de Settings (sin BD) para poder probarlas con Jest
 import { normalizePlate, isValidPlate } from './paymentRules.js';
+import { normalizeVehicleType, isValidPlateForType } from './vehicleTypes.js';
 
 const PHONE_REGEX = /^[+\d][\d\s-]{6,19}$/;
 
@@ -34,9 +35,12 @@ export function validatePasswordChange(body = {}) {
 export function validateVehicle(body = {}) {
   const plate = normalizePlate(body.plate);
   const brandModel = String(body.brand_model ?? '').trim();
-  if (!isValidPlate(plate)) return { error: 'plate_invalid' };
+  // Tipo de vehículo: si no llega se asume carro (formularios viejos)
+  const vehicleType = body.vehicle_type === undefined ? 'Car' : normalizeVehicleType(body.vehicle_type);
+  if (!vehicleType) return { error: 'vehicle_type' };
+  if (!isValidPlateForType(plate, vehicleType)) return { error: vehicleType === 'Bicycle' ? 'bicycle_serial' : 'plate_invalid' };
   if (brandModel.length > 60) return { error: 'brand_long' };
-  return { value: { plate, brandModel: brandModel || null } };
+  return { value: { plate, brandModel: brandModel || null, vehicleType } };
 }
 
 // Códigos que viajan en la URL (?ok= / ?error=) → mensaje exacto que ve el usuario
@@ -57,6 +61,8 @@ export const SETTINGS_MESSAGES = {
     plate_invalid: 'Please enter a valid plate.',
     plate_taken: 'This plate is already registered.',
     brand_long: 'Brand / model must be 60 characters or less.',
+    vehicle_type: 'Please select a vehicle type.',
+    bicycle_serial: 'Please enter the bicycle serial number (4 to 12 letters or numbers).',
     vehicle_active: 'You cannot remove a vehicle with an active parking session.',
     vehicle_not_found: 'Vehicle not found.',
     server: 'Something went wrong. Please try again.'

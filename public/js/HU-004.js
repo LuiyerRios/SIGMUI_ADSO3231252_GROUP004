@@ -1,4 +1,4 @@
-// HU-004 · Start parking: zona, vehículo y duración; el pago se revisa y confirma en HU-013 (POST /api/payments/parking)
+// HU-004 · Start parking: zona y espacio, vehículo (con su tipo) y duración; el pago se revisa y confirma en HU-013 (POST /api/payments/parking)
 document.addEventListener('DOMContentLoaded', () => {
   const zoneGroup = document.getElementById('zoneSelectGroup');
   const vehicleGroup = document.getElementById('vehicleSelectGroup');
@@ -6,6 +6,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const otherPlateCard = document.getElementById('otherPlateCard');
   const otherPlateBox = document.getElementById('otherPlateBox');
   const otherPlateInput = document.getElementById('otherPlate');
+  const otherTypeSelect = document.getElementById('otherType');
+  const otherPlateLabel = document.getElementById('otherPlateLabel');
+  const saveVehicleBox = document.getElementById('saveVehicle');
+  const spaceSelect = document.getElementById('spaceSelect');
+
+  // Espacios libres por zona que envía el servidor: { A: ['A3', …], … }
+  let freeSpaces = {};
+  try {
+    freeSpaces = JSON.parse(spaceSelect ? spaceSelect.dataset.freeSpaces || '{}' : '{}');
+  } catch (e) {
+    freeSpaces = {};
+  }
 
   const summarySpaceCode = document.getElementById('summarySpaceCode');
   const summaryZonePlate = document.getElementById('summaryZonePlate');
@@ -28,6 +40,10 @@ document.addEventListener('DOMContentLoaded', () => {
     rateHour: activeZoneChip ? Number(activeZoneChip.dataset.rateHour) : 0,
     rateDay: activeZoneChip ? Number(activeZoneChip.dataset.rateDay) : 0,
     plate: startBtn ? startBtn.dataset.firstPlate || '' : '',
+    vehicleType: (vehicleGroup && vehicleGroup.querySelector('.vehicle-card.selected'))
+      ? vehicleGroup.querySelector('.vehicle-card.selected').dataset.type || 'Car'
+      : 'Car',
+    spaceId: spaceSelect ? spaceSelect.value : '',
     useOtherPlate: !(startBtn && startBtn.dataset.firstPlate),
     rateType: 'hour',
     quantity: 1,
@@ -41,6 +57,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function currentPlate() {
     return state.useOtherPlate ? normalizePlate(otherPlateInput ? otherPlateInput.value : '') : state.plate;
+  }
+
+  function currentVehicleType() {
+    return state.useOtherPlate ? (otherTypeSelect ? otherTypeSelect.value : 'Car') : state.vehicleType;
+  }
+
+  // Llena la lista de espacios con los libres de la zona elegida
+  function fillSpaces(zone) {
+    if (!spaceSelect) return;
+    const keep = spaceSelect.value;
+    const list = freeSpaces[zone] || [];
+    spaceSelect.replaceChildren();
+    const auto = document.createElement('option');
+    auto.value = '';
+    auto.textContent = 'Auto · first free space';
+    spaceSelect.appendChild(auto);
+    list.forEach((id) => {
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = id;
+      spaceSelect.appendChild(opt);
+    });
+    spaceSelect.value = list.includes(keep) ? keep : '';
+    state.spaceId = spaceSelect.value;
   }
 
   function showError(message) {
@@ -71,9 +111,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (summaryDuration) summaryDuration.textContent = isDay ? `${state.quantity} day` : `${state.quantity} h`;
     if (summaryRate) summaryRate.textContent = state.zone ? `${formatCOP(rate)} / ${isDay ? 'day' : 'hour'}` : '—';
     if (summaryTotal) summaryTotal.textContent = state.zone ? formatCOP(rate * state.quantity) : '—';
+    if (summarySpaceCode) summarySpaceCode.textContent = state.spaceId || 'Auto';
     if (summaryZonePlate) {
+      const where = state.spaceId ? 'Space you picked' : 'Assigned when you start';
       summaryZonePlate.textContent = state.zone
-        ? `Zone ${state.zone} · ${plate || 'No plate yet'} · Assigned when you start`
+        ? `Zone ${state.zone} · ${plate || 'No plate yet'} · ${where}`
         : 'Choose a zone';
     }
   }
@@ -88,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
       state.zone = chip.dataset.zone;
       state.rateHour = Number(chip.dataset.rateHour);
       state.rateDay = Number(chip.dataset.rateDay);
+      fillSpaces(state.zone);
       if (startBtn) startBtn.disabled = false;
       hideError();
       updateSummary();
@@ -109,6 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         state.useOtherPlate = false;
         state.plate = card.dataset.plate;
+        state.vehicleType = card.dataset.type || 'Car';
         if (otherPlateBox) otherPlateBox.classList.add('hidden');
       }
       hideError();
@@ -119,6 +163,27 @@ document.addEventListener('DOMContentLoaded', () => {
   if (otherPlateInput) {
     otherPlateInput.addEventListener('input', () => {
       otherPlateInput.value = normalizePlate(otherPlateInput.value);
+      updateSummary();
+    });
+  }
+
+  // Las bicicletas no tienen placa: se usa su número de serie
+  if (otherTypeSelect) {
+    const syncPlateField = () => {
+      const isBike = otherTypeSelect.value === 'Bicycle';
+      if (otherPlateLabel) otherPlateLabel.textContent = isBike ? 'Serial number' : 'Plate';
+      if (otherPlateInput) {
+        otherPlateInput.placeholder = isBike ? 'GW1234BK' : 'ABC123';
+        otherPlateInput.maxLength = isBike ? 12 : 7;
+      }
+    };
+    otherTypeSelect.addEventListener('change', syncPlateField);
+    syncPlateField();
+  }
+
+  if (spaceSelect) {
+    spaceSelect.addEventListener('change', () => {
+      state.spaceId = spaceSelect.value;
       updateSummary();
     });
   }
@@ -146,8 +211,10 @@ document.addEventListener('DOMContentLoaded', () => {
         showError('Please select a valid zone.');
         return;
       }
-      if (!plate) {
-        showError('Please enter a valid plate.');
+      const isBike = currentVehicleType() === 'Bicycle';
+      const plateOk = isBike ? /^[A-Z0-9]{4,12}$/.test(plate) : /^[A-Z]{3}\d{2}[A-Z0-9]$/.test(plate);
+      if (!plateOk) {
+        showError(isBike ? 'Please enter the bicycle serial number (4 to 12 letters or numbers).' : 'Please enter a valid plate.');
         return;
       }
 
@@ -159,8 +226,13 @@ document.addEventListener('DOMContentLoaded', () => {
         plate,
         zone: state.zone,
         rateType: state.rateType,
-        quantity: String(state.quantity)
+        quantity: String(state.quantity),
+        vehicleType: currentVehicleType()
       });
+      // Espacio elegido (si no, el servidor asigna el primero libre)
+      if (state.spaceId) params.set('spaceId', state.spaceId);
+      // Guardar la placa nueva en "Mis vehículos"
+      if (state.useOtherPlate && saveVehicleBox && saveVehicleBox.checked) params.set('saveVehicle', 'true');
       window.location.href = `/payments/simulate?${params.toString()}`;
     });
   }

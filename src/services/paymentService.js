@@ -24,7 +24,7 @@ export async function recordParkingPayment(userId, input) {
     throw new PaymentError(error.message, error.status);
   }
 
-  const { plate, zone, spaceId, rateType, quantity } = data;
+  const { plate, zone, spaceId, rateType, quantity, vehicleType, saveVehicle } = data;
 
   return await db.transaction(async (transaction) => {
     // 1. Obtener zona y tarifas desde la BD
@@ -124,7 +124,26 @@ export async function recordParkingPayment(userId, input) {
       }
     );
 
-    const vehicleId = vehicles && vehicles.length > 0 ? vehicles[0].id : null;
+    let vehicleId = vehicles && vehicles.length > 0 ? vehicles[0].id : null;
+    let vehicleSaved = false;
+
+    // 4b. HU-004: si el conductor marcó "Save this vehicle", la placa nueva queda en sus vehículos.
+    //     Si la placa ya es de otra cuenta no se toca (el parqueo se paga igual).
+    if (!vehicleId && saveVehicle) {
+      const taken = await db.query('SELECT id FROM vehicles WHERE plate = ? LIMIT 1 FOR UPDATE', {
+        replacements: [plate],
+        type: QueryTypes.SELECT,
+        transaction
+      });
+      if (!taken || taken.length === 0) {
+        const [newVehicleId] = await db.query(
+          'INSERT INTO vehicles (user_id, plate, vehicle_type) VALUES (?, ?, ?)',
+          { replacements: [userId, plate, vehicleType || 'Car'], type: QueryTypes.INSERT, transaction }
+        );
+        vehicleId = newVehicleId;
+        vehicleSaved = true;
+      }
+    }
 
     // 5. Calcular el monto en el servidor
     const amount = calculateAmount(rateType, quantity, {
@@ -175,7 +194,8 @@ export async function recordParkingPayment(userId, input) {
           startTime,
           endTime,
           zone,
-          spaceId: assignedSpaceId
+          spaceId: assignedSpaceId,
+          vehicleSaved
         };
       } catch (err) {
         if (err.name === 'SequelizeUniqueConstraintError' || err.code === 'ER_DUP_ENTRY') {

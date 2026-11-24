@@ -63,8 +63,20 @@ describe('HU-014 Settings Rules Unit Tests', () => {
       const moto = validateVehicle({ plate: 'xyz12a' });
 
       // Assert
-      expect(car.value).toEqual({ plate: 'ABC123', brandModel: 'Mazda 3' });
-      expect(moto.value).toEqual({ plate: 'XYZ12A', brandModel: null });
+      expect(car.value).toEqual({ plate: 'ABC123', brandModel: 'Mazda 3', vehicleType: 'Car' });
+      expect(moto.value).toEqual({ plate: 'XYZ12A', brandModel: null, vehicleType: 'Car' });
+    });
+
+    test('saves the vehicle type and accepts a bicycle serial number', () => {
+      // Arrange & Act
+      const moto = validateVehicle({ plate: 'xyz12a', vehicle_type: 'motorcycle' });
+      const bike = validateVehicle({ plate: 'gw1234bk', vehicle_type: 'Bicycle' });
+
+      // Assert
+      expect(moto.value.vehicleType).toBe('Motorcycle');
+      expect(bike.value).toEqual({ plate: 'GW1234BK', brandModel: null, vehicleType: 'Bicycle' });
+      expect(validateVehicle({ plate: 'ABC123', vehicle_type: 'Plane' }).error).toBe('vehicle_type');
+      expect(validateVehicle({ plate: 'B1', vehicle_type: 'Bicycle' }).error).toBe('bicycle_serial');
     });
 
     test('rejects invalid plates and long brand names', () => {

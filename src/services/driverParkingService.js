@@ -1,5 +1,6 @@
 import db from '../config/db.js';
 import { QueryTypes } from 'sequelize';
+import { vehicleIcon } from '../utils/vehicleTypes.js';
 import { toHHMM, formatSchedule } from '../utils/zoneRules.js';
 
 /**
@@ -190,7 +191,7 @@ export async function getTodayActivity(userId) {
  */
 export async function getUserVehicles(userId) {
   const rows = await db.query(
-    `SELECT id, plate, brand_model AS brandModel
+    `SELECT id, plate, brand_model AS brandModel, vehicle_type AS vehicleType
      FROM vehicles
      WHERE user_id = :userId
      ORDER BY plate ASC`,
@@ -200,6 +201,27 @@ export async function getUserVehicles(userId) {
   return rows.map(r => ({
     id: r.id,
     plate: r.plate,
-    brandModel: r.brandModel || ''
+    brandModel: r.brandModel || '',
+    vehicleType: r.vehicleType || 'Car',
+    icon: vehicleIcon(r.vehicleType)
   }));
+}
+
+/**
+ * HU-004 · Espacios libres de todas las zonas, en orden natural (A1, A2 … A10),
+ * para que el conductor pueda elegir uno en vez del primero libre.
+ * Devuelve { A: ['A3', 'A4', …], B: [...] }
+ */
+export async function getFreeSpacesByZone() {
+  const rows = await db.query(
+    `SELECT ps.id, ps.zone
+       FROM parking_spaces ps
+      WHERE NOT ${SQL_OCCUPIED_EXISTS}
+      ORDER BY ps.zone, CHAR_LENGTH(ps.id), ps.id`,
+    { type: QueryTypes.SELECT }
+  );
+  return rows.reduce((acc, r) => {
+    (acc[r.zone] = acc[r.zone] || []).push(r.id);
+    return acc;
+  }, {});
 }

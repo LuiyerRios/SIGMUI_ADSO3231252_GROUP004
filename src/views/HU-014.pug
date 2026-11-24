@@ -130,10 +130,11 @@ block content
             each v in vehicles
               li(class="flex items-center justify-between gap-4 py-4")
                 div(class="flex items-center gap-4 min-w-0")
-                  div(class="w-11 h-11 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0") 🚗
+                  div(class="w-11 h-11 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0", title=v.vehicle_type)
+                    i(class=`fas ${v.icon}`)
                   div(class="min-w-0")
                     p(class="text-sm font-bold text-gray-900 tracking-wider")= v.plate
-                    p(class="text-xs text-gray-500 truncate")= v.brand_model || 'No brand / model'
+                    p(class="text-xs text-gray-500 truncate")= `${v.vehicle_type} · ${v.brand_model || 'No brand / model'}`
                 if v.has_active_session
                   span(class="text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md shrink-0") Parked now
                 else
@@ -146,10 +147,15 @@ block content
 
         form(action="/settings/vehicles", method="POST", class="border-t border-gray-100 pt-6")
           p(class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4") Add a vehicle
-          div(class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end")
+          div(class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end")
             div
-              label(class="block text-xs font-semibold text-gray-500 mb-2", for="plate") Plate
-              input(type="text", id="plate", name="plate", required, maxlength="7", placeholder="ABC123", autocomplete="off", class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm font-bold tracking-wider uppercase text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition")
+              label(class="block text-xs font-semibold text-gray-500 mb-2", for="vehicle_type") Vehicle type
+              select(id="vehicle_type", name="vehicle_type", required, class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition")
+                each t in vehicleTypes
+                  option(value=t, selected=(t === 'Car'))= t
+            div
+              label(class="block text-xs font-semibold text-gray-500 mb-2", for="plate", id="plateLabel") Plate
+              input(type="text", id="plate", name="plate", required, maxlength="12", placeholder="ABC123", autocomplete="off", class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm font-bold tracking-wider uppercase text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition")
             div
               label(class="block text-xs font-semibold text-gray-500 mb-2", for="brand_model") Brand / model
               input(type="text", id="brand_model", name="brand_model", maxlength="60", placeholder="Mazda 3", class="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition")

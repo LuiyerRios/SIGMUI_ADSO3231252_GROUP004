@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { normalizeVehicleType, isValidPlateForType } from './vehicleTypes.js';
 
 export function normalizePlate(plate) {
   const str = String(plate ?? '');
@@ -14,7 +15,9 @@ export function isValidPlate(plate) {
 
 export function validateParkingPayment(body = {}) {
   const plate = normalizePlate(body.plate);
-  if (!isValidPlate(plate)) {
+  // Tipo de vehículo (opcional): las bicicletas usan número de serie en vez de placa
+  const vehicleType = normalizeVehicleType(body.vehicleType);
+  if (!isValidPlateForType(plate, vehicleType)) {
     return { error: { message: 'Please enter a valid plate.', status: 400 } };
   }
 
@@ -51,7 +54,16 @@ export function validateParkingPayment(body = {}) {
   }
 
   return {
-    data: { plate, zone, spaceId, rateType, quantity },
+    data: {
+      plate,
+      zone,
+      spaceId,
+      rateType,
+      quantity,
+      vehicleType,
+      // Guardar la placa en "Mis vehículos" al pagar (checkbox de HU-004)
+      saveVehicle: body.saveVehicle === true || ['true', '1', 'on'].includes(String(body.saveVehicle).toLowerCase())
+    },
     error: null
   };
 }

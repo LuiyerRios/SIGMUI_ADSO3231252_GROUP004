@@ -45,7 +45,9 @@ describe('HU-017 Payment Rules Unit Tests', () => {
         zone: 'A',
         spaceId: 'A1',
         rateType: 'hour',
-        quantity: 2
+        quantity: 2,
+        vehicleType: null,
+        saveVehicle: false
       });
     });
 

@@ -4,6 +4,7 @@ import { QueryTypes } from 'sequelize';
 import db from '../config/db.js';
 import { requireRole } from '../middlewares/auth.js';
 import { renderHome, homeData } from '../controllers/driverController.js';
+import { VEHICLE_TYPES, vehicleIcon } from '../utils/vehicleTypes.js';
 import { renderStartParking } from '../controllers/parkingStartController.js';
 import { renderExtendTime } from '../controllers/extendTimeController.js';
 import { renderPaymentSimulation, renderMyPayments, renderReceipt } from '../controllers/paymentSimulationController.js';
@@ -45,7 +46,7 @@ router.get('/settings', driverOnly, async (req, res) => {
         { replacements: { id: userId }, type: QueryTypes.SELECT }
       ),
       db.query(
-        `SELECT v.id, v.plate, v.brand_model,
+        `SELECT v.id, v.plate, v.brand_model, v.vehicle_type,
                 EXISTS (
                   SELECT 1 FROM parking_sessions s
                   WHERE s.plate = v.plate AND s.status = 'active'
@@ -72,7 +73,13 @@ router.get('/settings', driverOnly, async (req, res) => {
       pageSubtitle: 'Your account, password and vehicles',
       tab,
       user,
-      vehicles: vehicles.map(v => ({ ...v, has_active_session: Boolean(Number(v.has_active_session)) })),
+      vehicles: vehicles.map(v => ({
+        ...v,
+        vehicle_type: v.vehicle_type || 'Car',
+        icon: vehicleIcon(v.vehicle_type),
+        has_active_session: Boolean(Number(v.has_active_session))
+      })),
+      vehicleTypes: VEHICLE_TYPES,
       vehicleCount: vehicles.length,
       memberSince: new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
       successMessage: okText,
@@ -139,7 +146,7 @@ router.post('/settings/vehicles', driverOnly, async (req, res) => {
     if (existing) return go(res, 'vehicles', 'error', 'plate_taken');
 
     await db.query(
-      'INSERT INTO vehicles (user_id, plate, brand_model) VALUES (:userId, :plate, :brandModel)',
+      'INSERT INTO vehicles (user_id, plate, brand_model, vehicle_type) VALUES (:userId, :plate, :brandModel, :vehicleType)',
       { replacements: { ...value, userId: req.session.user.id } }
     );
     go(res, 'vehicles', 'ok', 'vehicle_added');

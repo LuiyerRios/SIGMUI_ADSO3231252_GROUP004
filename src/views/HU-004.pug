@@ -11,6 +11,11 @@ block content
         i.fas.fa-exclamation-circle
         span= errorMessage
 
+    if spaceNotice
+      .alert.alert-error
+        i.fas.fa-triangle-exclamation
+        span= spaceNotice
+
     if activeSession
       .alert.alert-info
         i.fas.fa-circle-info
@@ -34,8 +39,8 @@ block content
             div(class="flex items-center gap-3")
               div(class="w-7 h-7 rounded-full bg-primary text-white font-bold text-xs flex items-center justify-center shrink-0") 1
               div
-                h3(class="text-sm font-bold text-ink") Choose a zone
-                p(class="text-xs text-muted") We assign the first free space in that zone
+                h3(class="text-sm font-bold text-ink") Choose a zone and space
+                p(class="text-xs text-muted") Pick a free space or leave it on Auto to get the first free one
 
             div(id="zoneSelectGroup", class="flex items-center gap-2 flex-wrap sm:pl-10")
               if zones.length === 0
@@ -53,6 +58,15 @@ block content
                   disabled=unavailable
                 )= z.isOpen === false ? `Zone ${z.code} · closed` : `Zone ${z.code} · ${z.free} free`
 
+            //- Espacio elegido: el que viene del mapa (HU-003) o Auto (primer libre)
+            div(class="flex items-center gap-3 flex-wrap sm:pl-10")
+              label(for="spaceSelect", class="text-xs font-semibold text-muted") Space
+              select(id="spaceSelect", class="input max-w-[220px]", data-free-spaces=JSON.stringify(freeSpaces), data-selected=selectedSpaceId)
+                option(value="") Auto · first free space
+                each id in (currentZone ? (freeSpaces[currentZone.code] || []) : [])
+                  option(value=id, selected=(id === selectedSpaceId))= id
+              a(href=currentZone ? `/zones?zone=${currentZone.code}` : '/zones', class="text-xs font-semibold text-primary underline") See the map
+
           div(class="border-t border-line")
 
           //- Paso 2: vehículo
@@ -65,20 +79,31 @@ block content
 
             div(id="vehicleSelectGroup", class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:pl-10")
               each v, i in vehicles
-                button(type="button", class="vehicle-card" + (i === 0 ? ' selected' : ''), data-plate=v.plate)
+                button(type="button", class="vehicle-card" + (i === 0 ? ' selected' : ''), data-plate=v.plate, data-type=v.vehicleType)
                   div(class="flex items-center gap-3 min-w-0")
-                    i(class="fas fa-car text-base text-muted")
+                    i(class=`fas ${v.icon} text-base text-muted`)
                     div(class="flex flex-col text-left min-w-0")
                       strong(class="text-sm font-bold text-ink")= v.plate
-                      span(class="text-[11px] text-muted truncate")= v.brandModel || 'Registered vehicle'
+                      span(class="text-[11px] text-muted truncate")= v.brandModel ? `${v.vehicleType} · ${v.brandModel}` : v.vehicleType
 
               button(type="button", id="otherPlateCard", class="vehicle-card-add" + (vehicles.length === 0 ? ' selected' : ''))
                 i(class="fas fa-plus text-xs")
                 span Other plate
 
-            div(id="otherPlateBox", class="sm:pl-10" + (vehicles.length === 0 ? '' : ' hidden'))
-              label(for="otherPlate", class="text-xs font-semibold text-muted") Plate
-              input(type="text", id="otherPlate", class="input mt-1 max-w-[220px] uppercase", maxlength="7", placeholder="ABC123", autocomplete="off")
+            div(id="otherPlateBox", class="sm:pl-10 flex flex-col gap-3" + (vehicles.length === 0 ? '' : ' hidden'))
+              div(class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-[460px]")
+                div(class="flex flex-col min-w-0")
+                  label(for="otherType", class="text-xs font-semibold text-muted") Vehicle type
+                  select(id="otherType", class="input mt-1")
+                    each t in vehicleTypes
+                      option(value=t, selected=(t === 'Car'))= t
+                div(class="flex flex-col min-w-0")
+                  label(for="otherPlate", id="otherPlateLabel", class="text-xs font-semibold text-muted") Plate
+                  input(type="text", id="otherPlate", class="input mt-1 uppercase", maxlength="7", placeholder="ABC123", autocomplete="off")
+              label(class="flex items-center gap-2 text-xs text-ink cursor-pointer")
+                input(type="checkbox", id="saveVehicle", checked, class="w-4 h-4 accent-primary")
+                span Save this vehicle to my account
+
 
           div(class="border-t border-line")
 
@@ -103,7 +128,7 @@ block content
 
         div(class="rounded-2xl bg-gradient-to-br from-primary to-tech p-5 text-white my-4 shadow-md")
           span(class="text-xs text-white/80 font-medium") Your space
-          h2(id="summarySpaceCode", class="text-3xl font-extrabold mt-1") Auto
+          h2(id="summarySpaceCode", class="text-3xl font-extrabold mt-1")= selectedSpaceId || 'Auto'
           p(id="summaryZonePlate", class="text-xs text-white/90 mt-1")
             | Assigned when you start
 

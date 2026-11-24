@@ -1,5 +1,6 @@
 // HU-016 · Reglas puras de la gestión de usuarios del admin (sin BD) para probarlas con Jest
-import { normalizePlate, isValidPlate } from './paymentRules.js';
+import { normalizePlate } from './paymentRules.js';
+import { VEHICLE_TYPES, isValidPlateForType } from './vehicleTypes.js';
 import { isStrongPassword } from './settingsRules.js';
 
 // La vista usa los nombres del diseño; la BD usa los valores del ENUM
@@ -7,7 +8,8 @@ export const ROLE_FROM_UI = { Client: 'driver', 'Traffic Agent': 'agent', Admin:
 export const ROLE_TO_UI = { driver: 'Client', agent: 'Traffic Agent', admin: 'Admin' };
 export const STATUS_FROM_UI = { Active: 'active', Suspended: 'suspended' };
 export const STATUS_TO_UI = { active: 'Active', suspended: 'Suspended' };
-export const VEHICLE_TYPES = ['Car', 'Motorcycle', 'SUV', 'Truck', 'Van', 'Other'];
+// Tipos compartidos con HU-004 y HU-014 (incluye Bicycle)
+export { VEHICLE_TYPES };
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PHONE_REGEX = /^[+\d][\d\s-]{6,19}$/;
@@ -42,8 +44,12 @@ export function validateVehicleInput(body = {}) {
   const description = String(body.description ?? '').trim();
   const ownerId = Number.parseInt(body.ownerId, 10);
 
-  if (!isValidPlate(plate)) return { error: 'Please enter a valid plate (ABC123 for cars or ABC12D for motorcycles).' };
   if (!VEHICLE_TYPES.includes(type)) return { error: 'Please select a vehicle type.' };
+  if (!isValidPlateForType(plate, type)) {
+    return { error: type === 'Bicycle'
+      ? 'Please enter the bicycle serial number (4 to 12 letters or numbers).'
+      : 'Please enter a valid plate (ABC123 for cars or ABC12D for motorcycles).' };
+  }
   const brandModel = [make, model].filter(Boolean).join(' ');
   if (brandModel.length > 100 || color.length > 40 || description.length > 150) {
     return { error: 'Some vehicle fields are too long.' };
