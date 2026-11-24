@@ -2,7 +2,7 @@ import db from '../config/db.js';
 import { QueryTypes } from 'sequelize';
 import { vehicleIcon, guessVehicleType, ZONE_CLASS_LABELS } from '../utils/vehicleTypes.js';
 import { getVehicleRates } from './vehicleRateService.js';
-import { toHHMM, formatSchedule } from '../utils/zoneRules.js';
+import { toHHMM, formatSchedule, occupancyLevel } from '../utils/zoneRules.js';
 
 /**
  * Consulta la regla de ocupación en SQL:
@@ -60,7 +60,9 @@ export async function getZonesOverview() {
     isOpen: Boolean(Number(r.isOpen)),
     total: Number(r.total),
     free: Number(r.free),
-    freePreferential: Number(r.freePreferential)
+    freePreferential: Number(r.freePreferential),
+    // HU-003 (#37): nivel High / Medium / Low
+    occupancy: occupancyLevel(r.total, r.free)
   }));
 }
 

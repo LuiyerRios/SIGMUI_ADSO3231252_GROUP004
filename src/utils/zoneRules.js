@@ -89,3 +89,11 @@ export function validateVehicleRate(body = {}) {
   if (ratePerHour === null || ratePerDay === null) return { error: ZONE_MESSAGES.rates };
   return { value: { ratePerHour, ratePerDay } };
 }
+
+// HU-003 (#37) · Nivel de ocupación estimado de una zona: High (70% o más), Medium (30–69%) o Low (menos de 30%)
+export function occupancyLevel(total, free) {
+  const t = Number(total) || 0;
+  const percent = t > 0 ? Math.round(((t - (Number(free) || 0)) / t) * 100) : 0;
+  const level = percent >= 70 ? 'High' : percent >= 30 ? 'Medium' : 'Low';
+  return { percent, level, pill: level === 'High' ? 'pill-danger' : level === 'Medium' ? 'pill-warning' : 'pill-success' };
+}

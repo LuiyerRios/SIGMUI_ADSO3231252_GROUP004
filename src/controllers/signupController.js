@@ -1,10 +1,17 @@
 import bcrypt from 'bcryptjs';
 import { body, validationResult } from 'express-validator';
+import { QueryTypes } from 'sequelize';
+import db from '../config/db.js';
 import User from '../models/User.js';
 import { sendVerificationEmail } from '../services/emailVerificationService.js';
+import { normalizePlate } from '../utils/paymentRules.js';
+import { normalizeVehicleType, isValidPlateForType } from '../utils/vehicleTypes.js';
 
-const SERVER_ERROR = 'Error connecting to the server. Please try again later.';
-const DUPLICATE_EMAIL = 'An account with this email already exists.';
+// HU-002 (#36): mensajes exactos de los criterios de aceptación
+const SERVER_ERROR = 'We were unable to process your registration at this time. Please try again in a few minutes.';
+const DUPLICATE_EMAIL = 'This email is already linked to an account.';
+const INVALID_PLATE = 'License plate format not recognized.';
+const DUPLICATE_PLATE = 'This license plate is already registered.';
 
 // HU-002: los mismos requisitos de contraseña que muestra la vista (el símbolo es opcional)
 export const validateSignupRules = [
@@ -50,18 +57,37 @@ export const handleSignup = async (req, res) => {
   }
 
   const { full_name: fullName, email, phone, password } = req.body;
+  // El primer vehículo es obligatorio: placa válida para su tipo (las bicicletas usan número de serie)
+  const vehicleType = normalizeVehicleType(req.body.vehicle_type) || 'Car';
+  const plate = normalizePlate(req.body.plate);
+  if (!isValidPlateForType(plate, vehicleType)) {
+    return res.status(400).json({ error: INVALID_PLATE });
+  }
 
   try {
     if (await User.findOne({ where: { email } })) {
       return res.status(409).json({ error: DUPLICATE_EMAIL });
     }
+    const [taken] = await db.query('SELECT id FROM vehicles WHERE plate = :plate LIMIT 1', {
+      replacements: { plate }, type: QueryTypes.SELECT
+    });
+    if (taken) return res.status(409).json({ error: DUPLICATE_PLATE });
 
-    const user = await User.create({
-      fullName,
-      email,
-      phone: phone || null,
-      password: await bcrypt.hash(password, 10),
-      role: 'driver'
+    const passwordHash = await bcrypt.hash(password, 10);
+    // Usuario (rol driver) y vehículo en una sola transacción: o se guardan los dos o ninguno
+    const user = await db.transaction(async (transaction) => {
+      const created = await User.create({
+        fullName,
+        email,
+        phone: phone || null,
+        password: passwordHash,
+        role: 'driver'
+      }, { transaction });
+      await db.query(
+        'INSERT INTO vehicles (user_id, plate, vehicle_type) VALUES (:userId, :plate, :vehicleType)',
+        { replacements: { userId: created.id, plate, vehicleType }, transaction }
+      );
+      return created;
     });
 
     // La cuenta queda creada aunque falle el correo; se puede reenviar al intentar iniciar sesión (HU-012)
@@ -70,14 +96,16 @@ export const handleSignup = async (req, res) => {
     } catch (mailError) {
       console.error('Signup verification email error:', mailError.message);
       return res.status(201).json({
-        message: 'Your account was created, but we could not send the verification email. Sign in to request a new one.'
+        message: 'Registration successful, but there was a problem sending the confirmation email. Please try again later.'
       });
     }
 
     return res.status(201).json({ message: 'Your account was created. Check your email to verify it, then sign in.' });
   } catch (error) {
     if (error.name === 'SequelizeUniqueConstraintError') {
-      return res.status(409).json({ error: DUPLICATE_EMAIL });
+      // La placa o el correo se registraron al mismo tiempo desde otra cuenta
+      const isPlate = String(error.message || '').includes('plate') || JSON.stringify(error.fields || {}).includes('plate');
+      return res.status(409).json({ error: isPlate ? DUPLICATE_PLATE : DUPLICATE_EMAIL });
     }
     console.error('Signup error:', error.message);
     return res.status(503).json({ error: SERVER_ERROR });

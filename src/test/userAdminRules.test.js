@@ -51,8 +51,8 @@ describe('HU-016 Manage Users Rules Unit Tests', () => {
 
     test('the signed-in admin cannot suspend, demote or delete themselves', () => {
       // Arrange & Act & Assert
-      expect(checkAdminSafety({ actorId: 1, target: admin, next: { role: 'admin', status: 'suspended' }, activeAdmins: 2 })).toMatch(/suspend/);
-      expect(checkAdminSafety({ actorId: 1, target: admin, next: { role: 'driver', status: 'active' }, activeAdmins: 2 })).toMatch(/role/);
+      expect(checkAdminSafety({ actorId: 1, target: admin, next: { role: 'admin', status: 'suspended' }, activeAdmins: 2 })).toBe('You cannot change your own account.');
+      expect(checkAdminSafety({ actorId: 1, target: admin, next: { role: 'driver', status: 'active' }, activeAdmins: 2 })).toBe('You cannot change your own account.');
       expect(checkAdminSafety({ actorId: 1, target: admin, activeAdmins: 2 })).toMatch(/own account/);
     });
 

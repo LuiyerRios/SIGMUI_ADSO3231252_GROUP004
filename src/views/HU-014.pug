@@ -137,6 +137,9 @@ block content
                     p(class="text-xs text-gray-500 truncate")= `${v.vehicle_type} · ${v.brand_model || 'No brand / model'}`
                 if v.has_active_session
                   span(class="text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md shrink-0") Parked now
+                else if vehicles.length === 1
+                  //- HU-014: siempre debe quedar al menos un vehículo registrado
+                  span(class="text-xs font-semibold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-md shrink-0", title="You must keep at least one vehicle registered.") Required
                 else
                   form(action=`/settings/vehicles/${v.id}/delete`, method="POST", class="shrink-0")
                     button(type="submit", class="px-4 py-2 rounded-xl border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50 transition") Remove

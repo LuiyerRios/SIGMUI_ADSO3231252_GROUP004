@@ -9,16 +9,28 @@ header.topbar
 
   .topbar-actions
     - const isAdmin = currentUser && currentUser.role === 'admin'
-    - const messageHref = isAdmin ? '/admin/help-reports' : '/inbox?filter=support'
-    
-    a.topbar-icon-btn(href=messageHref, title="Messages")
+    - const messageHref = isAdmin ? '/admin/help-reports' : '/inbox'
+    - const settingsHref = isAdmin ? '/admin/settings' : (currentUser && currentUser.role === 'driver' ? '/settings' : null)
+    - const unread = Number(unreadCount) || 0
+
+    //- HU-015: el sobre abre la bandeja y muestra cuántos mensajes hay sin leer
+    a.topbar-icon-btn.relative(href=messageHref, title="Inbox", aria-label=`Inbox · ${unread} unread messages`)
       i.fa-regular.fa-envelope
-    
+      if !isAdmin && unread > 0
+        span.notification-badge-count= unread > 9 ? '9+' : unread
+
     a.topbar-icon-btn.relative(href="/inbox?filter=alerts", title="Notifications", aria-label=`${unreadCount || 0} unread notifications`)
       i.fa-regular.fa-bell
       if unreadCount && unreadCount > 0
         span.notification-badge-dot
 
-    .topbar-user-greeting
-      span Hello, 
-      strong= (currentUser && currentUser.name) ? currentUser.name.trim().split(/\s+/)[0] : 'User'
+    //- HU-014 / HU-018: el saludo del usuario abre su configuración
+    if settingsHref
+      a.topbar-user-greeting(href=settingsHref, title="Settings", class="hover:text-primary transition")
+        i(class="fa-regular fa-circle-user mr-1")
+        span Hello, 
+        strong= (currentUser && currentUser.name) ? currentUser.name.trim().split(/\s+/)[0] : 'User'
+    else
+      .topbar-user-greeting
+        span Hello, 
+        strong= (currentUser && currentUser.name) ? currentUser.name.trim().split(/\s+/)[0] : 'User'

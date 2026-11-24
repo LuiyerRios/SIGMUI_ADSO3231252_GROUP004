@@ -15,6 +15,10 @@ export function isValidPlate(plate) {
 
 export function validateParkingPayment(body = {}) {
   const plate = normalizePlate(body.plate);
+  // HU-004 (#38): placa vacía
+  if (!plate) {
+    return { error: { message: 'The license plate is mandatory.', status: 400 } };
+  }
   // Tipo de vehículo (opcional): las bicicletas usan número de serie en vez de placa
   const vehicleType = normalizeVehicleType(body.vehicleType);
   if (!isValidPlateForType(plate, vehicleType)) {
@@ -23,6 +27,9 @@ export function validateParkingPayment(body = {}) {
   }
 
   const zone = String(body.zone ?? '').trim().toUpperCase();
+  if (!zone) {
+    return { error: { message: 'You must select a parking zone', status: 400 } };
+  }
   if (!/^[A-F]$/.test(zone)) {
     return { error: { message: 'Please select a valid zone.', status: 400 } };
   }

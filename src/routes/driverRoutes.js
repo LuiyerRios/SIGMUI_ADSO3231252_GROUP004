@@ -178,6 +178,12 @@ router.post('/settings/vehicles/:id/delete', driverOnly, async (req, res) => {
     );
     if (active) return go(res, 'vehicles', 'error', 'vehicle_active');
 
+    // HU-014 (#31): el conductor siempre debe conservar al menos un vehículo
+    const [{ total }] = await db.query('SELECT COUNT(*) AS total FROM vehicles WHERE user_id = :userId', {
+      replacements: { userId: req.session.user.id }, type: QueryTypes.SELECT
+    });
+    if (Number(total) <= 1) return go(res, 'vehicles', 'error', 'vehicle_last');
+
     // Las sesiones y espacios que lo referencian quedan con vehicle_id NULL (ON DELETE SET NULL); el historial conserva la placa
     await db.query('DELETE FROM vehicles WHERE id = :id AND user_id = :userId', {
       replacements: { id: vehicleId, userId: req.session.user.id }

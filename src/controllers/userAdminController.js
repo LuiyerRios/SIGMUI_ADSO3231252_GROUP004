@@ -60,7 +60,7 @@ export const listUsers = async (req, res) => {
     });
   } catch (err) {
     console.error('Error listing users (HU-016):', err);
-    res.status(500).json({ error: 'The users could not be loaded. Please try again.' });
+    res.status(500).json({ error: 'The user list could not be loaded. Please try again later.' });
   }
 };
 
@@ -85,7 +85,7 @@ export const saveUser = async (req, res) => {
     await svc.updateUser(id, value, passwordHash);
     if (id === req.session.user.id) req.session.user.name = value.fullName; // el sidebar muestra el nombre nuevo
 
-    res.json({ message: passwordHash ? 'User and password updated successfully.' : 'User information updated successfully.' });
+    res.json({ message: 'User updated successfully.' });
   } catch (err) {
     console.error('Error updating user (HU-016):', err);
     res.status(500).json({ error: SERVER_ERROR });
@@ -108,7 +108,7 @@ export const changeUserStatus = async (req, res) => {
     if (safety) return res.status(409).json({ error: safety });
 
     await svc.setUserStatus(id, status);
-    res.json({ message: status === 'active' ? 'User reactivated successfully.' : 'User deactivated successfully.' });
+    res.json({ message: 'User updated successfully.' });
   } catch (err) {
     console.error('Error changing user status (HU-016):', err);
     res.status(500).json({ error: SERVER_ERROR });

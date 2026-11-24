@@ -264,18 +264,27 @@ export async function recordExtensionPayment(userId, input) {
     const now = new Date();
     const previousEndTime = new Date(session.end_time);
 
-    if (
-      session.status !== 'active' ||
-      session.payment_status !== 'paid' ||
-      previousEndTime <= now ||
-      !session.allows_extension
-    ) {
+    if (session.status !== 'active' || session.payment_status !== 'paid' || previousEndTime <= now) {
       throw new PaymentError('This parking session can no longer be extended.', 409);
+    }
+
+    // HU-005 (#40): la zona puede no permitir extensiones (HU-019)
+    if (!session.allows_extension) {
+      throw new PaymentError('This zone does not allow extensions.', 409);
     }
 
     // 2. Calcular valores de extensión
     // La extensión cuesta lo mismo por hora que el parqueo: tarifa del tipo de vehículo de la sesión
-    const { ratePerHour } = await getRateFor(session.vehicle_type || guessVehicleType(session.plate), { transaction });
+    // Si la tarifa no se puede calcular no se cobra nada (la transacción no inserta la extensión)
+    let ratePerHour;
+    try {
+      ({ ratePerHour } = await getRateFor(session.vehicle_type || guessVehicleType(session.plate), { transaction }));
+    } catch (err) {
+      ratePerHour = NaN;
+    }
+    if (!Number.isFinite(ratePerHour) || ratePerHour <= 0) {
+      throw new PaymentError('The extra cost could not be calculated. You were not charged. Please try again.', 503);
+    }
     const amount = hours * ratePerHour;
     const newEndTime = calculateEndTime(previousEndTime, 'hour', hours);
 

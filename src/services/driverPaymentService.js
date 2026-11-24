@@ -2,8 +2,11 @@
 import { QueryTypes } from 'sequelize';
 import db from '../config/db.js';
 
-// Últimos pagos del conductor (parqueos + extensiones), del más reciente al más antiguo
-export async function getDriverPayments(userId, limit = 50) {
+// Filtro común: rango de fechas (YYYY-MM-DD, incluye todo el día final) y placa opcional
+const PERIOD_WHERE = `p.paid_at >= :from AND p.paid_at < DATE_ADD(:to, INTERVAL 1 DAY) AND (:plate = '' OR p.plate = :plate)`;
+
+// Pagos del conductor (parqueos + extensiones) en el periodo, del más reciente al más antiguo
+export async function getDriverPayments(userId, { from, to, plate = '' } = {}, limit = 200) {
   return db.query(
     `SELECT p.*
        FROM (
@@ -18,10 +21,50 @@ export async function getDriverPayments(userId, limit = 50) {
            JOIN parking_sessions ps ON ps.id = se.session_id
           WHERE ps.user_id = :userId AND ps.payment_status = 'paid'
        ) p
+      WHERE ${PERIOD_WHERE}
       ORDER BY p.paid_at DESC
       LIMIT :limit`,
-    { replacements: { userId, limit }, type: QueryTypes.SELECT }
+    { replacements: { userId, limit, from, to, plate }, type: QueryTypes.SELECT }
   );
+}
+
+// HU-013 · Total pagado en el periodo filtrado (parqueos + extensiones) y número de pagos
+export async function getDriverPeriodTotal(userId, { from, to, plate = '' } = {}) {
+  const [row] = await db.query(
+    `SELECT COALESCE(SUM(p.amount), 0) AS total, COUNT(*) AS payments
+       FROM (
+         SELECT ps.start_time AS paid_at, ps.plate, ps.amount
+           FROM parking_sessions ps
+          WHERE ps.user_id = :userId AND ps.payment_status = 'paid'
+         UNION ALL
+         SELECT se.created_at AS paid_at, ps.plate, se.amount
+           FROM session_extensions se
+           JOIN parking_sessions ps ON ps.id = se.session_id
+          WHERE ps.user_id = :userId AND ps.payment_status = 'paid'
+       ) p
+      WHERE ${PERIOD_WHERE}`,
+    { replacements: { userId, from, to, plate }, type: QueryTypes.SELECT }
+  );
+  return { total: Number(row.total) || 0, payments: Number(row.payments) || 0 };
+}
+
+// Placas con las que el conductor ha pagado (para el filtro)
+export async function getDriverPaidPlates(userId) {
+  const rows = await db.query(
+    `SELECT DISTINCT plate FROM parking_sessions
+      WHERE user_id = :userId AND payment_status = 'paid'
+      ORDER BY plate`,
+    { replacements: { userId }, type: QueryTypes.SELECT }
+  );
+  return rows.map(r => r.plate);
+}
+
+// ¿Existe el parqueo y de quién es? (para responder 403 si es de otro conductor)
+export async function getSessionOwner(sessionId) {
+  const [row] = await db.query('SELECT user_id FROM parking_sessions WHERE id = :sessionId LIMIT 1', {
+    replacements: { sessionId }, type: QueryTypes.SELECT
+  });
+  return row ? row.user_id : undefined;
 }
 
 // Totales de las tarjetas: gastado este mes, número de pagos y sesiones activas ahora
