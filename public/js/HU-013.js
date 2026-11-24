@@ -73,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
           spaceId: root.dataset.spaceId || undefined,
           vehicleType: root.dataset.vehicleType || undefined,
           saveVehicle: root.dataset.saveVehicle === 'true',
+          preferentialConfirmed: root.dataset.preferentialConfirmed === 'true',
           rateType: root.dataset.rateType,
           quantity: Number(root.dataset.quantity)
         })

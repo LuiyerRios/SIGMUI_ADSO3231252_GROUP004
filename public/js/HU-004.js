@@ -10,8 +10,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const otherPlateLabel = document.getElementById('otherPlateLabel');
   const saveVehicleBox = document.getElementById('saveVehicle');
   const spaceSelect = document.getElementById('spaceSelect');
+  const preferentialBox = document.getElementById('preferentialBox');
+  const preferentialConfirm = document.getElementById('preferentialConfirm');
+  const summaryType = document.getElementById('summaryTypeVal');
 
-  // Espacios libres por zona que envía el servidor: { A: ['A3', …], … }
+  // Tarifas por tipo de vehículo (migración 007): { Car: { ratePerHour, ratePerDay }, … }
+  let rates = {};
+  try {
+    const btn = document.getElementById('startParkingBtn');
+    rates = JSON.parse(btn ? btn.dataset.rates || '{}' : '{}');
+  } catch (e) {
+    rates = {};
+  }
+  const rateFor = (type) => rates[type] || rates.Other || { ratePerHour: 0, ratePerDay: 0 };
+  // Clase de zona que le corresponde a cada tipo (igual que src/utils/vehicleTypes.js)
+  const classOf = (type) => (type === 'Motorcycle' ? 'motorcycle' : type === 'Bicycle' ? 'bicycle' : 'general');
+
+  // Espacios libres por zona que envía el servidor: { A: [{ id: 'A3', preferential: false }, …], … }
   let freeSpaces = {};
   try {
     freeSpaces = JSON.parse(spaceSelect ? spaceSelect.dataset.freeSpaces || '{}' : '{}');
@@ -37,8 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Estado de la selección
   const state = {
     zone: activeZoneChip ? activeZoneChip.dataset.zone : null,
-    rateHour: activeZoneChip ? Number(activeZoneChip.dataset.rateHour) : 0,
-    rateDay: activeZoneChip ? Number(activeZoneChip.dataset.rateDay) : 0,
     plate: startBtn ? startBtn.dataset.firstPlate || '' : '',
     vehicleType: (vehicleGroup && vehicleGroup.querySelector('.vehicle-card.selected'))
       ? vehicleGroup.querySelector('.vehicle-card.selected').dataset.type || 'Car'
@@ -54,6 +67,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const formatCOP = (n) => `$${new Intl.NumberFormat('en-US').format(Math.round(n))} COP`;
   const formatTime = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
   const normalizePlate = (value) => String(value || '').toUpperCase().replace(/[\s-]/g, '');
+
+  // Misma regla del servidor (src/utils/vehicleTypes.js): motos con letra final o placa antigua tipo carro
+  const CAR = { regex: /^[A-Z]{3}\d{3}$/, message: 'Please enter a valid plate (ABC123).', placeholder: 'ABC123', max: 6 };
+  const PLATE_RULES = {
+    Car: CAR, SUV: CAR, Truck: CAR, Van: CAR,
+    Motorcycle: { regex: /^[A-Z]{3}\d{2}[A-Z0-9]$/, message: 'Please enter a valid motorcycle plate (ABC12D, or ABC123 for older motorcycles).', placeholder: 'ABC12D', max: 6 },
+    Bicycle: { regex: /^[A-Z0-9]{4,12}$/, message: 'Please enter the bicycle serial number (4 to 12 letters or numbers).', placeholder: 'GW1234BK', max: 12 },
+    Other: { regex: /^[A-Z]{3}\d{2}[A-Z0-9]$/, message: 'Please enter a valid plate.', placeholder: 'ABC123', max: 6 }
+  };
 
   function currentPlate() {
     return state.useOtherPlate ? normalizePlate(otherPlateInput ? otherPlateInput.value : '') : state.plate;
@@ -73,14 +95,53 @@ document.addEventListener('DOMContentLoaded', () => {
     auto.value = '';
     auto.textContent = 'Auto · first free space';
     spaceSelect.appendChild(auto);
-    list.forEach((id) => {
+    list.forEach((sp) => {
       const opt = document.createElement('option');
-      opt.value = id;
-      opt.textContent = id;
+      opt.value = sp.id;
+      opt.dataset.preferential = sp.preferential ? 'true' : 'false';
+      opt.textContent = sp.preferential ? `${sp.id} · Preferential` : sp.id;
       spaceSelect.appendChild(opt);
     });
-    spaceSelect.value = list.includes(keep) ? keep : '';
+    spaceSelect.value = list.some((sp) => sp.id === keep) ? keep : '';
     state.spaceId = spaceSelect.value;
+    syncPreferential();
+  }
+
+  // Muestra la confirmación solo si el espacio elegido es preferencial
+  function syncPreferential() {
+    if (!spaceSelect || !preferentialBox) return;
+    const opt = spaceSelect.selectedOptions[0];
+    const isPref = Boolean(opt && opt.dataset.preferential === 'true');
+    preferentialBox.classList.toggle('hidden', !isPref);
+    if (!isPref && preferentialConfirm) preferentialConfirm.checked = false;
+  }
+
+  // Habilita solo las zonas que aceptan el tipo de vehículo elegido; si la actual no sirve, pasa a la primera que sí
+  function syncZonesWithVehicle() {
+    if (!zoneGroup) return;
+    const wanted = classOf(currentVehicleType());
+    let firstOk = null;
+    zoneGroup.querySelectorAll('.zone-chip').forEach((chip) => {
+      const ok = chip.dataset.class === wanted && chip.dataset.unavailable !== 'true';
+      chip.disabled = !ok;
+      chip.classList.toggle('opacity-50', !ok);
+      if (ok && !firstOk) firstOk = chip;
+    });
+    const current = state.zone ? zoneGroup.querySelector(`.zone-chip[data-zone="${state.zone}"]`) : null;
+    if (!current || current.disabled) {
+      zoneGroup.querySelectorAll('.zone-chip').forEach((c) => c.classList.remove('active'));
+      if (firstOk) {
+        firstOk.classList.add('active');
+        state.zone = firstOk.dataset.zone;
+        fillSpaces(state.zone);
+        if (startBtn) startBtn.disabled = false;
+      } else {
+        state.zone = null;
+        fillSpaces('');
+        if (startBtn) startBtn.disabled = true;
+        showError('There are no free zones for this vehicle type right now.');
+      }
+    }
   }
 
   function showError(message) {
@@ -103,7 +164,10 @@ document.addEventListener('DOMContentLoaded', () => {
     else end.setHours(end.getHours() + state.quantity);
 
     const isDay = state.rateType === 'day';
-    const rate = isDay ? state.rateDay : state.rateHour;
+    const type = currentVehicleType();
+    const typeRate = rateFor(type);
+    const rate = isDay ? typeRate.ratePerDay : typeRate.ratePerHour;
+    if (summaryType) summaryType.textContent = type;
     const plate = currentPlate();
 
     if (summaryStarts) summaryStarts.textContent = `Now · ${formatTime(now)}`;
@@ -128,8 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
       zoneGroup.querySelectorAll('.zone-chip').forEach((c) => c.classList.remove('active'));
       chip.classList.add('active');
       state.zone = chip.dataset.zone;
-      state.rateHour = Number(chip.dataset.rateHour);
-      state.rateDay = Number(chip.dataset.rateDay);
       fillSpaces(state.zone);
       if (startBtn) startBtn.disabled = false;
       hideError();
@@ -156,6 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (otherPlateBox) otherPlateBox.classList.add('hidden');
       }
       hideError();
+      syncZonesWithVehicle();
       updateSummary();
     });
   }
@@ -170,20 +233,27 @@ document.addEventListener('DOMContentLoaded', () => {
   // Las bicicletas no tienen placa: se usa su número de serie
   if (otherTypeSelect) {
     const syncPlateField = () => {
-      const isBike = otherTypeSelect.value === 'Bicycle';
-      if (otherPlateLabel) otherPlateLabel.textContent = isBike ? 'Serial number' : 'Plate';
+      const rule = PLATE_RULES[otherTypeSelect.value] || PLATE_RULES.Other;
+      if (otherPlateLabel) otherPlateLabel.textContent = otherTypeSelect.value === 'Bicycle' ? 'Serial number' : 'Plate';
       if (otherPlateInput) {
-        otherPlateInput.placeholder = isBike ? 'GW1234BK' : 'ABC123';
-        otherPlateInput.maxLength = isBike ? 12 : 7;
+        otherPlateInput.placeholder = otherTypeSelect.value === 'Motorcycle' ? 'ABC12D or ABC123' : rule.placeholder;
+        otherPlateInput.maxLength = rule.max;
       }
     };
-    otherTypeSelect.addEventListener('change', syncPlateField);
+    otherTypeSelect.addEventListener('change', () => {
+      syncPlateField();
+      hideError();
+      syncZonesWithVehicle();
+      updateSummary();
+    });
     syncPlateField();
   }
 
   if (spaceSelect) {
     spaceSelect.addEventListener('change', () => {
       state.spaceId = spaceSelect.value;
+      syncPreferential();
+      hideError();
       updateSummary();
     });
   }
@@ -211,10 +281,16 @@ document.addEventListener('DOMContentLoaded', () => {
         showError('Please select a valid zone.');
         return;
       }
-      const isBike = currentVehicleType() === 'Bicycle';
-      const plateOk = isBike ? /^[A-Z0-9]{4,12}$/.test(plate) : /^[A-Z]{3}\d{2}[A-Z0-9]$/.test(plate);
-      if (!plateOk) {
-        showError(isBike ? 'Please enter the bicycle serial number (4 to 12 letters or numbers).' : 'Please enter a valid plate.');
+      // Vehículos registrados: la placa ya se validó al guardarlos; solo se revisa el formato de su tipo
+      const check = PLATE_RULES[currentVehicleType()] || PLATE_RULES.Other;
+      if (!check.regex.test(plate)) {
+        showError(check.message);
+        return;
+      }
+      const prefOpt = spaceSelect ? spaceSelect.selectedOptions[0] : null;
+      const needsConfirm = Boolean(prefOpt && prefOpt.dataset.preferential === 'true');
+      if (needsConfirm && !(preferentialConfirm && preferentialConfirm.checked)) {
+        showError('Please confirm that you need a preferential space, or pick another one.');
         return;
       }
 
@@ -226,13 +302,15 @@ document.addEventListener('DOMContentLoaded', () => {
         plate,
         zone: state.zone,
         rateType: state.rateType,
-        quantity: String(state.quantity),
-        vehicleType: currentVehicleType()
+        quantity: String(state.quantity)
       });
+      // Tipo del vehículo: decide el formato de placa válido y la tarifa (el servidor usa el registrado si existe)
+      params.set('vehicleType', currentVehicleType());
       // Espacio elegido (si no, el servidor asigna el primero libre)
       if (state.spaceId) params.set('spaceId', state.spaceId);
       // Guardar la placa nueva en "Mis vehículos"
       if (state.useOtherPlate && saveVehicleBox && saveVehicleBox.checked) params.set('saveVehicle', 'true');
+      if (needsConfirm) params.set('preferentialConfirmed', 'true');
       window.location.href = `/payments/simulate?${params.toString()}`;
     });
   }
@@ -245,6 +323,30 @@ document.addEventListener('DOMContentLoaded', () => {
     if (label) label.textContent = 'Start parking';
   });
 
+  // Al llegar desde el mapa con una zona de motos o bicis, se elige un vehículo de esa clase
+  // (uno registrado o "Other plate" con el tipo correspondiente) en vez de cambiar la zona
+  (function alignVehicleToZone() {
+    const chip = state.zone && zoneGroup ? zoneGroup.querySelector(`.zone-chip[data-zone="${state.zone}"]`) : null;
+    if (!chip || !vehicleGroup || chip.dataset.class === classOf(currentVehicleType())) return;
+    const match = Array.from(vehicleGroup.querySelectorAll('.vehicle-card')).find((c) => classOf(c.dataset.type) === chip.dataset.class);
+    vehicleGroup.querySelectorAll('.vehicle-card, .vehicle-card-add').forEach((c) => c.classList.remove('selected'));
+    if (match) {
+      match.classList.add('selected');
+      state.useOtherPlate = false;
+      state.plate = match.dataset.plate;
+      state.vehicleType = match.dataset.type;
+      if (otherPlateBox) otherPlateBox.classList.add('hidden');
+    } else if (otherPlateCard && otherTypeSelect) {
+      otherPlateCard.classList.add('selected');
+      state.useOtherPlate = true;
+      otherTypeSelect.value = chip.dataset.class === 'motorcycle' ? 'Motorcycle' : chip.dataset.class === 'bicycle' ? 'Bicycle' : 'Car';
+      otherTypeSelect.dispatchEvent(new Event('change'));
+      if (otherPlateBox) otherPlateBox.classList.remove('hidden');
+    }
+  })();
+
+  syncZonesWithVehicle();
+  syncPreferential();
   updateSummary();
   // Mantener la hora de inicio y fin al día mientras no se haya pagado
   setInterval(updateSummary, 30000);

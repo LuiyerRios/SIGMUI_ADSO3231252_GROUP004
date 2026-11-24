@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     target.classList.add('selected');
     selectedSpaceId = spaceId;
+    const isPreferential = target.dataset.preferential === 'true';
     // El espacio elegido viaja a Start parking (HU-004) y se guarda tal cual al pagar
     if (parkHereBtn) {
       parkHereBtn.href = `/parking/start?zone=${encodeURIComponent(currentZone)}&space=${encodeURIComponent(spaceId)}`;
@@ -49,8 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (panelSpaceIdBadge) panelSpaceIdBadge.textContent = spaceId;
     if (panelSpaceTitle) panelSpaceTitle.textContent = `Space ${spaceId}`;
     if (panelSpaceStatusPill) {
-      panelSpaceStatusPill.textContent = 'Available';
-      panelSpaceStatusPill.className = 'pill pill-success';
+      // Preferencial: discapacidad, embarazo o trato especial (migración 007)
+      panelSpaceStatusPill.textContent = isPreferential ? 'Preferential · Available' : 'Available';
+      panelSpaceStatusPill.className = isPreferential ? 'pill pill-info' : 'pill pill-success';
     }
   }
 
@@ -92,13 +94,16 @@ document.addEventListener('DOMContentLoaded', () => {
     spaces.forEach((space) => {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = `space-grid-item ${space.occupied ? 'occupied' : 'available'}`;
+      btn.className = `space-grid-item ${space.occupied ? 'occupied' : 'available'}${space.preferential ? ' preferential' : ''}`;
       btn.dataset.spaceId = space.id;
       btn.dataset.occupied = space.occupied ? 'true' : 'false';
+      btn.dataset.preferential = space.preferential ? 'true' : 'false';
       btn.disabled = space.occupied;
+      if (space.preferential) btn.title = 'Preferential space: disability, pregnancy or special attention';
 
-      const dot = document.createElement('span');
-      dot.className = 'space-dot';
+      // Los preferenciales llevan el ícono de silla de ruedas en lugar del punto
+      const dot = document.createElement(space.preferential ? 'i' : 'span');
+      dot.className = space.preferential ? 'fas fa-wheelchair space-icon' : 'space-dot';
       const code = document.createElement('span');
       code.className = 'space-code';
       code.textContent = space.id;
@@ -130,7 +135,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (Array.isArray(data.zones)) {
         data.zones.forEach((z) => {
           const chip = document.querySelector(`#zoneChipsContainer a[data-zone="${z.code}"]`);
-          if (chip) chip.textContent = `Zone ${z.code} · ${z.free} free`;
+          const chipText = chip ? chip.querySelector('.zone-chip-text') : null;
+          if (chipText) chipText.textContent = `Zone ${z.code} · ${z.free} free`;
         });
         const zone = data.zones.find((z) => z.code === currentZone);
         if (zone && panelFreeVal) panelFreeVal.textContent = `${zone.free} of ${zone.total}`;

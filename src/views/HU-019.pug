@@ -1,4 +1,4 @@
-//- HU-019 (#35) · Tarifas, horario y regla de extensión por zona (solo admin)
+//- HU-019 (#35) · Tarifas por tipo de vehículo y reglas de cada zona (solo admin) · migración 007
 extends layouts/app
 
 block content
@@ -11,7 +11,31 @@ block content
 
     .alert.alert-info
       i.fas.fa-circle-info
-      span Changes apply only to new parking sessions. Active sessions keep the rate they already paid.
+      span The price depends on the vehicle type. Changes apply only to new parking sessions; active sessions keep the rate they already paid.
+
+    //- Tarifas por tipo de vehículo
+    .card
+      .card-header
+        h2.card-title Rates by vehicle type
+        p.card-subtitle Colombian pesos. Extensions are charged at the same hourly rate.
+      div(id="rateGrid", class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4 mt-4")
+        each r in rates
+          form.rate-form(data-type=r.type, novalidate, class="flex flex-col gap-3 p-4 rounded-2xl border border-line")
+            div(class="flex items-center gap-3")
+              span(class="w-9 h-9 shrink-0 rounded-xl bg-primary/10 text-primary flex items-center justify-center")
+                i(class=`fas ${r.icon}`)
+              strong(class="text-sm text-ink")= r.type
+            div(class="grid grid-cols-2 gap-2")
+              .field(class="mb-0")
+                label(for=`hour${r.type}`) Per hour
+                input.input(id=`hour${r.type}`, name="ratePerHour", type="number", min="1", step="1", inputmode="numeric", required, value=r.ratePerHour)
+              .field(class="mb-0")
+                label(for=`day${r.type}`) Per day
+                input.input(id=`day${r.type}`, name="ratePerDay", type="number", min="1", step="1", inputmode="numeric", required, value=r.ratePerDay)
+            p.field-error(data-role="error", hidden)
+            button.btn.btn-secondary(type="submit")
+              i.fas.fa-save
+              span Save rate
 
     if zones.length === 0 && !errorMessage
       .card
@@ -26,21 +50,15 @@ block content
               span(class="w-11 h-11 shrink-0 rounded-xl bg-primary/10 text-primary font-bold text-lg flex items-center justify-center")= z.code
               div(class="min-w-0")
                 h2.card-title= z.name
-                p(class="text-xs text-muted truncate")= z.description || `${z.spaces} spaces`
+                p(class="text-xs text-muted truncate")= `${z.spaces} spaces · ${z.preferentialSpaces} preferential`
             span(class="pill whitespace-nowrap shrink-0 " + (z.isOpen ? 'pill-success' : 'pill-muted'), data-role="open-pill")= z.isOpen ? 'Open now' : 'Closed now'
 
-          //- Tarifas
-          div(class="grid grid-cols-1 sm:grid-cols-2 gap-3")
-            .field(class="mb-0")
-              label(for=`rateHour${z.code}`) Rate per hour (COP)
-              .input-icon
-                i.fas.fa-clock
-                input.input(id=`rateHour${z.code}`, name="ratePerHour", type="number", min="1", step="1", inputmode="numeric", required, value=z.ratePerHour)
-            .field(class="mb-0")
-              label(for=`rateDay${z.code}`) Rate per day (COP)
-              .input-icon
-                i.fas.fa-calendar-day
-                input.input(id=`rateDay${z.code}`, name="ratePerDay", type="number", min="1", step="1", inputmode="numeric", required, value=z.ratePerDay)
+          //- Qué vehículos acepta la zona (migración 007)
+          .field(class="mb-0")
+            label(for=`class${z.code}`) Vehicles allowed
+            select.input(id=`class${z.code}`, name="vehicleClass")
+              each label, key in zoneClassLabels
+                option(value=key, selected=(key === z.vehicleClass))= label
 
           //- Horario de servicio
           div(class="grid grid-cols-2 gap-3")
@@ -63,7 +81,7 @@ block content
           //- Pie: resumen y guardar
           div(class="flex items-center justify-between gap-3 pt-3 border-t border-line flex-wrap")
             span(class="text-[11px] text-muted", data-role="summary")
-              | #{z.rateHourText} / hour · #{z.scheduleText} · #{z.activeSessions} active
+              | #{z.classLabel} · #{z.scheduleText} · #{z.activeSessions} active
             button.btn.btn-primary(type="submit")
               i.fas.fa-save
               span Save zone

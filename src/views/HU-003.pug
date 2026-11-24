@@ -66,14 +66,23 @@ block content
         div(class="flex items-center gap-2 flex-wrap mb-6")#zoneChipsContainer
           if zones
             each z in zones
-              a.chip(href='/zones?zone=' + z.code, data-zone=z.code, class=(z.code === currentZoneCode ? 'active' : ''))= 'Zone ' + z.code + ' · ' + z.free + ' free'
+              //- Migración 007: zonas solo para motos o bicicletas llevan su ícono
+              a.chip(href='/zones?zone=' + z.code, data-zone=z.code, class=(z.code === currentZoneCode ? 'active' : ''), title=z.classLabel)
+                if z.vehicleClass === 'motorcycle'
+                  i(class="fas fa-motorcycle mr-1")
+                else if z.vehicleClass === 'bicycle'
+                  i(class="fas fa-bicycle mr-1")
+                span.zone-chip-text= 'Zone ' + z.code + ' · ' + z.free + ' free'
 
         //- Cuadrícula de espacios: 4 columnas en celular, 8 desde 640 px
         div(id="spacesGrid", class="grid grid-cols-4 sm:grid-cols-8 gap-3 mb-6", data-current-zone=currentZoneCode)
           if spaces
             each space in spaces
-              button.space-grid-item(type="button", data-space-id=space.id, data-occupied=(space.occupied ? 'true' : 'false'), disabled=space.occupied, class=(space.occupied ? 'occupied' : 'available'))
-                span.space-dot
+              button.space-grid-item(type="button", data-space-id=space.id, data-occupied=(space.occupied ? 'true' : 'false'), data-preferential=(space.preferential ? 'true' : 'false'), disabled=space.occupied, class=(space.occupied ? 'occupied' : 'available') + (space.preferential ? ' preferential' : ''), title=(space.preferential ? 'Preferential space: disability, pregnancy or special attention' : null))
+                if space.preferential
+                  i(class="fas fa-wheelchair space-icon")
+                else
+                  span.space-dot
                 span.space-code= space.id
 
         //- Leyenda
@@ -87,6 +96,9 @@ block content
           div(class="flex items-center gap-2")
             span(class="w-3 h-3 rounded border-2 border-accent")
             span Selected
+          div(class="flex items-center gap-2")
+            i(class="fas fa-wheelchair text-[11px] text-blue-600")
+            span Preferential
           span(class="ml-auto flex items-center gap-2")
             span(class="w-2 h-2 rounded-full bg-success")
             | Live · read-only view
@@ -109,6 +121,9 @@ block content
           .data-list-item
             span.data-list-label Free in this zone
             span.data-list-value#panelFreeVal= selectedZone ? `${selectedZone.free} of ${selectedZone.total}` : '—'
+          .data-list-item
+            span.data-list-label Vehicles
+            span.data-list-value#panelClassVal= selectedZone ? selectedZone.classLabel : '—'
           .data-list-item
             span.data-list-label Rate
             span.data-list-value#panelRateVal= formattedRate || '$2,000 COP / hour'

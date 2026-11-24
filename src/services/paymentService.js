@@ -9,6 +9,8 @@ import {
 } from '../utils/paymentRules.js';
 import { SQL_OCCUPIED_EXISTS } from './driverParkingService.js';
 import { formatSchedule } from '../utils/zoneRules.js';
+import { guessVehicleType, normalizeVehicleType, isTypeAllowedInZone, zoneClassError } from '../utils/vehicleTypes.js';
+import { getRateFor } from './vehicleRateService.js';
 
 export class PaymentError extends Error {
   constructor(message, status = 400) {
@@ -24,12 +26,12 @@ export async function recordParkingPayment(userId, input) {
     throw new PaymentError(error.message, error.status);
   }
 
-  const { plate, zone, spaceId, rateType, quantity, vehicleType, saveVehicle } = data;
+  const { plate, zone, spaceId, rateType, quantity, vehicleType, saveVehicle, preferentialConfirmed } = data;
 
   return await db.transaction(async (transaction) => {
     // 1. Obtener zona y tarifas desde la BD
     const zones = await db.query(
-      `SELECT code, rate_per_hour, rate_per_day, opens_at, closes_at,
+      `SELECT code, rate_per_hour, rate_per_day, opens_at, closes_at, vehicle_class,
               (CURTIME() >= opens_at AND CURTIME() < closes_at) AS is_open
          FROM zones WHERE code = ? LIMIT 1`,
       {
@@ -53,13 +55,28 @@ export async function recordParkingPayment(userId, input) {
       );
     }
 
+    // 1b. Tipo del vehículo: el registrado manda; si es una placa nueva, el que eligió el conductor;
+    //     si no hay ninguno, se deduce de la placa (letra al final = moto).
+    const [ownVehicle] = await db.query(
+      'SELECT id, vehicle_type FROM vehicles WHERE plate = ? AND user_id = ? LIMIT 1',
+      { replacements: [plate, userId], type: QueryTypes.SELECT, transaction }
+    );
+    const chargedType = normalizeVehicleType(ownVehicle && ownVehicle.vehicle_type)
+      || vehicleType
+      || guessVehicleType(plate);
+
+    // 1c. Zonas solo para motos o solo para bicicletas (migración 007)
+    if (!isTypeAllowedInZone(chargedType, zoneRecord.vehicle_class)) {
+      throw new PaymentError(zoneClassError(zoneRecord.code, zoneRecord.vehicle_class), 409);
+    }
+
     // 2. Espacio: si viene spaceId se verifica que exista y esté libre;
     //    si no viene, se asigna el primer espacio libre de la zona (HU-004).
     let assignedSpaceId = spaceId;
 
     if (spaceId) {
       const spaces = await db.query(
-        `SELECT ps.id, ${SQL_OCCUPIED_EXISTS} AS occupied
+        `SELECT ps.id, ps.space_type, ${SQL_OCCUPIED_EXISTS} AS occupied
          FROM parking_spaces ps
          WHERE ps.id = ? AND ps.zone = ?
          LIMIT 1 FOR UPDATE`,
@@ -77,11 +94,19 @@ export async function recordParkingPayment(userId, input) {
       if (Number(spaces[0].occupied) === 1) {
         throw new PaymentError('This space is no longer available.', 409);
       }
+
+      // Espacios preferenciales: el conductor debe confirmar que lo necesita
+      if (spaces[0].space_type === 'preferential' && !preferentialConfirmed) {
+        throw new PaymentError(
+          'This space is reserved for people with disabilities, pregnant women or people who need special attention. Please confirm to use it.',
+          409
+        );
+      }
     } else {
       const freeSpaces = await db.query(
         `SELECT ps.id
          FROM parking_spaces ps
-         WHERE ps.zone = ? AND NOT ${SQL_OCCUPIED_EXISTS}
+         WHERE ps.zone = ? AND ps.space_type = 'regular' AND NOT ${SQL_OCCUPIED_EXISTS}
          ORDER BY CHAR_LENGTH(ps.id), ps.id
          LIMIT 1 FOR UPDATE`,
         {
@@ -92,7 +117,8 @@ export async function recordParkingPayment(userId, input) {
       );
 
       if (!freeSpaces || freeSpaces.length === 0) {
-        throw new PaymentError('There are no free spaces in this zone.', 409);
+        // La asignación automática nunca toma un espacio preferencial
+        throw new PaymentError('There are no free regular spaces in this zone.', 409);
       }
 
       assignedSpaceId = freeSpaces[0].id;
@@ -114,17 +140,8 @@ export async function recordParkingPayment(userId, input) {
       throw new PaymentError('This vehicle already has an active parking session.', 409);
     }
 
-    // 4. Buscar id del vehículo si pertenece al mismo usuario
-    const vehicles = await db.query(
-      'SELECT id FROM vehicles WHERE plate = ? AND user_id = ? LIMIT 1',
-      {
-        replacements: [plate, userId],
-        type: QueryTypes.SELECT,
-        transaction
-      }
-    );
-
-    let vehicleId = vehicles && vehicles.length > 0 ? vehicles[0].id : null;
+    // 4. Id del vehículo si pertenece al mismo usuario (consultado en 1b)
+    let vehicleId = ownVehicle ? ownVehicle.id : null;
     let vehicleSaved = false;
 
     // 4b. HU-004: si el conductor marcó "Save this vehicle", la placa nueva queda en sus vehículos.
@@ -138,18 +155,16 @@ export async function recordParkingPayment(userId, input) {
       if (!taken || taken.length === 0) {
         const [newVehicleId] = await db.query(
           'INSERT INTO vehicles (user_id, plate, vehicle_type) VALUES (?, ?, ?)',
-          { replacements: [userId, plate, vehicleType || 'Car'], type: QueryTypes.INSERT, transaction }
+          { replacements: [userId, plate, chargedType], type: QueryTypes.INSERT, transaction }
         );
         vehicleId = newVehicleId;
         vehicleSaved = true;
       }
     }
 
-    // 5. Calcular el monto en el servidor
-    const amount = calculateAmount(rateType, quantity, {
-      ratePerHour: zoneRecord.rate_per_hour,
-      ratePerDay: zoneRecord.rate_per_day
-    });
+    // 5. Calcular el monto en el servidor con la tarifa del tipo de vehículo (migración 007)
+    const typeRate = await getRateFor(chargedType, { transaction });
+    const amount = calculateAmount(rateType, quantity, typeRate);
 
     const startTime = new Date();
     const endTime = calculateEndTime(startTime, rateType, quantity);
@@ -166,14 +181,15 @@ export async function recordParkingPayment(userId, input) {
       try {
         const [insertId] = await db.query(
           `INSERT INTO parking_sessions 
-            (receipt_number, user_id, vehicle_id, plate, zone, space_id, rate_type, quantity, amount, start_time, end_time, status, payment_status, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', 'paid', NOW())`,
+            (receipt_number, user_id, vehicle_id, plate, vehicle_type, zone, space_id, rate_type, quantity, amount, start_time, end_time, status, payment_status, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', 'paid', NOW())`,
           {
             replacements: [
               receiptNumber,
               userId,
               vehicleId,
               plate,
+              chargedType,
               zone,
               assignedSpaceId,
               rateType,
@@ -195,6 +211,7 @@ export async function recordParkingPayment(userId, input) {
           endTime,
           zone,
           spaceId: assignedSpaceId,
+          vehicleType: chargedType,
           vehicleSaved
         };
       } catch (err) {
@@ -221,7 +238,7 @@ export async function recordExtensionPayment(userId, input) {
   return await db.transaction(async (transaction) => {
     // 1. Obtener y bloquear la sesión para actualizar (FOR UPDATE)
     const sessions = await db.query(
-      `SELECT ps.id, ps.user_id, ps.receipt_number, ps.end_time, ps.status, ps.payment_status, z.rate_per_hour, z.allows_extension
+      `SELECT ps.id, ps.user_id, ps.receipt_number, ps.plate, ps.vehicle_type, ps.end_time, ps.status, ps.payment_status, z.allows_extension
        FROM parking_sessions ps
        JOIN zones z ON ps.zone = z.code
        WHERE ps.id = ? FOR UPDATE`,
@@ -257,7 +274,9 @@ export async function recordExtensionPayment(userId, input) {
     }
 
     // 2. Calcular valores de extensión
-    const amount = hours * session.rate_per_hour;
+    // La extensión cuesta lo mismo por hora que el parqueo: tarifa del tipo de vehículo de la sesión
+    const { ratePerHour } = await getRateFor(session.vehicle_type || guessVehicleType(session.plate), { transaction });
+    const amount = hours * ratePerHour;
     const newEndTime = calculateEndTime(previousEndTime, 'hour', hours);
 
     // 3. Insertar la extensión

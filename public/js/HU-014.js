@@ -26,10 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Las bicicletas se registran con su número de serie en vez de placa
   const syncPlateField = () => {
     if (!plate || !vehicleType) return;
-    const isBike = vehicleType.value === 'Bicycle';
-    if (plateLabel) plateLabel.textContent = isBike ? 'Serial number' : 'Plate';
-    plate.placeholder = isBike ? 'GW1234BK' : 'ABC123';
-    plate.maxLength = isBike ? 12 : 7;
+    const type = vehicleType.value;
+    if (plateLabel) plateLabel.textContent = type === 'Bicycle' ? 'Serial number' : 'Plate';
+    // Motos: placa con letra final o la antigua tipo carro
+    plate.placeholder = type === 'Bicycle' ? 'GW1234BK' : type === 'Motorcycle' ? 'ABC12D or ABC123' : 'ABC123';
+    plate.maxLength = type === 'Bicycle' ? 12 : 6;
   };
   if (vehicleType) {
     vehicleType.addEventListener('change', syncPlateField);

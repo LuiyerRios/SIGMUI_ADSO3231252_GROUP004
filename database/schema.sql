@@ -65,11 +65,20 @@ CREATE TABLE vehicles (
   CONSTRAINT vehicles_ibfk_1 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- Migración 007: el precio depende del tipo de vehículo (por día = 10 x por hora)
+CREATE TABLE vehicle_rates (
+  vehicle_type VARCHAR(20) NOT NULL,
+  rate_per_hour INT NOT NULL,
+  rate_per_day INT NOT NULL,
+  PRIMARY KEY (vehicle_type)
+) ENGINE=InnoDB;
+
 -- HU-003 / HU-004 / HU-005 (zonas y tarifas)
 CREATE TABLE zones (
   code VARCHAR(5) NOT NULL,
   name VARCHAR(50) NOT NULL,
   description VARCHAR(255) NULL,
+  vehicle_class ENUM('general', 'motorcycle', 'bicycle') NOT NULL DEFAULT 'general',
   latitude DECIMAL(10,8) NULL,
   longitude DECIMAL(11,8) NULL,
   rate_per_hour INT NOT NULL,
@@ -93,6 +102,7 @@ CREATE TABLE parking_config (
 CREATE TABLE parking_spaces (
   id VARCHAR(10) NOT NULL,
   zone VARCHAR(5) NOT NULL,
+  space_type ENUM('regular', 'preferential') NOT NULL DEFAULT 'regular',
   status ENUM('available', 'occupied') NOT NULL DEFAULT 'available',
   vehicle_id INT NULL,
   entry_time DATETIME NULL,
@@ -110,6 +120,7 @@ CREATE TABLE parking_sessions (
   user_id INT NULL,
   vehicle_id INT NULL,
   plate VARCHAR(20) NOT NULL,
+  vehicle_type VARCHAR(20) NULL,
   zone VARCHAR(5) NOT NULL,
   space_id VARCHAR(10) NULL,
   rate_type ENUM('hour', 'day') NOT NULL,
@@ -199,17 +210,22 @@ CREATE TABLE notifications (
 -- ---------------------------------------------------------------------
 -- Datos iniciales (tarifas iguales a las de las vistas: $2.000 hora / $20.000 día)
 -- ---------------------------------------------------------------------
-INSERT INTO zones (code, name, description, latitude, longitude, rate_per_hour, rate_per_day) VALUES
-('A', 'Zone A', 'General vehicles - level 1',             3.45160000, -76.53200000, 2000, 20000),
-('B', 'Zone B', 'Preferential zone for motorcycles',     3.45160000, -76.53200000, 2000, 20000),
-('C', 'Zone C', 'Preferential / reduced mobility (PRM)', 3.45160000, -76.53200000, 2000, 20000),
-('D', 'Zone D', 'Downtown blue zone - Calle 5',          3.45160000, -76.53200000, 2000, 20000),
-('E', 'Zone E', NULL,                                    3.45160000, -76.53200000, 2000, 20000),
-('F', 'Zone F', NULL,                                    3.45160000, -76.53200000, 2000, 20000);
+INSERT INTO vehicle_rates (vehicle_type, rate_per_hour, rate_per_day) VALUES
+('Bicycle', 500, 5000), ('Motorcycle', 1200, 12000), ('Car', 2400, 24000), ('SUV', 5000, 50000),
+('Truck', 8000, 80000), ('Van', 3400, 34000), ('Other', 3400, 34000);
 
-INSERT INTO parking_config (id, spaces_per_zone, zones_list) VALUES (1, 10, 'A,B,C,D');
+-- rate_per_hour / rate_per_day de zones ya no se usan para cobrar (quedan por compatibilidad)
+INSERT INTO zones (code, name, description, vehicle_class, latitude, longitude, rate_per_hour, rate_per_day) VALUES
+('A', 'Zone A', 'General vehicles - level 1',             'general',    3.45160000, -76.53200000, 2000, 20000),
+('B', 'Zone B', 'Motorcycles only',                       'motorcycle', 3.45160000, -76.53200000, 2000, 20000),
+('C', 'Zone C', 'Preferential / reduced mobility (PRM)',  'general',    3.45160000, -76.53200000, 2000, 20000),
+('D', 'Zone D', 'Downtown blue zone - Calle 5',           'general',    3.45160000, -76.53200000, 2000, 20000),
+('E', 'Zone E', 'Bicycles only',                          'bicycle',    3.45160000, -76.53200000, 2000, 20000),
+('F', 'Zone F', NULL,                                     'general',    3.45160000, -76.53200000, 2000, 20000);
 
--- 40 espacios: A1-A10 ... D1-D10
-INSERT INTO parking_spaces (id, zone)
+INSERT INTO parking_config (id, spaces_per_zone, zones_list) VALUES (1, 10, 'A,B,C,D,E,F');
+
+-- 60 espacios: A1-A10 ... F1-F10; los 3 primeros de cada zona son preferenciales
+INSERT INTO parking_spaces (id, zone, space_type)
 WITH RECURSIVE n AS (SELECT 1 AS i UNION ALL SELECT i + 1 FROM n WHERE i < 10)
-SELECT CONCAT(z.code, n.i), z.code FROM zones z CROSS JOIN n WHERE z.code IN ('A', 'B', 'C', 'D');
+SELECT CONCAT(z.code, n.i), z.code, IF(n.i <= 3, 'preferential', 'regular') FROM zones z CROSS JOIN n;

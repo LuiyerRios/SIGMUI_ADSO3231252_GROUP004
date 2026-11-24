@@ -1,5 +1,6 @@
 import { getZonesOverview, getUserVehicles, getActiveSessions, getFreeSpacesByZone } from '../services/driverParkingService.js';
-import { VEHICLE_TYPES } from '../utils/vehicleTypes.js';
+import { VEHICLE_TYPES, vehicleClassOf, ZONE_CLASS_LABELS } from '../utils/vehicleTypes.js';
+import { getVehicleRates } from '../services/vehicleRateService.js';
 import { formatCOP } from '../utils/paymentFormat.js';
 
 /**
@@ -19,11 +20,12 @@ export async function renderStartParking(req, res) {
   };
 
   try {
-    const [zones, vehicles, activeSessions, freeSpaces] = await Promise.all([
+    const [zones, vehicles, activeSessions, freeSpaces, vehicleRates] = await Promise.all([
       getZonesOverview(),
       getUserVehicles(userId),
       getActiveSessions(userId),
-      getFreeSpacesByZone()
+      getFreeSpacesByZone(),
+      getVehicleRates()
     ]);
 
     // Zona preseleccionada: la de ?zone= si tiene espacios libres; si no, la primera con espacios libres
@@ -32,8 +34,11 @@ export async function renderStartParking(req, res) {
     const requested = /^[A-F]\d{1,2}$/.test(requestedSpace)
       ? requestedSpace.charAt(0)
       : String(req.query.zone || '').toUpperCase();
+    // Sin zona pedida se busca una que acepte el primer vehículo del conductor (moto, bici o general)
+    const firstClass = vehicles.length ? vehicleClassOf(vehicles[0].vehicleType) : 'general';
     const selectedZone =
       zones.find(z => z.code === requested && z.free > 0 && z.isOpen) ||
+      zones.find(z => z.free > 0 && z.isOpen && z.vehicleClass === firstClass) ||
       zones.find(z => z.free > 0 && z.isOpen) ||
       null;
 
@@ -46,7 +51,7 @@ export async function renderStartParking(req, res) {
 
     // El espacio pedido solo se preselecciona si sigue libre y es de la zona elegida
     const zoneFree = selectedZone ? (freeSpaces[selectedZone.code] || []) : [];
-    const selectedSpaceId = zoneFree.includes(requestedSpace) ? requestedSpace : '';
+    const selectedSpaceId = zoneFree.some(sp => sp.id === requestedSpace) ? requestedSpace : '';
     const spaceNotice = requestedSpace && !selectedSpaceId
       ? `Space ${requestedSpace} is no longer available. Pick another one or leave it on Auto.`
       : null;
@@ -56,6 +61,8 @@ export async function renderStartParking(req, res) {
       zones: zonesView,
       vehicles,
       vehicleTypes: VEHICLE_TYPES,
+      vehicleRates,
+      zoneClassLabels: ZONE_CLASS_LABELS,
       activeSessions,
       freeSpaces,
       selectedZoneCode: selectedZone ? selectedZone.code : null,
@@ -70,6 +77,8 @@ export async function renderStartParking(req, res) {
       zones: [],
       vehicles: [],
       vehicleTypes: VEHICLE_TYPES,
+      vehicleRates: {},
+      zoneClassLabels: ZONE_CLASS_LABELS,
       activeSessions: [],
       freeSpaces: {},
       selectedZoneCode: null,

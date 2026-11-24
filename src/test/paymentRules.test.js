@@ -47,7 +47,8 @@ describe('HU-017 Payment Rules Unit Tests', () => {
         rateType: 'hour',
         quantity: 2,
         vehicleType: null,
-        saveVehicle: false
+        saveVehicle: false,
+        preferentialConfirmed: false
       });
     });
 

@@ -64,7 +64,7 @@ describe('HU-014 Settings Rules Unit Tests', () => {
 
       // Assert
       expect(car.value).toEqual({ plate: 'ABC123', brandModel: 'Mazda 3', vehicleType: 'Car' });
-      expect(moto.value).toEqual({ plate: 'XYZ12A', brandModel: null, vehicleType: 'Car' });
+      expect(moto.value).toEqual({ plate: 'XYZ12A', brandModel: null, vehicleType: 'Motorcycle' });
     });
 
     test('saves the vehicle type and accepts a bicycle serial number', () => {
@@ -79,6 +79,13 @@ describe('HU-014 Settings Rules Unit Tests', () => {
       expect(validateVehicle({ plate: 'B1', vehicle_type: 'Bicycle' }).error).toBe('bicycle_serial');
     });
 
+    test('motos aceptan placa con letra final o la antigua tipo carro; carros solo ABC123', () => {
+      expect(validateVehicle({ plate: 'ABC12D', vehicle_type: 'Motorcycle' }).value.vehicleType).toBe('Motorcycle');
+      expect(validateVehicle({ plate: 'ABC123', vehicle_type: 'Motorcycle' }).value.vehicleType).toBe('Motorcycle');
+      expect(validateVehicle({ plate: 'ABC12D', vehicle_type: 'Car' }).error).toBe('plate_invalid');
+      expect(validateVehicle({ plate: 'AB123', vehicle_type: 'Motorcycle' }).error).toBe('plate_moto');
+    });
+
     test('rejects invalid plates and long brand names', () => {
       // Arrange & Act & Assert
       expect(validateVehicle({ plate: '12ABC3' }).error).toBe('plate_invalid');
@@ -89,7 +96,7 @@ describe('HU-014 Settings Rules Unit Tests', () => {
   test('every error code has a user message', () => {
     // Arrange
     const codes = ['profile', 'password_required', 'password_current', 'password_weak', 'password_match',
-      'password_same', 'plate_invalid', 'plate_taken', 'brand_long', 'vehicle_active', 'vehicle_not_found', 'server'];
+      'password_same', 'plate_invalid', 'plate_moto', 'bicycle_serial', 'vehicle_type', 'plate_taken', 'brand_long', 'vehicle_active', 'vehicle_not_found', 'server'];
 
     // Act & Assert
     codes.forEach((code) => expect(SETTINGS_MESSAGES.error[code]).toEqual(expect.any(String)));

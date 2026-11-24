@@ -5,6 +5,16 @@ import {
   getActiveSessions
 } from '../services/driverParkingService.js';
 import { formatCOP } from '../utils/paymentFormat.js';
+import { getVehicleRates } from '../services/vehicleRateService.js';
+
+// Tarifa que se muestra según la clase de la zona (migración 007: el precio depende del tipo de vehículo)
+function zoneRateText(zone, rates) {
+  if (!zone || !rates.Car) return '—';
+  if (zone.vehicleClass === 'motorcycle') return `${formatCOP(rates.Motorcycle.ratePerHour)} / hour`;
+  if (zone.vehicleClass === 'bicycle') return `${formatCOP(rates.Bicycle.ratePerHour)} / hour`;
+  const general = ['Car', 'SUV', 'Truck', 'Van', 'Other'].map(t => rates[t].ratePerHour);
+  return `From ${formatCOP(Math.min(...general))} / hour`;
+}
 
 /**
  * Renders the driver home view (HU-003 Find a space).
@@ -14,10 +24,11 @@ export async function renderHome(req, res) {
     const userId = req.session.user.id;
 
     // 1. Obtener zonas, totales globales y sesiones activas del usuario
-    const [zones, totals, activeSessions] = await Promise.all([
+    const [zones, totals, activeSessions, rates] = await Promise.all([
       getZonesOverview(),
       getTotals(),
-      getActiveSessions(userId)
+      getActiveSessions(userId),
+      getVehicleRates()
     ]);
 
     // 2. Determinar zona inicial seleccionada
@@ -34,9 +45,7 @@ export async function renderHome(req, res) {
     const spaces = selectedZoneObj ? await getSpaces(selectedZoneCode) : [];
 
     // Formatear tarifa por hora para la vista
-    const formattedRate = selectedZoneObj
-      ? `${formatCOP(selectedZoneObj.ratePerHour)} / hour`
-      : '$2,000 COP / hour';
+    const formattedRate = zoneRateText(selectedZoneObj, rates);
 
     res.render('HU-003', {
       title: 'Find a Space | Tech Parking',
@@ -63,7 +72,7 @@ export async function renderHome(req, res) {
       activeSessions: [],
       selectedZone: null,
       spaces: [],
-      formattedRate: '$2,000 COP / hour',
+      formattedRate: '—',
       errorMessage: 'The parking information is temporarily unavailable.'
     });
   }
@@ -78,10 +87,11 @@ export async function homeData(req, res) {
     const userId = req.session.user.id;
     const requestedZone = req.query.zone || 'A';
 
-    const [zones, totals, activeSessions] = await Promise.all([
+    const [zones, totals, activeSessions, rates] = await Promise.all([
       getZonesOverview(),
       getTotals(),
-      getActiveSessions(userId)
+      getActiveSessions(userId),
+      getVehicleRates()
     ]);
 
     let targetZone = zones.find(z => z.code === requestedZone);
@@ -99,7 +109,8 @@ export async function homeData(req, res) {
       selectedZoneCode: targetZone ? targetZone.code : requestedZone,
       scheduleText: targetZone ? targetZone.scheduleText : '',
       isOpen: targetZone ? targetZone.isOpen : true,
-      formattedRate: targetZone ? `${formatCOP(targetZone.ratePerHour)} / hour` : '$2,000 COP / hour'
+      classLabel: targetZone ? targetZone.classLabel : '',
+      formattedRate: zoneRateText(targetZone, rates)
     });
   } catch (error) {
     console.error('Error fetching home data API:', error);

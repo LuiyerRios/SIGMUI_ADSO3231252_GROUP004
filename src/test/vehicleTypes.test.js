@@ -1,5 +1,5 @@
 // Tipos de vehículo y regla de placa según el tipo (Arrange / Act / Assert)
-import { VEHICLE_TYPES, normalizeVehicleType, isValidPlateForType, vehicleIcon } from '../utils/vehicleTypes.js';
+import { VEHICLE_TYPES, normalizeVehicleType, isValidPlateForType, vehicleIcon, guessVehicleType, plateErrorMessage } from '../utils/vehicleTypes.js';
 import { validateParkingPayment } from '../utils/paymentRules.js';
 
 describe('vehicleTypes', () => {
@@ -14,10 +14,22 @@ describe('vehicleTypes', () => {
 
   test('carros y motos usan placa colombiana; bicicletas, número de serie', () => {
     expect(isValidPlateForType('ABC123', 'Car')).toBe(true);
+    expect(isValidPlateForType('ABC12D', 'Car')).toBe(false);
+    expect(isValidPlateForType('ABC123', 'Truck')).toBe(true);
     expect(isValidPlateForType('ABC12D', 'Motorcycle')).toBe(true);
+    // Motos antiguas con placa tipo carro
+    expect(isValidPlateForType('ABC123', 'Motorcycle')).toBe(true);
+    // Sin tipo (flujos viejos) se aceptan ambos formatos
+    expect(isValidPlateForType('ABC12D', null)).toBe(true);
     expect(isValidPlateForType('SERIAL01', 'Car')).toBe(false);
     expect(isValidPlateForType('SERIAL01', 'Bicycle')).toBe(true);
     expect(isValidPlateForType('B1', 'Bicycle')).toBe(false);
+  });
+
+  test('deduce moto por la letra final y da el mensaje según el tipo', () => {
+    expect(guessVehicleType('XYZ12A')).toBe('Motorcycle');
+    expect(guessVehicleType('XYZ123')).toBe('Car');
+    expect(plateErrorMessage('Motorcycle')).toMatch(/older motorcycles/);
   });
 
   test('cada tipo tiene un ícono y un tipo desconocido usa el del carro', () => {
