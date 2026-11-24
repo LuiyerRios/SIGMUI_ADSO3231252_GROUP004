@@ -428,11 +428,40 @@
     margin-bottom: 0.25rem;
   }
 
+  /* Espacios preferenciales (discapacidad, embarazo o trato especial · migración 007): azules con ícono */
+  .space-grid-item.preferential.available {
+    background-color: #eff6ff;
+    border-color: #93c5fd;
+  }
+
+  .space-grid-item.preferential.available:hover {
+    border-color: #3b82f6;
+  }
+
+  .space-grid-item .space-icon {
+    font-size: 0.7rem;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+
+  .space-grid-item.preferential.available .space-icon {
+    color: #2563eb;
+  }
+
+  .space-grid-item.preferential.occupied .space-icon {
+    color: #ef4444;
+  }
+
   .space-grid-item.selected {
     background-color: #faf5ff;
     color: var(--color-ink);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     transform: scale(1.05);
+    border: 2px solid var(--color-accent);
+  }
+
+  .space-grid-item.preferential.selected {
+    background-color: #faf5ff;
     border: 2px solid var(--color-accent);
   }
 

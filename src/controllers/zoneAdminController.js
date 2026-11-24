@@ -1,31 +1,43 @@
 // HU-019 (#35) · Tarifas y reglas por zona (solo admin)
 import { listZoneSettings, updateZoneSettings } from '../services/zoneAdminService.js';
-import { validateZoneSettings, ZONE_MESSAGES } from '../utils/zoneRules.js';
+import { validateZoneSettings, validateVehicleRate, ZONE_MESSAGES } from '../utils/zoneRules.js';
+import { getVehicleRates, updateVehicleRate } from '../services/vehicleRateService.js';
+import { VEHICLE_TYPES, VEHICLE_ICONS, ZONE_CLASS_LABELS, normalizeVehicleType } from '../utils/vehicleTypes.js';
 import { formatCOP } from '../utils/paymentFormat.js';
 
 const layoutLocals = {
   title: 'Zone rates | Tech Parking',
   activeMenu: 'zone_rates',
   pageTitle: 'Zone rates',
-  pageSubtitle: 'Rates, service hours and extension rules of each blue zone'
+  pageSubtitle: 'Rates by vehicle type, and which vehicles, hours and extensions each zone allows'
 };
 
-const withTexts = (zone) => ({
-  ...zone,
-  rateHourText: formatCOP(zone.ratePerHour),
-  rateDayText: formatCOP(zone.ratePerDay)
-});
+const withTexts = (zone) => ({ ...zone });
+
+// Tarifas por tipo listas para la vista
+async function rateRows() {
+  const rates = await getVehicleRates();
+  return VEHICLE_TYPES.map(type => ({
+    type,
+    icon: VEHICLE_ICONS[type],
+    ...rates[type],
+    hourText: formatCOP(rates[type].ratePerHour),
+    dayText: formatCOP(rates[type].ratePerDay)
+  }));
+}
 
 // GET /admin/zones
 export async function renderZoneSettings(req, res) {
   try {
-    const zones = (await listZoneSettings()).map(withTexts);
-    res.render('HU-019', { ...layoutLocals, zones, errorMessage: null });
+    const [zones, rates] = await Promise.all([listZoneSettings(), rateRows()]);
+    res.render('HU-019', { ...layoutLocals, zones: zones.map(withTexts), rates, zoneClassLabels: ZONE_CLASS_LABELS, errorMessage: null });
   } catch (error) {
     console.error('Zone settings error:', error);
     res.status(500).render('HU-019', {
       ...layoutLocals,
       zones: [],
+      rates: [],
+      zoneClassLabels: ZONE_CLASS_LABELS,
       errorMessage: 'The zone settings are temporarily unavailable.'
     });
   }
@@ -57,6 +69,26 @@ export async function saveZone(req, res) {
     res.json({ message: ZONE_MESSAGES.saved, zone: withTexts(zone) });
   } catch (err) {
     console.error('Save zone error:', err);
+    res.status(500).json({ error: ZONE_MESSAGES.failure });
+  }
+}
+
+// PUT /api/admin/vehicle-rates/:type · Migración 007: tarifa por tipo de vehículo
+export async function saveVehicleRate(req, res) {
+  const type = normalizeVehicleType(req.params.type);
+  if (!type) return res.status(404).json({ error: ZONE_MESSAGES.rateType });
+
+  const { value, error } = validateVehicleRate(req.body);
+  if (error) return res.status(400).json({ error });
+
+  try {
+    const rate = await updateVehicleRate(type, value);
+    res.json({
+      message: ZONE_MESSAGES.rateSaved,
+      rate: { type, ...rate, hourText: formatCOP(rate.ratePerHour), dayText: formatCOP(rate.ratePerDay) }
+    });
+  } catch (err) {
+    console.error('Save vehicle rate error:', err);
     res.status(500).json({ error: ZONE_MESSAGES.failure });
   }
 }

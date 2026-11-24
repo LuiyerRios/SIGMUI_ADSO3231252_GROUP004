@@ -1,6 +1,7 @@
 // HU-019 (#35) · Pruebas unitarias de tarifas y reglas por zona (Arrange / Act / Assert)
 import {
   validateZoneSettings,
+  validateVehicleRate,
   parseRate,
   isWithinSchedule,
   formatSchedule,
@@ -8,8 +9,7 @@ import {
 } from '../utils/zoneRules.js';
 
 const validBody = {
-  ratePerHour: '2500',
-  ratePerDay: '22000',
+  vehicleClass: 'motorcycle',
   opensAt: '06:00',
   closesAt: '20:00',
   allowsExtension: true
@@ -23,20 +23,23 @@ describe('HU-019 · validateZoneSettings', () => {
     // Assert
     expect(error).toBeUndefined();
     expect(value).toEqual({
-      ratePerHour: 2500,
-      ratePerDay: 22000,
+      vehicleClass: 'motorcycle',
       opensAt: '06:00:00',
       closesAt: '20:00:00',
       allowsExtension: true
     });
   });
 
-  test.each(['', '0', '-100', 'abc', '12.5', '2000000'])('rechaza la tarifa "%s"', (rate) => {
+  test('rechaza una clase de zona desconocida', () => {
+    expect(validateZoneSettings({ ...validBody, vehicleClass: 'planes' }).error).toBe(ZONE_MESSAGES.vehicleClass);
+  });
+
+  test.each(['', '0', '-100', 'abc', '12.5', '2000000'])('rechaza la tarifa "%s" de un tipo de vehículo', (rate) => {
     // Arrange
-    const body = { ...validBody, ratePerHour: rate };
+    const body = { ratePerHour: rate, ratePerDay: '22000' };
 
     // Act
-    const { error } = validateZoneSettings(body);
+    const { error } = validateVehicleRate(body);
 
     // Assert
     expect(error).toBe(ZONE_MESSAGES.rates);

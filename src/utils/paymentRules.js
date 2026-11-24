@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { normalizeVehicleType, isValidPlateForType } from './vehicleTypes.js';
+import { normalizeVehicleType, isValidPlateForType, plateErrorMessage } from './vehicleTypes.js';
 
 export function normalizePlate(plate) {
   const str = String(plate ?? '');
@@ -18,7 +18,8 @@ export function validateParkingPayment(body = {}) {
   // Tipo de vehículo (opcional): las bicicletas usan número de serie en vez de placa
   const vehicleType = normalizeVehicleType(body.vehicleType);
   if (!isValidPlateForType(plate, vehicleType)) {
-    return { error: { message: 'Please enter a valid plate.', status: 400 } };
+    // Sin tipo se conserva el mensaje original de HU-004
+    return { error: { message: vehicleType ? plateErrorMessage(vehicleType) : 'Please enter a valid plate.', status: 400 } };
   }
 
   const zone = String(body.zone ?? '').trim().toUpperCase();
@@ -62,7 +63,9 @@ export function validateParkingPayment(body = {}) {
       quantity,
       vehicleType,
       // Guardar la placa en "Mis vehículos" al pagar (checkbox de HU-004)
-      saveVehicle: body.saveVehicle === true || ['true', '1', 'on'].includes(String(body.saveVehicle).toLowerCase())
+      saveVehicle: body.saveVehicle === true || ['true', '1', 'on'].includes(String(body.saveVehicle).toLowerCase()),
+      // Confirmación para usar un espacio preferencial (discapacidad, embarazo o trato especial)
+      preferentialConfirmed: body.preferentialConfirmed === true || ['true', '1', 'on'].includes(String(body.preferentialConfirmed).toLowerCase())
     },
     error: null
   };

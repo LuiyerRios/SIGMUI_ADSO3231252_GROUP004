@@ -2,7 +2,7 @@ import express from 'express';
 import { QueryTypes } from 'sequelize';
 import db from '../config/db.js';
 import { requireRole } from '../middlewares/auth.js';
-import { listZones, saveZone } from '../controllers/zoneAdminController.js';
+import { listZones, saveZone, saveVehicleRate } from '../controllers/zoneAdminController.js';
 import { getAdminSpaces, getAdminStats, getConfig } from '../services/adminParkingService.js';
 import {
   listUsers, saveUser, changeUserStatus, removeUser, saveVehicle, removeVehicle
@@ -87,8 +87,9 @@ router.post('/parking-config', adminOnly, async (req, res) => {
   const rawZones = Array.isArray(body.zones) ? body.zones : String(body.zones || '').split(',');
   const zones = [...new Set(rawZones.map((z) => String(z).trim().toUpperCase()).filter((z) => /^[A-F]$/.test(z)))];
 
-  if (!Number.isInteger(spacesPerZone) || spacesPerZone < 1 || spacesPerZone > 50 || zones.length === 0) {
-    return res.status(400).json({ error: 'Invalid configuration: 1-50 spaces and zones A-F.' });
+  // Mínimo 4 espacios por zona: los 3 primeros son preferenciales (migración 007) y queda al menos uno regular
+  if (!Number.isInteger(spacesPerZone) || spacesPerZone < 4 || spacesPerZone > 50 || zones.length === 0) {
+    return res.status(400).json({ error: 'Invalid configuration: 4-50 spaces and zones A-F.' });
   }
 
   const t = await db.transaction();
@@ -115,11 +116,12 @@ router.post('/parking-config', adminOnly, async (req, res) => {
     const values = [];
     zones.forEach((zone) => {
       for (let n = 1; n <= spacesPerZone; n++) {
-        placeholders.push('(?, ?)');
-        values.push(`${zone}${n}`, zone);
+        placeholders.push('(?, ?, ?)');
+        // Los espacios 1, 2 y 3 de cada zona son preferenciales (discapacidad, embarazo o trato especial)
+        values.push(`${zone}${n}`, zone, n <= 3 ? 'preferential' : 'regular');
       }
     });
-    await db.query(`INSERT INTO parking_spaces (id, zone) VALUES ${placeholders.join(', ')}`, { replacements: values, transaction: t });
+    await db.query(`INSERT INTO parking_spaces (id, zone, space_type) VALUES ${placeholders.join(', ')}`, { replacements: values, transaction: t });
 
     await t.commit();
     res.json({ message: 'Parking capacity and layout successfully reconfigured.' });
@@ -139,6 +141,8 @@ router.post('/fines', agentOnly, createFine);
 // HU-019 (#35): tarifas y reglas por zona (admin)
 router.get('/admin/zones', adminOnly, listZones);
 router.put('/admin/zones/:code', adminOnly, saveZone);
+// Migración 007: tarifa por tipo de vehículo (admin)
+router.put('/admin/vehicle-rates/:type', adminOnly, saveVehicleRate);
 
 router.get('/admin/users', adminOnly, listUsers);
 router.put('/admin/users/:id', adminOnly, saveUser);

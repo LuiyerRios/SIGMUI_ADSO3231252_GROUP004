@@ -4,7 +4,7 @@ import { QueryTypes } from 'sequelize';
 import db from '../config/db.js';
 import { requireRole } from '../middlewares/auth.js';
 import { renderHome, homeData } from '../controllers/driverController.js';
-import { VEHICLE_TYPES, vehicleIcon } from '../utils/vehicleTypes.js';
+import { VEHICLE_TYPES, vehicleIcon, guessVehicleType } from '../utils/vehicleTypes.js';
 import { renderStartParking } from '../controllers/parkingStartController.js';
 import { renderExtendTime } from '../controllers/extendTimeController.js';
 import { renderPaymentSimulation, renderMyPayments, renderReceipt } from '../controllers/paymentSimulationController.js';
@@ -75,8 +75,8 @@ router.get('/settings', driverOnly, async (req, res) => {
       user,
       vehicles: vehicles.map(v => ({
         ...v,
-        vehicle_type: v.vehicle_type || 'Car',
-        icon: vehicleIcon(v.vehicle_type),
+        vehicle_type: v.vehicle_type || guessVehicleType(v.plate),
+        icon: vehicleIcon(v.vehicle_type || guessVehicleType(v.plate)),
         has_active_session: Boolean(Number(v.has_active_session))
       })),
       vehicleTypes: VEHICLE_TYPES,

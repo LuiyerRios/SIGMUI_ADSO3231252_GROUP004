@@ -6,7 +6,10 @@ export const ZONE_MESSAGES = {
   schedule: 'The closing time must be after the opening time.',
   scheduleFormat: 'Please enter a valid opening and closing time.',
   notFound: 'The zone does not exist.',
-  failure: 'Changes cannot be saved due to system failure.'
+  failure: 'Changes cannot be saved due to system failure.',
+  vehicleClass: 'Please choose which vehicles can park in this zone.',
+  rateSaved: 'Vehicle rate updated successfully.',
+  rateType: 'Unknown vehicle type.'
 };
 
 // Tope razonable para evitar errores de digitación (pesos colombianos)
@@ -44,9 +47,9 @@ export function parseBoolean(value) {
  * Devuelve { value } o { error } con el mensaje exacto de la historia.
  */
 export function validateZoneSettings(body = {}) {
-  const ratePerHour = parseRate(body.ratePerHour);
-  const ratePerDay = parseRate(body.ratePerDay);
-  if (ratePerHour === null || ratePerDay === null) return { error: ZONE_MESSAGES.rates };
+  // Migración 007: el precio ya no es de la zona sino del tipo de vehículo; la zona define qué vehículos acepta
+  const vehicleClass = String(body.vehicleClass ?? 'general').trim().toLowerCase();
+  if (!['general', 'motorcycle', 'bicycle'].includes(vehicleClass)) return { error: ZONE_MESSAGES.vehicleClass };
 
   const opens = timeToMinutes(body.opensAt);
   const closes = timeToMinutes(body.closesAt);
@@ -55,8 +58,7 @@ export function validateZoneSettings(body = {}) {
 
   return {
     value: {
-      ratePerHour,
-      ratePerDay,
+      vehicleClass,
       opensAt: `${toHHMM(body.opensAt)}:00`,
       closesAt: `${toHHMM(body.closesAt)}:00`,
       allowsExtension: parseBoolean(body.allowsExtension)
@@ -78,4 +80,12 @@ export function formatSchedule(opensAt, closesAt) {
   const closes = toHHMM(closesAt);
   if (opens === '00:00' && closes === '23:59') return 'Open 24 hours';
   return `${opens} – ${closes}`;
+}
+
+// Migración 007 · Tarifa de un tipo de vehículo (por hora y por día)
+export function validateVehicleRate(body = {}) {
+  const ratePerHour = parseRate(body.ratePerHour);
+  const ratePerDay = parseRate(body.ratePerDay);
+  if (ratePerHour === null || ratePerDay === null) return { error: ZONE_MESSAGES.rates };
+  return { value: { ratePerHour, ratePerDay } };
 }

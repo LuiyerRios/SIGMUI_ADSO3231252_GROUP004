@@ -1,6 +1,7 @@
 import db from '../config/db.js';
 import { QueryTypes } from 'sequelize';
-import { vehicleIcon } from '../utils/vehicleTypes.js';
+import { vehicleIcon, guessVehicleType, ZONE_CLASS_LABELS } from '../utils/vehicleTypes.js';
+import { getVehicleRates } from './vehicleRateService.js';
 import { toHHMM, formatSchedule } from '../utils/zoneRules.js';
 
 /**
@@ -29,14 +30,16 @@ export async function getZonesOverview() {
       z.rate_per_hour AS ratePerHour,
       z.rate_per_day AS ratePerDay,
       z.allows_extension AS allowsExtension,
+      z.vehicle_class AS vehicleClass,
       z.opens_at AS opensAt,
       z.closes_at AS closesAt,
       (CURTIME() >= z.opens_at AND CURTIME() < z.closes_at) AS isOpen,
       COUNT(ps.id) AS total,
-      SUM(CASE WHEN NOT ${SQL_OCCUPIED_EXISTS} THEN 1 ELSE 0 END) AS free
+      SUM(CASE WHEN NOT ${SQL_OCCUPIED_EXISTS} THEN 1 ELSE 0 END) AS free,
+      SUM(CASE WHEN ps.space_type = 'preferential' AND NOT ${SQL_OCCUPIED_EXISTS} THEN 1 ELSE 0 END) AS freePreferential
     FROM zones z
     JOIN parking_spaces ps ON ps.zone = z.code
-    GROUP BY z.code, z.name, z.rate_per_hour, z.rate_per_day, z.allows_extension, z.opens_at, z.closes_at
+    GROUP BY z.code, z.name, z.rate_per_hour, z.rate_per_day, z.allows_extension, z.vehicle_class, z.opens_at, z.closes_at
     ORDER BY z.code ASC
   `;
 
@@ -48,12 +51,16 @@ export async function getZonesOverview() {
     ratePerHour: Number(r.ratePerHour),
     ratePerDay: Number(r.ratePerDay),
     allowsExtension: Boolean(r.allowsExtension),
+    // Migración 007: zona general, solo motos o solo bicicletas
+    vehicleClass: r.vehicleClass || 'general',
+    classLabel: ZONE_CLASS_LABELS[r.vehicleClass || 'general'],
     opensAt: toHHMM(r.opensAt),
     closesAt: toHHMM(r.closesAt),
     scheduleText: formatSchedule(r.opensAt, r.closesAt),
     isOpen: Boolean(Number(r.isOpen)),
     total: Number(r.total),
-    free: Number(r.free)
+    free: Number(r.free),
+    freePreferential: Number(r.freePreferential)
   }));
 }
 
@@ -65,6 +72,7 @@ export async function getSpaces(zone) {
     SELECT 
       ps.id,
       ps.zone,
+      ps.space_type AS spaceType,
       ${SQL_OCCUPIED_EXISTS} AS occupied
     FROM parking_spaces ps
     WHERE ps.zone = :zone
@@ -79,6 +87,8 @@ export async function getSpaces(zone) {
   return rows.map(r => ({
     id: r.id,
     zone: r.zone,
+    // Preferencial: discapacidad, embarazo o trato especial (migración 007)
+    preferential: r.spaceType === 'preferential',
     occupied: Boolean(r.occupied)
   }));
 }
@@ -118,7 +128,7 @@ export async function getActiveSessions(userId) {
       s.space_id AS spaceId,
       s.start_time AS startTime,
       s.end_time AS endTime,
-      z.rate_per_hour AS ratePerHour,
+      s.vehicle_type AS vehicleType,
       z.allows_extension AS allowsExtension
     FROM parking_sessions s
     JOIN zones z ON z.code = s.zone
@@ -134,6 +144,8 @@ export async function getActiveSessions(userId) {
     type: QueryTypes.SELECT
   });
 
+  // La tarifa por hora de la extensión es la del tipo de vehículo con que se cobró el parqueo
+  const rates = rows.length ? await getVehicleRates() : {};
   return rows.map(r => ({
     id: r.id,
     receiptNumber: r.receiptNumber,
@@ -142,7 +154,8 @@ export async function getActiveSessions(userId) {
     spaceId: r.spaceId,
     startTime: r.startTime,
     endTime: r.endTime,
-    ratePerHour: Number(r.ratePerHour),
+    vehicleType: r.vehicleType || guessVehicleType(r.plate),
+    ratePerHour: (rates[r.vehicleType || guessVehicleType(r.plate)] || rates.Other).ratePerHour,
     allowsExtension: Boolean(r.allowsExtension)
   }));
 }
@@ -202,26 +215,27 @@ export async function getUserVehicles(userId) {
     id: r.id,
     plate: r.plate,
     brandModel: r.brandModel || '',
-    vehicleType: r.vehicleType || 'Car',
-    icon: vehicleIcon(r.vehicleType)
+    vehicleType: r.vehicleType || guessVehicleType(r.plate),
+    icon: vehicleIcon(r.vehicleType || guessVehicleType(r.plate))
   }));
 }
 
 /**
  * HU-004 · Espacios libres de todas las zonas, en orden natural (A1, A2 … A10),
  * para que el conductor pueda elegir uno en vez del primero libre.
- * Devuelve { A: ['A3', 'A4', …], B: [...] }
+ * Devuelve { A: [{ id: 'A3', preferential: false }, …], B: [...] }
  */
 export async function getFreeSpacesByZone() {
   const rows = await db.query(
-    `SELECT ps.id, ps.zone
+    `SELECT ps.id, ps.zone, ps.space_type
        FROM parking_spaces ps
       WHERE NOT ${SQL_OCCUPIED_EXISTS}
       ORDER BY ps.zone, CHAR_LENGTH(ps.id), ps.id`,
     { type: QueryTypes.SELECT }
   );
+  // { A: [{ id: 'A1', preferential: true }, …] }
   return rows.reduce((acc, r) => {
-    (acc[r.zone] = acc[r.zone] || []).push(r.id);
+    (acc[r.zone] = acc[r.zone] || []).push({ id: r.id, preferential: r.space_type === 'preferential' });
     return acc;
   }, {});
 }

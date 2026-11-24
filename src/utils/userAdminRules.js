@@ -1,6 +1,6 @@
 // HU-016 · Reglas puras de la gestión de usuarios del admin (sin BD) para probarlas con Jest
 import { normalizePlate } from './paymentRules.js';
-import { VEHICLE_TYPES, isValidPlateForType } from './vehicleTypes.js';
+import { VEHICLE_TYPES, isValidPlateForType, plateErrorMessage } from './vehicleTypes.js';
 import { isStrongPassword } from './settingsRules.js';
 
 // La vista usa los nombres del diseño; la BD usa los valores del ENUM
@@ -45,11 +45,7 @@ export function validateVehicleInput(body = {}) {
   const ownerId = Number.parseInt(body.ownerId, 10);
 
   if (!VEHICLE_TYPES.includes(type)) return { error: 'Please select a vehicle type.' };
-  if (!isValidPlateForType(plate, type)) {
-    return { error: type === 'Bicycle'
-      ? 'Please enter the bicycle serial number (4 to 12 letters or numbers).'
-      : 'Please enter a valid plate (ABC123 for cars or ABC12D for motorcycles).' };
-  }
+  if (!isValidPlateForType(plate, type)) return { error: plateErrorMessage(type) };
   const brandModel = [make, model].filter(Boolean).join(' ');
   if (brandModel.length > 100 || color.length > 40 || description.length > 150) {
     return { error: 'Some vehicle fields are too long.' };
